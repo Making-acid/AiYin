@@ -1,0 +1,54 @@
+{
+  "topics": [
+    {
+      "topic": "Travel & Tourism",
+      "questions": [
+        "Why do you think people enjoy traveling to new places?",
+        "How has tourism changed in your country in recent years?",
+        "Do you think international travel helps people understand different cultures better?",
+        "What are some negative effects of mass tourism?",
+        "How might travel and tourism change in the future?"
+      ]
+    },
+    {
+      "topic": "Education",
+      "questions": [
+        "What is the purpose of education in today's world?",
+        "How has technology changed the way students learn?",
+        "Do you think exams are the best way to assess students?",
+        "What skills should schools teach that they currently do not?",
+        "How important is lifelong learning in modern society?"
+      ]
+    },
+    {
+      "topic": "Technology & Society",
+      "questions": [
+        "How has the internet changed the way we communicate?",
+        "Do you think social media has more positive or negative effects on society?",
+        "How might artificial intelligence affect the job market?",
+        "Is technology making people more or less creative?",
+        "What technological development are you most excited about?"
+      ]
+    },
+    {
+      "topic": "Environment",
+      "questions": [
+        "What are the biggest environmental challenges facing the world today?",
+        "Whose responsibility is it to protect the environment?",
+        "Do you think individuals can make a difference in protecting the environment?",
+        "How has awareness of environmental issues changed in recent years?",
+        "Should governments invest more in renewable energy?"
+      ]
+    },
+    {
+      "topic": "Culture & Tradition",
+      "questions": [
+        "Why is it important to preserve cultural traditions?",
+        "How has globalization affected local cultures?",
+        "Do you think traditional festivals are losing their meaning?",
+        "Should children be taught about their cultural heritage?",
+        "How do different cultures influence each other today?"
+      ]
+    }
+  ]
+}

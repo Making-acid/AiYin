@@ -1,0 +1,21 @@
+{
+  "id": "_template",
+  "name": "Template - Copy this folder to add a new exam",
+  "language": "en",
+  "parts": {
+    "part1": { "question_count": 3, "description": "Description of Part 1" }
+  },
+  "scoring": {
+    "criteria": [
+      "criterion_1",
+      "criterion_2"
+    ],
+    "band_range": [0, 9],
+    "band_step": 0.5
+  },
+  "_instructions": {
+    "prompts": "Create .txt files in the prompts/ folder: examiner.txt, free_chat.txt, scoring.txt. Use {{RUBRICS}} placeholder in scoring.txt to auto-inject the rubrics.",
+    "questions": "Create .json files in the questions/ folder. Structure depends on your exam's part system.",
+    "rubrics": "Create .json files in the rubrics/ folder. The scoring prompt will receive the full content."
+  }
+}

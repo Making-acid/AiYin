@@ -1,0 +1,88 @@
+{
+  "topics": [
+    {
+      "id": "travel_001",
+      "topic": "Describe a memorable trip you have taken.",
+      "prompt_lines": [
+        "Where you went",
+        "Who you went with",
+        "What you did there",
+        "And explain why it was memorable"
+      ],
+      "follow_up": [
+        "How has this trip influenced you?",
+        "Would you recommend this place to others? Why?"
+      ]
+    },
+    {
+      "id": "person_001",
+      "topic": "Describe a person who has influenced you greatly.",
+      "prompt_lines": [
+        "Who this person is",
+        "How you know them",
+        "What they do",
+        "And explain how they influenced you"
+      ],
+      "follow_up": [
+        "What qualities do you admire most about this person?",
+        "Do you think role models are important for young people?"
+      ]
+    },
+    {
+      "id": "media_001",
+      "topic": "Describe a book or film you enjoyed recently.",
+      "prompt_lines": [
+        "What it is about",
+        "When you read or watched it",
+        "What you liked about it",
+        "And explain why you would recommend it to others"
+      ],
+      "follow_up": [
+        "Do you prefer books or films? Why?",
+        "How do stories and media influence the way we think?"
+      ]
+    },
+    {
+      "id": "event_001",
+      "topic": "Describe an important event in your life.",
+      "prompt_lines": [
+        "What the event was",
+        "When and where it happened",
+        "Who was involved",
+        "And explain why it was important to you"
+      ],
+      "follow_up": [
+        "How has this event changed you as a person?",
+        "Do you think people should reflect more on important life events?"
+      ]
+    },
+    {
+      "id": "place_001",
+      "topic": "Describe a place you like to visit in your free time.",
+      "prompt_lines": [
+        "Where this place is",
+        "What it looks like",
+        "What you do there",
+        "And explain why you like this place"
+      ],
+      "follow_up": [
+        "Do you prefer quiet or busy places? Why?",
+        "How important is it for cities to have public spaces?"
+      ]
+    },
+    {
+      "id": "skill_001",
+      "topic": "Describe a skill you would like to learn.",
+      "prompt_lines": [
+        "What skill it is",
+        "Why you want to learn it",
+        "How you plan to learn it",
+        "And explain how it would benefit you"
+      ],
+      "follow_up": [
+        "Do you think it is easier to learn new skills today than in the past?",
+        "What skills do you think will be most important in the future?"
+      ]
+    }
+  ]
+}

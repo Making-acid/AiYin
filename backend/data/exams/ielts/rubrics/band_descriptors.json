@@ -1,0 +1,38 @@
+{
+  "fluency_coherence": {
+    "9": "Speaks fluently with only rare repetition or self-correction. Any hesitation is content-related rather than to find words or grammar. Speaks coherently with fully appropriate cohesive features. Develops topics fully and appropriately.",
+    "8": "Speaks fluently with only occasional repetition or self-correction. Hesitation is usually content-related and only rarely to search for language. Develops topics coherently and appropriately.",
+    "7": "Speaks at length without noticeable effort or loss of coherence. May demonstrate language-related hesitation at times, or some repetition and/or self-correction. Uses a range of connectives and discourse markers with some flexibility.",
+    "6": "Is willing to speak at length, though may lose coherence at times due to occasional repetition, self-correction or hesitation. Uses a range of connectives and discourse markers but not always appropriately.",
+    "5": "Usually maintains flow of speech but uses repetition, self-correction and/or slow speech to keep going. May over-use certain connectives and discourse markers. Produces simple speech fluently, but more complex communication causes fluency problems.",
+    "4": "Cannot respond without noticeable pauses and may speak slowly, with frequent repetition and self-correction. Links basic sentences but with repetitious use of simple connectives and some breakdowns in coherence.",
+    "3": "Speaks with long pauses. Has limited ability to link simple sentences. Gives only simple responses and is frequently unable to convey basic message."
+  },
+  "lexical_resource": {
+    "9": "Uses vocabulary with full flexibility and precision in all topics. Uses idiomatic language naturally and accurately.",
+    "8": "Uses a wide vocabulary resource readily and flexibly to convey precise meaning. Uses less common and idiomatic vocabulary skillfully, with occasional inaccuracies. Uses paraphrase effectively as required.",
+    "7": "Uses vocabulary resource flexibly to discuss a variety of topics. Uses some less common and idiomatic vocabulary and shows some awareness of style and collocation, with some inappropriate choices. Uses paraphrase effectively.",
+    "6": "Has a wide enough vocabulary to discuss topics at length and make meaning clear in spite of inappropriacies. Generally paraphrases successfully.",
+    "5": "Manages to talk about familiar and unfamiliar topics but uses vocabulary with limited flexibility. Attempts to use paraphrase but with mixed success.",
+    "4": "Is able to talk about familiar topics but can only convey basic meaning on unfamiliar topics and makes frequent errors in word choice. Rarely attempts paraphrase.",
+    "3": "Uses simple vocabulary to convey personal information. Has insufficient vocabulary for less familiar topics."
+  },
+  "grammatical_range_accuracy": {
+    "9": "Uses a full range of structures naturally and appropriately. Produces consistently accurate structures apart from 'slips' characteristic of native speaker speech.",
+    "8": "Uses a wide range of structures flexibly. Produces a majority of error-free sentences with only very occasional inappropriacies or basic/non-systematic errors.",
+    "7": "Uses a range of complex structures with some flexibility. Frequently produces error-free sentences, though some grammatical mistakes persist.",
+    "6": "Uses a mix of simple and complex structures, but with limited flexibility. May make frequent mistakes with complex structures, though these rarely cause comprehension problems.",
+    "5": "Produces basic sentence forms with reasonable accuracy. Uses a limited range of more complex structures, but these usually contain errors and may cause some comprehension problems.",
+    "4": "Produces basic sentence forms and some correct simple sentences but subordinate structures are rare. Errors are frequent and may lead to misunderstanding.",
+    "3": "Attempts basic sentence forms but with limited success, or relies on apparently memorized utterances. Makes numerous errors except in memorized expressions."
+  },
+  "pronunciation": {
+    "9": "Uses a full range of pronunciation features with precision and subtlety. Sustains flexible use of features throughout. Is effortless to understand.",
+    "8": "Uses a wide range of pronunciation features. Sustains flexible use of features, with only occasional lapses. Is easy to understand throughout; L1 accent has minimal effect on intelligibility.",
+    "7": "Shows all the positive features of Band 6 and some, but not all, of the positive features of Band 8.",
+    "6": "Uses a range of pronunciation features with mixed control. Shows some effective use of features but this is not sustained. Can generally be understood throughout, though mispronunciation of individual words or sounds reduces clarity at times.",
+    "5": "Shows all the positive features of Band 4 and some, but not all, of the positive features of Band 6.",
+    "4": "Uses a limited range of pronunciation features. Attempts to control features but lapses are frequent. Mispronunciations are frequent and cause some difficulty for the listener.",
+    "3": "Shows some of the features of Band 2 and some, but not all, of the positive features of Band 4."
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "topics": [
+    {
+      "topic": "Hometown",
+      "questions": [
+        "Where are you from?",
+        "What do you like most about your hometown?",
+        "Has your hometown changed much in recent years?",
+        "Is there anything you would like to improve about your hometown?"
+      ]
+    },
+    {
+      "topic": "Work & Study",
+      "questions": [
+        "Do you work or are you a student?",
+        "Why did you choose that job / field of study?",
+        "What do you like most about your work or studies?",
+        "What would you like to do in the future?"
+      ]
+    },
+    {
+      "topic": "Free Time",
+      "questions": [
+        "What do you like to do in your free time?",
+        "How much time do you spend on your hobbies each week?",
+        "Do you prefer indoor or outdoor activities? Why?",
+        "Have your hobbies changed since you were a child?"
+      ]
+    },
+    {
+      "topic": "Reading",
+      "questions": [
+        "Do you enjoy reading? Why or why not?",
+        "What kind of books do you prefer?",
+        "How much time do you spend reading?",
+        "Do you prefer physical books or e-books? Why?"
+      ]
+    },
+    {
+      "topic": "Music",
+      "questions": [
+        "What kind of music do you like?",
+        "Do you play any musical instruments?",
+        "How often do you listen to music?",
+        "Has your taste in music changed over the years?"
+      ]
+    },
+    {
+      "topic": "Food",
+      "questions": [
+        "What is your favorite type of food?",
+        "Do you enjoy cooking? Why or why not?",
+        "What is a traditional dish from your country?",
+        "Has your diet changed in recent years?"
+      ]
+    },
+    {
+      "topic": "Travel",
+      "questions": [
+        "Do you like traveling?",
+        "What places have you visited?",
+        "What is your favorite travel destination?",
+        "Where would you like to travel in the future?"
+      ]
+    },
+    {
+      "topic": "Technology",
+      "questions": [
+        "How often do you use technology?",
+        "What is your favorite piece of technology?",
+        "How has technology changed the way we communicate?",
+        "Do you think we rely too much on technology?"
+      ]
+    }
+  ]
+}
