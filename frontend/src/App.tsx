@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AppProvider } from "./components/Live2DCharacter";
 import { Home } from "./pages/Home";
 import { Exam } from "./pages/Exam";
 import { FreeChat } from "./pages/FreeChat";
@@ -8,7 +9,7 @@ import { Settings } from "./pages/Settings";
 function App() {
   return (
     <BrowserRouter>
-      <div className="app">
+      <AppProvider>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/exam" element={<Exam />} />
@@ -16,7 +17,7 @@ function App() {
           <Route path="/report/:sessionId" element={<Report />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
-      </div>
+      </AppProvider>
     </BrowserRouter>
   );
 }

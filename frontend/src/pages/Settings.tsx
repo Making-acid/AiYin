@@ -1,9 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchConfig, fetchProviders, saveConfig, type AppConfig, type ProviderPreset } from "../api/client";
+import { useLive2DBehavior, useLanguage } from "../components/Live2DCharacter";
 
 export function Settings() {
   const navigate = useNavigate();
+  const { t, lang, setLanguage } = useLanguage();
+  const [behavior, updateBehavior] = useLive2DBehavior();
+
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [providers, setProviders] = useState<Record<string, ProviderPreset>>({});
   const [provider, setProvider] = useState("deepseek-v4-pro");
@@ -23,11 +27,11 @@ export function Settings() {
       const [cfg, pr] = await Promise.all([fetchConfig(), fetchProviders()]);
       setConfig(cfg);
       setProviders(pr);
-      setProvider(cfg.provider || "deepseek");
+      setProvider(cfg.provider || "deepseek-v4-pro");
       setBaseUrl(cfg.base_url);
       setModel(cfg.model);
     } catch {
-      setMessage("Failed to load configuration.");
+      setMessage(t("loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -44,7 +48,7 @@ export function Settings() {
 
   const handleSave = async () => {
     if (!apiKey.trim() || apiKey.trim().length < 4) {
-      setMessage("Please enter a valid API key.");
+      setMessage(t("apiKey") + " required");
       return;
     }
     setSaving(true);
@@ -58,9 +62,9 @@ export function Settings() {
       });
       setConfig(result);
       setApiKey("");
-      setMessage("Configuration saved successfully.");
+      setMessage(t("saved"));
     } catch {
-      setMessage("Failed to save configuration.");
+      setMessage(t("saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -72,24 +76,18 @@ export function Settings() {
 
   return (
     <div className="page settings-page">
-      <button className="back-btn" onClick={() => navigate("/")}>← Back</button>
+      <button className="back-btn" onClick={() => navigate("/")}>{t("back")}</button>
 
       <div className="settings-container">
-        <h1>Settings</h1>
+        <h1>{t("settings")}</h1>
 
         <div className="settings-section">
-          <h3>LLM API Configuration</h3>
-          <p className="settings-desc">
-            Select your model provider and enter the API key.
-            Your key is stored locally on the server and never shared.
-          </p>
+          <h3>{t("apiConfig")}</h3>
+          <p className="settings-desc">{t("apiDesc")}</p>
 
           <div className="form-group">
-            <label>Provider</label>
-            <select
-              value={provider}
-              onChange={(e) => handleProviderChange(e.target.value)}
-            >
+            <label>{t("provider")}</label>
+            <select value={provider} onChange={(e) => handleProviderChange(e.target.value)}>
               {Object.entries(providers).map(([id, preset]) => (
                 <option key={id} value={id}>{preset.label}</option>
               ))}
@@ -97,52 +95,66 @@ export function Settings() {
           </div>
 
           <div className="form-group">
-            <label>API Key</label>
+            <label>{t("apiKey")}</label>
             <input
               type="password"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder={config?.is_configured ? "•••••••• (leave blank to keep current)" : "sk-xxxxxxxxxxxxxxxx"}
+              placeholder={config?.is_configured ? t("leaveBlank") : t("hintApiKey")}
             />
           </div>
 
           <div className="form-group">
-            <label>Base URL</label>
-            <input
-              type="text"
-              value={baseUrl}
-              onChange={(e) => setBaseUrl(e.target.value)}
-              placeholder="https://api.deepseek.com"
-            />
+            <label>{t("baseUrl")}</label>
+            <input type="text" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} />
           </div>
 
           <div className="form-group">
-            <label>Model</label>
-            <input
-              type="text"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              placeholder="deepseek-chat"
-            />
+            <label>{t("model")}</label>
+            <input type="text" value={model} onChange={(e) => setModel(e.target.value)} />
           </div>
 
           <div className="form-actions">
             <button className="btn-primary" onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : "Save Configuration"}
+              {saving ? "..." : t("save")}
             </button>
           </div>
 
           {message && (
-            <p className={`settings-message ${message.includes("success") ? "success" : "error"}`}>
+            <p className={`settings-message ${message.includes("save") || message.includes("成功") ? "success" : message.includes("failed") || message.includes("失败") ? "error" : ""}`}>
               {message}
             </p>
           )}
 
           {config?.is_configured && (
             <p className="settings-status">
-              Status: {providers[config.provider]?.label || config.provider} ({config.api_key})
+              {t("statusConfigured")} ({config.api_key})
             </p>
           )}
+        </div>
+
+        <div className="settings-section">
+          <h3>{t("live2dSection")}</h3>
+          <p className="settings-desc">{t("live2dDesc")}</p>
+          <div className="form-group">
+            <label>{t("eyeBehavior")}</label>
+            <select value={behavior} onChange={(e) => updateBehavior(e.target.value as "follow_mouse" | "look_forward")}>
+              <option value="follow_mouse">{t("followMouse")}</option>
+              <option value="look_forward">{t("lookForward")}</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <h3>{t("languageSection")}</h3>
+          <p className="settings-desc">{t("languageDesc")}</p>
+          <div className="form-group">
+            <label>{t("languageSection")}</label>
+            <select value={lang} onChange={(e) => setLanguage(e.target.value as "zh" | "en")}>
+              <option value="zh">中文</option>
+              <option value="en">English</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>

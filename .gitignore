@@ -17,6 +17,12 @@ backend/*.spec
 # Runtime config (contains API keys)
 backend/data/config.json
 
+# Live2D model files (downloaded separately)
+frontend/public/live2d/haru/**
+frontend/public/live2d/mao/**
+!frontend/public/live2d/haru/DOWNLOAD.txt
+!frontend/public/live2d/mao/DOWNLOAD.txt
+
 # IDE
 .idea/
 .vscode/

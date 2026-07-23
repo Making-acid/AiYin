@@ -1,21 +1,28 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { startFreeChat, sendFreeChat } from "../api/client";
 import { VoiceInput } from "../components/VoiceInput";
 import { ChatBubble } from "../components/ChatBubble";
+import { Live2DCharacter, useLive2DBehavior, useLanguage } from "../components/Live2DCharacter";
 import { useSpeechSynthesis } from "../hooks/useSpeechSynthesis";
 import type { ChatMessage } from "../types";
 
 export function FreeChat() {
   const navigate = useNavigate();
-  const { speak, stop: stopSpeech, isSupported: ttsSupported } = useSpeechSynthesis();
+  const { speak, stop: stopSpeech, isSupported: ttsSupported } = useSpeechSynthesis("young");
+  const [behavior] = useLive2DBehavior();
+  const initRef = useRef(false);
+  const { t } = useLanguage();
   const chatRef = useRef<HTMLDivElement>(null);
 
   const [sessionId, setSessionId] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
+  const [live2dState, setLive2dState] = useState<"idle" | "speaking" | "listening">("idle");
 
   useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
     initChat();
   }, []);
 
@@ -31,59 +38,83 @@ export function FreeChat() {
       setSessionId(data.session_id);
       const msg: ChatMessage = { role: "assistant", content: data.reply };
       setMessages([msg]);
-      if (ttsSupported) speak(data.reply);
+      if (ttsSupported) {
+        setLive2dState("speaking");
+        speak(data.reply, undefined, () => setLive2dState("idle"));
+      }
     } catch (err) {
       console.error("Failed to start chat:", err);
     }
   };
 
-  const handleUserMessage = async (text: string) => {
-    if (!sessionId || loading) return;
+  const handleUserMessage = useCallback(
+    async (text: string) => {
+      if (!sessionId || loading) return;
+      setLive2dState("idle");
 
-    const userMsg: ChatMessage = { role: "user", content: text };
-    setMessages((prev) => [...prev, userMsg]);
-    setLoading(true);
+      const userMsg: ChatMessage = { role: "user", content: text };
+      setMessages((prev) => [...prev, userMsg]);
+      setLoading(true);
 
-    try {
-      const result = await sendFreeChat(sessionId, text);
-      if (result.reply) {
-        const botMsg: ChatMessage = { role: "assistant", content: result.reply };
-        setMessages((prev) => [...prev, botMsg]);
-        if (ttsSupported) speak(result.reply);
+      try {
+        const result = await sendFreeChat(sessionId, text);
+        if (result.reply) {
+          const botMsg: ChatMessage = { role: "assistant", content: result.reply };
+          setMessages((prev) => [...prev, botMsg]);
+          if (ttsSupported) {
+            setLive2dState("speaking");
+            speak(result.reply, undefined, () => setLive2dState("idle"));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to send message:", err);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Failed to send message:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [sessionId, loading, ttsSupported, speak]
+  );
+
+  const handleVoiceStart = () => setLive2dState("listening");
+  const handleVoiceEnd = () => setLive2dState("idle");
 
   return (
-    <div className="page free-chat-page">
-      <div className="chat-header">
-        <button className="back-btn" onClick={() => { stopSpeech(); navigate("/"); }}>
-          ← Back
-        </button>
-        <h2>Free Chat</h2>
-        <span className="chat-mode-badge">Practice Mode</span>
+    <div className="page free-chat-page-split">
+      <div className="live2d-panel">
+        <Live2DCharacter
+          modelPath="/live2d/mao/mao_pro.model3.json"
+          state={live2dState}
+          behavior={behavior}
+          scale={0.85}
+        />
       </div>
 
-      <div className="chat-container" ref={chatRef}>
-        {messages.map((msg, i) => (
-          <ChatBubble key={i} message={msg} />
-        ))}
-        {loading && (
-          <div className="chat-bubble examiner">
-            <div className="bubble-avatar">🤖</div>
-            <div className="bubble-content">
-              <div className="bubble-text typing">Thinking...</div>
+      <div className="chat-panel">
+        <div className="chat-header">
+          <button className="back-btn" onClick={() => { stopSpeech(); navigate("/"); }}>
+            {t("back")}
+          </button>
+          <h2>{t("freeChat")}</h2>
+          <span className="chat-mode-badge">{t("practiceMode")}</span>
+        </div>
+
+        <div className="chat-container" ref={chatRef}>
+          {messages.map((msg, i) => (
+            <ChatBubble key={i} message={msg} />
+          ))}
+          {loading && (
+            <div className="chat-bubble examiner">
+              <div className="bubble-avatar">🤖</div>
+              <div className="bubble-content">
+                <div className="bubble-text typing">{t("thinking")}</div>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      <div className="chat-input-area">
-        <VoiceInput onResult={handleUserMessage} disabled={loading} />
+        <div className="chat-input-area">
+          <VoiceInput onResult={handleUserMessage} disabled={loading} onStart={handleVoiceStart} onEnd={handleVoiceEnd} />
+        </div>
       </div>
     </div>
   );

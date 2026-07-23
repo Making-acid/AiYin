@@ -1,0 +1,20 @@
+Haru (receptionist version) —  ˵  
+
+1.  ˵ : https://www.live2d.com/en/learn/sample/haru-receptionist/
+2.  ˵"Download" ǩ ѡ "runtime"  
+3.  ˵Ŀ¼ڸı  public\live2d\haru\  
+
+ȷϽ ļ :
+
+  public\live2d\haru\
+  ├── haru_greeter_t04.model3.json     ← ģ  
+  ├── haru_greeter_t04.moc3            ← ģ 
+  ├── haru_greeter_t04.8192\           ←   ļ 
+  │   └── texture_00.png
+  ├── motions\                         ←   
+  │   ├── Idle.motion3.json
+  │   └── ...
+  └── expressions\                     ←   
+      └── ...
+
+.

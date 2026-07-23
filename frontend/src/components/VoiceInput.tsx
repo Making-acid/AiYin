@@ -4,9 +4,11 @@ import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
 interface VoiceInputProps {
   onResult: (text: string) => void;
   disabled?: boolean;
+  onStart?: () => void;
+  onEnd?: () => void;
 }
 
-export function VoiceInput({ onResult, disabled }: VoiceInputProps) {
+export function VoiceInput({ onResult, disabled, onStart, onEnd }: VoiceInputProps) {
   const { isListening, transcript, startListening, stopListening, error, isSupported } =
     useSpeechRecognition();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -25,11 +27,13 @@ export function VoiceInput({ onResult, disabled }: VoiceInputProps) {
       setIsProcessing(true);
       const text = await stopListening();
       setIsProcessing(false);
+      onEnd?.();
       if (text.trim()) {
         onResult(text.trim());
       }
     } else {
       startListening();
+      onStart?.();
     }
   };
 

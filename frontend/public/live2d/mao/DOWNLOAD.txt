@@ -1,0 +1,20 @@
+Niziiro Mao —  
+
+1.  : https://www.live2d.com/en/learn/sample/niziiro-mao/
+2.   "Download"    "runtime"  
+3.      public\live2d\mao\  
+
+      :
+
+  public\live2d\mao\
+  ├── NiziiroMao.model3.json           ←   
+  ├── NiziiroMao.moc3                  ←  
+  ├── NiziiroMao.2048\                 ←    
+  │   └── texture_00.png
+  ├── motions\                         ←  
+  │   ├── Idle.motion3.json
+  │   └── ...
+  └── expressions\                     ←  
+      └── ...
+
+     model3.json    modelPath  
