@@ -68,7 +68,7 @@ export function useSpeechSynthesis(profile: VoiceProfile = "standard") {
 
       const u = new SpeechSynthesisUtterance(text);
       u.voice = v;
-      u.rate = 0.9;
+      u.rate = 1.05;
       u.pitch = profileRef.current === "young" ? 1.4 : 1.1;
       u.onstart = () => onStart?.();
       u.onend = () => onEnd?.();

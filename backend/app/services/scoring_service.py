@@ -112,14 +112,22 @@ def _start_part2(session: dict, loader: ExamDataLoader) -> dict:
         topic = random.choice(topics)
 
     session["part2_topic"] = topic
-    prompt_lines = "\n".join(f"- {line}" for line in topic.get("prompt_lines", []))
-    prompt = (
-        f"Now let's move on to Part 2. I'm going to give you a topic, and I'd like you to talk about it for 1 to 2 minutes. "
-        f"You have one minute to prepare. Here is your topic:\n\n{topic['topic']}\n\n{prompt_lines}\n\n"
-        f"You may start preparing now. I'll tell you when to begin speaking."
+    short_intro = (
+        "Now let's move on to Part 2. I'm going to give you a topic. "
+        "You have one minute to prepare, then you will speak for one to two minutes. "
+        "Please look at the topic on your screen."
     )
-    session["conversation"].append({"role": "examiner", "content": prompt})
-    return {"next_question": prompt, "is_finished": False, "current_part": "part2_prep", "question_index": 0}
+    session["conversation"].append({"role": "examiner", "content": short_intro})
+    return {
+        "next_question": short_intro,
+        "is_finished": False,
+        "current_part": "part2_prep",
+        "question_index": 0,
+        "cue_card": {
+            "topic": topic["topic"],
+            "prompt_lines": topic.get("prompt_lines", []),
+        },
+    }
 
 
 def _handle_part2(session: dict, idx: int, part_config: dict) -> dict:

@@ -2,19 +2,29 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { startExam, submitAnswer } from "../api/client";
 import { VoiceInput } from "../components/VoiceInput";
+import type { VoiceInputHandle } from "../components/VoiceInput";
 import { ChatBubble } from "../components/ChatBubble";
 import { Timer } from "../components/Timer";
 import { Live2DCharacter, useLive2DBehavior, useLanguage } from "../components/Live2DCharacter";
 import { useSpeechSynthesis } from "../hooks/useSpeechSynthesis";
 import type { ChatMessage } from "../types";
 
+type Phase = "intro" | "part1" | "part2_prep" | "part2_speaking" | "part3" | "finished";
+
+interface CueCard {
+  topic: string;
+  prompt_lines: string[];
+}
+
 export function Exam() {
   const navigate = useNavigate();
   const { speak, stop: stopSpeech, isSupported: ttsSupported } = useSpeechSynthesis("standard");
   const [behavior] = useLive2DBehavior();
-  const initRef = useRef(false);
   const { t } = useLanguage();
+  const voiceRef = useRef<VoiceInputHandle>(null);
   const chatRef = useRef<HTMLDivElement>(null);
+  const autoTimerRef = useRef<any>(null);
+  const initRef = useRef(false);
 
   const [sessionId, setSessionId] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -22,7 +32,12 @@ export function Exam() {
   const [isFinished, setIsFinished] = useState(false);
   const [loading, setLoading] = useState(false);
   const [live2dState, setLive2dState] = useState<"idle" | "speaking" | "listening">("idle");
-  const [phase, setPhase] = useState<"intro" | "part1" | "part2_prep" | "part2_speaking" | "part3" | "finished">("intro");
+  const [phase, setPhase] = useState<Phase>("intro");
+  const [cueCard, setCueCard] = useState<CueCard | null>(null);
+  const [recordingActive, setRecordingActive] = useState(false);
+  const [recordingTimeLeft, setRecordingTimeLeft] = useState(0);
+  const [prepSeconds, setPrepSeconds] = useState(60);
+  const [speakSeconds, setSpeakSeconds] = useState(120);
 
   useEffect(() => {
     if (initRef.current) return;
@@ -36,6 +51,50 @@ export function Exam() {
     }
   }, [messages]);
 
+  const clearTimers = () => {
+    if (autoTimerRef.current) {
+      clearTimeout(autoTimerRef.current);
+      autoTimerRef.current = null;
+    }
+  };
+
+  const autoStopAndSend = useCallback(() => {
+    if (voiceRef.current) {
+      voiceRef.current.stop();
+    }
+    setRecordingActive(false);
+    setRecordingTimeLeft(0);
+  }, []);
+
+  const startRecordingTimer = useCallback((seconds: number) => {
+    setRecordingTimeLeft(seconds);
+    setRecordingActive(true);
+    clearTimers();
+
+    if (voiceRef.current) {
+      voiceRef.current.start();
+    }
+
+    autoTimerRef.current = setTimeout(() => {
+      autoStopAndSend();
+    }, seconds * 1000);
+  }, [autoStopAndSend, clearTimers]);
+
+  const handleExaminerSpeak = useCallback(
+    (text: string, onEnd?: () => void) => {
+      if (!ttsSupported) {
+        onEnd?.();
+        return;
+      }
+      setLive2dState("speaking");
+      speak(text, undefined, () => {
+        setLive2dState("idle");
+        onEnd?.();
+      });
+    },
+    [ttsSupported, speak]
+  );
+
   const initExam = async () => {
     try {
       const data = await startExam();
@@ -43,20 +102,20 @@ export function Exam() {
       setCurrentPart(data.current_part);
       const msg: ChatMessage = { role: "examiner", content: data.examiner_message };
       setMessages([msg]);
-      setPhase("intro");
-      if (ttsSupported) {
-        setLive2dState("speaking");
-        speak(data.examiner_message, undefined, () => setLive2dState("idle"));
-      }
+      setPhase("part1");
+      handleExaminerSpeak(data.examiner_message, () => {
+        startRecordingTimer(45);
+      });
     } catch (err) {
       console.error("Failed to start exam:", err);
     }
   };
 
-  const handleUserAnswer = useCallback(
+  const sendAnswer = useCallback(
     async (text: string) => {
       if (!sessionId || loading) return;
-      setLive2dState("idle");
+      clearTimers();
+      setRecordingActive(false);
 
       const userMsg: ChatMessage = { role: "user", content: text };
       setMessages((prev) => [...prev, userMsg]);
@@ -68,36 +127,82 @@ export function Exam() {
         if (result.next_question) {
           const examinerMsg: ChatMessage = { role: "examiner", content: result.next_question };
           setMessages((prev) => [...prev, examinerMsg]);
-          if (ttsSupported) {
-            setLive2dState("speaking");
-            speak(result.next_question, undefined, () => setLive2dState("idle"));
-          }
+          handleTransition(result, examinerMsg);
         }
-
-        setCurrentPart(result.current_part);
-        setIsFinished(result.is_finished);
-
-        if (result.current_part === "part1") setPhase("part1");
-        else if (result.current_part === "part2_prep") setPhase("part2_prep");
-        else if (result.current_part === "part2") setPhase("part2_speaking");
-        else if (result.current_part === "part3" || result.current_part === "part3_transition") setPhase("part3");
-        else if (result.is_finished) setPhase("finished");
       } catch (err) {
         console.error("Failed to submit answer:", err);
-      } finally {
         setLoading(false);
       }
     },
-    [sessionId, loading, ttsSupported, speak]
+    [sessionId, loading, clearTimers, handleExaminerSpeak]
   );
 
+  const handleTransition = (result: any, examinerMsg: ChatMessage) => {
+    setCurrentPart(result.current_part);
+    setIsFinished(result.is_finished);
+    setLoading(false);
+
+    if (result.cue_card) {
+      setCueCard(result.cue_card);
+    } else {
+      setCueCard(null);
+    }
+
+    if (result.is_finished) {
+      setPhase("finished");
+      return;
+    }
+
+    const part = result.current_part;
+
+    if (part === "part1") {
+      setPhase("part1");
+      handleExaminerSpeak(result.next_question, () => {
+        startRecordingTimer(45);
+      });
+    } else if (part === "part2_prep") {
+      setPhase("part2_prep");
+      setPrepSeconds(60);
+      handleExaminerSpeak(result.next_question, () => {
+        // Start 60s preparation countdown, then auto-start 120s speaking
+        setTimeout(() => {
+          setPhase("part2_speaking");
+          setCueCard(null);
+          setSpeakSeconds(120);
+          // Send blank answer to trigger the "begin speaking" response
+          submitAnswer(sessionId, "[preparation complete]").then((r) => {
+            const beginMsg: ChatMessage = {
+              role: "examiner",
+              content: r.next_question || "You may begin speaking now.",
+            };
+            setMessages((prev) => [...prev, beginMsg]);
+            startRecordingTimer(120);
+          });
+        }, 60000);
+      });
+    } else if (part === "part2") {
+      setPhase("part2_speaking");
+      setSpeakSeconds(120);
+      handleExaminerSpeak(result.next_question, () => {
+        startRecordingTimer(120);
+      });
+    } else if (part === "part3_transition" || part === "part3") {
+      setPhase("part3");
+      handleExaminerSpeak(result.next_question, () => {
+        startRecordingTimer(60);
+      });
+    }
+  };
+
   const handleViewReport = () => {
+    clearTimers();
     stopSpeech();
     navigate(`/report/${sessionId}`);
   };
 
-  const handleVoiceStart = () => setLive2dState("listening");
-  const handleVoiceEnd = () => setLive2dState("idle");
+  const handleStopRecording = () => {
+    autoStopAndSend();
+  };
 
   const partLabels: Record<string, string> = {
     intro: t("intro"),
@@ -121,13 +226,31 @@ export function Exam() {
 
       <div className="chat-panel">
         <div className="exam-header">
-          <button className="back-btn" onClick={() => { stopSpeech(); navigate("/"); }}>
+          <button className="back-btn" onClick={() => { clearTimers(); stopSpeech(); navigate("/"); }}>
             {t("back")}
           </button>
           <h2>{partLabels[phase]}</h2>
-          {phase === "part2_prep" && <Timer seconds={60} running={true} onComplete={() => {}} />}
-          {phase === "part2_speaking" && <Timer seconds={120} running={true} onComplete={() => {}} />}
+          {phase === "part2_prep" && (
+            <Timer seconds={prepSeconds} running={true} onComplete={() => {}} />
+          )}
+          {phase === "part2_speaking" && recordingActive && (
+            <Timer seconds={speakSeconds} running={true} onComplete={() => {}} />
+          )}
+          {recordingActive && phase !== "part2_prep" && (
+            <Timer seconds={recordingTimeLeft} running={true} onComplete={() => {}} />
+          )}
         </div>
+
+        {cueCard && (
+          <div className="cue-card">
+            <h3>{cueCard.topic}</h3>
+            <ul>
+              {cueCard.prompt_lines.map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="chat-container" ref={chatRef}>
           {messages.map((msg, i) => (
@@ -135,7 +258,7 @@ export function Exam() {
           ))}
           {loading && (
             <div className="chat-bubble examiner">
-              <div className="bubble-avatar">🤖</div>
+              <div className="bubble-avatar"></div>
               <div className="bubble-content">
                 <div className="bubble-text typing">{t("thinking")}</div>
               </div>
@@ -149,7 +272,18 @@ export function Exam() {
               {t("viewReport")}
             </button>
           ) : (
-            <VoiceInput onResult={handleUserAnswer} disabled={loading} onStart={handleVoiceStart} onEnd={handleVoiceEnd} />
+            <VoiceInput
+              ref={voiceRef}
+              onResult={sendAnswer}
+              disabled={loading}
+              onStart={() => setLive2dState("listening")}
+              onEnd={() => setLive2dState("idle")}
+            />
+          )}
+          {recordingActive && (
+            <button className="btn-primary stop-record-btn" onClick={handleStopRecording}>
+              Stop & Send
+            </button>
           )}
         </div>
       </div>

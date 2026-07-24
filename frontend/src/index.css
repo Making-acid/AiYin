@@ -724,6 +724,42 @@ body {
 .chat-panel .chat-input-area {
   padding: 16px 20px;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.stop-record-btn {
+  background: var(--danger);
+}
+
+.stop-record-btn:hover {
+  background: #dc2626;
+}
+
+/* ===== Cue Card ===== */
+.cue-card {
+  background: #fffbeb;
+  border: 2px solid #f59e0b;
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin: 0 20px;
+  flex-shrink: 0;
+}
+
+.cue-card h3 {
+  font-size: 16px;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.cue-card ul {
+  list-style: disc;
+  padding-left: 20px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
 }
 
 /* ===== Responsive ===== */

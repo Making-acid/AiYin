@@ -165,10 +165,10 @@ export function Live2DCharacter({
       pixiContainerRef.current = pixiContainer;
 
       const modelHeight = model.internalModel?.height || model.height || 2000;
-      const fitScale = (h * 0.75) / modelHeight;
+      const fitScale = (h * 1.15) / modelHeight;
       model.scale.set(fitScale);
       pixiContainer.x = w * 0.15;
-      pixiContainer.y = h * 0.45;
+      pixiContainer.y = h * 0.55;
       modelRef.current = model;
 
       startIdleMotion(model);
@@ -176,7 +176,7 @@ export function Live2DCharacter({
       app.ticker.add(() => {
         if (!model || model.destroyed) return;
         if (behaviorRef.current === "look_forward") {
-          model.focus(0, 0, true);
+          model.focus(0, 200, true);
         }
         if (stateRef.current === "speaking") updateMouthOpen(model);
       });
@@ -196,9 +196,9 @@ export function Live2DCharacter({
         const nh = domEl.clientHeight || window.innerHeight;
         app.renderer.resize(nw, nh);
         const mh = model.internalModel?.height || model.height || 2000;
-        model.scale.set((nh * 0.75) / mh);
+        model.scale.set((nh * 1.15) / mh);
         pixiContainer.x = nw * 0.15;
-        pixiContainer.y = nh * 0.45;
+        pixiContainer.y = nh * 0.55;
       };
       window.addEventListener("resize", handleResize);
 
