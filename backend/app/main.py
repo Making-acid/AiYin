@@ -10,7 +10,7 @@ from app.api import chat, exam, config
 
 logger = logging.getLogger("main")
 
-app = FastAPI(title="IELTS Speaking Practice", version="0.2.1")
+app = FastAPI(title="IELTS Speaking Practice", version="0.3.0")
 
 app.add_middleware(
     CORSMiddleware,

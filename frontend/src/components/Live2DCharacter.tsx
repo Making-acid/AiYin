@@ -24,7 +24,6 @@ export function Live2DCharacter({
   modelPath,
   state = "idle",
   behavior = "follow_mouse",
-  scale = 1.0,
   className = "",
 }: Live2DCharacterProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);

@@ -30,7 +30,7 @@ export function Exam() {
 
   const [sessionId, setSessionId] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [currentPart, setCurrentPart] = useState("");
+  const [_currentPart, setCurrentPart] = useState("");
   const [isFinished, setIsFinished] = useState(false);
   const [loading, setLoading] = useState(false);
   const [live2dState, setLive2dState] = useState<"idle" | "speaking" | "listening">("idle");
@@ -139,7 +139,7 @@ export function Exam() {
     [sessionId, loading, clearTimers, handleExaminerSpeak]
   );
 
-  const handleTransition = (result: any, examinerMsg: ChatMessage) => {
+  const handleTransition = (result: any, _examinerMsg: ChatMessage) => {
     setCurrentPart(result.current_part);
     setIsFinished(result.is_finished);
     setLoading(false);

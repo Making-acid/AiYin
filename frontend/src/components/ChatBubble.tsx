@@ -6,7 +6,6 @@ interface ChatBubbleProps {
 
 export function ChatBubble({ message }: ChatBubbleProps) {
   const isUser = message.role === "user";
-  const isExaminer = message.role === "examiner" || message.role === "assistant";
 
   return (
     <div className={`chat-bubble ${isUser ? "user" : "examiner"}`}>

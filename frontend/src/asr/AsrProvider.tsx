@@ -1,4 +1,4 @@
-import { createContext, useContext, useCallback, useRef, useMemo } from "react";
+import { createContext, useContext, useMemo } from "react";
 import { useBrowserAsr } from "./browserAsr";
 import { useWhisperAsr } from "./whisperAsr";
 import { useWhisperConfig } from "./whisperConfig";
@@ -21,11 +21,6 @@ export function AsrProvider({ children }: { children: React.ReactNode }) {
 
   const browser = useBrowserAsr();
   const whisper = useWhisperAsr();
-
-  const clearError = useCallback(() => {
-    browser.clearError();
-    whisper.clearError();
-  }, [browser.clearError, whisper.clearError]);
 
   const value: AsrHandle = useMemo(() => {
     if (useWhisper) {
