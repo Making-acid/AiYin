@@ -1,0 +1,1 @@
+Whisper model files for 'small.en' belong here. See ../MODELS_README.txt for download instructions.

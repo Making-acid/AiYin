@@ -1,0 +1,1 @@
+Whisper model files for 'base' belong here. See ../MODELS_README.txt for download instructions.

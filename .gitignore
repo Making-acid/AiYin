@@ -18,7 +18,11 @@ backend/*.spec
 backend/data/config.json
 
 # Whisper AI models (large files, downloaded separately)
-backend/models/whisper/*
+backend/models/whisper/*/model.bin
+backend/models/whisper/*/config.json
+backend/models/whisper/*/tokenizer.json
+backend/models/whisper/*/vocabulary.*
+backend/models/whisper/*/preprocessor_config.json
 backend/data/whisper_config.json
 
 # Downloaded packages

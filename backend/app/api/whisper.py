@@ -40,5 +40,8 @@ async def transcribe_audio(file: UploadFile):
     if not audio_bytes:
         raise HTTPException(status_code=400, detail="Empty audio file")
 
-    text = whisper_service.transcribe(audio_bytes)
+    try:
+        text = whisper_service.transcribe(audio_bytes)
+    except RuntimeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     return {"text": text}

@@ -1,0 +1,1 @@
+Whisper model files for 'large-v3' belong here. See ../MODELS_README.txt for download instructions.
