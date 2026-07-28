@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { startFreeChat, sendFreeChat } from "../api/client";
+import { startFreeChat, sendFreeChat } from "../api/chat";
 import { VoiceInput } from "../components/VoiceInput";
 import { ChatBubble } from "../components/ChatBubble";
-import { Live2DCharacter, useLive2DBehavior, useLanguage } from "../components/Live2DCharacter";
+import { Live2DCharacter } from "../components/Live2DCharacter";
+import { useLive2DBehavior, useLanguage } from "../i18n";
+import { AsrIndicator } from "../asr";
 import { useSpeechSynthesis } from "../hooks/useSpeechSynthesis";
 import type { ChatMessage } from "../types";
 
@@ -116,6 +118,7 @@ export function FreeChat() {
           <VoiceInput onResult={handleUserMessage} disabled={loading} onStart={handleVoiceStart} onEnd={handleVoiceEnd} />
         </div>
       </div>
+      <AsrIndicator />
     </div>
   );
 }

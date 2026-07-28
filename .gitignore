@@ -17,6 +17,16 @@ backend/*.spec
 # Runtime config (contains API keys)
 backend/data/config.json
 
+# Whisper AI models (large files, downloaded separately)
+backend/models/whisper/*
+backend/data/whisper_config.json
+
+# Downloaded packages
+backend/*.whl
+
+# Temp files
+backend/*.wav
+
 # Live2D model files (downloaded separately)
 frontend/public/live2d/haru/**
 frontend/public/live2d/mao/**

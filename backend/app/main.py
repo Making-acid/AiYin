@@ -1,11 +1,14 @@
 import sys
 import webbrowser
 import threading
+import logging
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.api import chat, exam, config
+
+logger = logging.getLogger("main")
 
 app = FastAPI(title="IELTS Speaking Practice", version="0.2.1")
 
@@ -20,6 +23,14 @@ app.add_middleware(
 app.include_router(chat.router)
 app.include_router(exam.router)
 app.include_router(config.router)
+
+# Whisper is an optional module — skip if not installed
+try:
+    from app.api import whisper
+    app.include_router(whisper.router)
+    logger.info("Whisper ASR module loaded.")
+except Exception as e:
+    logger.warning("Whisper ASR module skipped: %s", e)
 
 
 @app.get("/health")

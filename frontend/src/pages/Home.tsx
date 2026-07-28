@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchConfig } from "../api/client";
-import { useLanguage } from "../components/Live2DCharacter";
+import { fetchConfig } from "../api/config";
+import { useLanguage } from "../i18n";
 
 export function Home() {
   const navigate = useNavigate();

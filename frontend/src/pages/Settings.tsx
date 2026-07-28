@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchConfig, fetchProviders, saveConfig, type AppConfig, type ProviderPreset } from "../api/client";
-import { useLive2DBehavior, useLanguage } from "../components/Live2DCharacter";
+import { fetchConfig, fetchProviders, saveConfig, type AppConfig, type ProviderPreset } from "../api/config";
+import { useLive2DBehavior, useLanguage } from "../i18n";
+import { AsrSettings } from "../asr";
 
 export function Settings() {
   const navigate = useNavigate();
@@ -156,6 +157,8 @@ export function Settings() {
             </select>
           </div>
         </div>
+
+        <AsrSettings />
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getReport } from "../api/client";
+import { getReport } from "../api/exam";
 import type { ExamReport } from "../types";
 
 export function Report() {

@@ -69,3 +69,9 @@ class ExamDataLoader:
         rubric = self.get_rubric()
         rubric_text = json.dumps(rubric, indent=2, ensure_ascii=False)
         return template.replace("{{RUBRICS}}", rubric_text)
+
+    def get_dialogs(self) -> dict:
+        path = self.exam_path / "dialogs.json"
+        if path.exists():
+            return _read_json(path)
+        return {}

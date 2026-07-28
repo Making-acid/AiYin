@@ -1,8 +1,7 @@
-import { useEffect, useRef, useCallback, useState, createContext, useContext } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 
 type CharacterState = "idle" | "speaking" | "listening";
 type BehaviorMode = "follow_mouse" | "look_forward";
-type Language = "zh" | "en";
 
 let pixiReady = false;
 
@@ -11,103 +10,6 @@ async function ensurePixi() {
   const PIXI = await import("pixi.js");
   (window as any).PIXI = PIXI;
   pixiReady = true;
-}
-
-const BehaviorContext = createContext<{
-  behavior: BehaviorMode;
-  setBehavior: (m: BehaviorMode) => void;
-}>({ behavior: "follow_mouse", setBehavior: () => {} });
-
-const LanguageContext = createContext<{
-  lang: Language;
-  setLang: (l: Language) => void;
-}>({ lang: "en", setLang: () => {} });
-
-function getLS(key: string, fallback: string) {
-  return localStorage.getItem(key) || fallback;
-}
-
-export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [behavior, setBehavior] = useState<BehaviorMode>(
-    () => getLS("live2d_behavior", "follow_mouse") as BehaviorMode
-  );
-  const [lang, setLang] = useState<Language>(
-    () => getLS("ui_language", "en") as Language
-  );
-
-  const handleBehavior = (m: BehaviorMode) => {
-    setBehavior(m);
-    localStorage.setItem("live2d_behavior", m);
-  };
-
-  const handleLang = (l: Language) => {
-    setLang(l);
-    localStorage.setItem("ui_language", l);
-  };
-
-  return (
-    <BehaviorContext.Provider value={{ behavior, setBehavior: handleBehavior }}>
-      <LanguageContext.Provider value={{ lang, setLang: handleLang }}>
-        {children}
-      </LanguageContext.Provider>
-    </BehaviorContext.Provider>
-  );
-}
-
-export function useLive2DBehavior() {
-  const ctx = useContext(BehaviorContext);
-  return [ctx.behavior, ctx.setBehavior] as const;
-}
-
-export function useLanguage() {
-  const { lang, setLang } = useContext(LanguageContext);
-
-  const STRINGS: Record<Language, Record<string, string>> = {
-    zh: {
-      examMode: "雅思考试", freeChat: "自由聊天", settings: "设置",
-      back: "← 返回", home: "首页", startExam: "开始考试 →",
-      startChat: "开始聊天 →", apiConfig: "LLM API 配置",
-      apiDesc: "选择模型供应商并输入 API Key。Key 保存在服务器本地。",
-      provider: "供应商", apiKey: "API Key", baseUrl: "Base URL",
-      model: "Model", save: "保存配置", saved: "配置已保存。",
-      live2dSection: "Live2D 角色", live2dDesc: "控制虚拟角色的行为。",
-      eyeBehavior: "视线行为", followMouse: "跟随鼠标", lookForward: "目视前方",
-      languageSection: "界面语言", languageDesc: "切换界面显示语言。",
-      statusConfigured: "状态：已配置", viewReport: "查看评分报告 →",
-      configure: "配置 API Key", notConfigured: "API Key 未配置，请先设置。",
-      subtitle: "AI 雅思口语陪练助手", desc: "通过 AI 考官练习英语口语。选择一个模式开始。",
-      intro: "介绍", part1: "第1部分：访谈", part2Prep: "第2部分：准备",
-      part2Speak: "第2部分：陈述", part3: "第3部分：讨论", finished: "测试结束",
-      practiceMode: "练习模式", thinking: "思考中...",
-      speak: "🎤 说话", stop: "⏹ 停止", listening: "聆听中...",
-      hintApiKey: "sk-xxxxxxxxxxxx", leaveBlank: "（留空保持当前）",
-      saveFailed: "保存失败。", loadFailed: "加载配置失败。",
-    },
-    en: {
-      examMode: "IELTS Exam", freeChat: "Free Chat", settings: "Settings",
-      back: "← Back", home: "Home", startExam: "Start Exam →",
-      startChat: "Start Chat →", apiConfig: "LLM API Configuration",
-      apiDesc: "Select provider and enter API key. Key is stored server-side.",
-      provider: "Provider", apiKey: "API Key", baseUrl: "Base URL",
-      model: "Model", save: "Save Configuration", saved: "Configuration saved.",
-      live2dSection: "Live2D Character", live2dDesc: "Control virtual character behavior.",
-      eyeBehavior: "Eye Behavior", followMouse: "Follow Mouse", lookForward: "Look Forward",
-      languageSection: "Language", languageDesc: "Switch UI language.",
-      statusConfigured: "Status: configured", viewReport: "View Score Report →",
-      configure: "Configure API Key", notConfigured: "API key not configured.",
-      subtitle: "AI-Powered IELTS Speaking Assistant",
-      desc: "Practice English speaking with an AI examiner. Choose a mode below.",
-      intro: "Introduction", part1: "Part 1: Interview", part2Prep: "Part 2: Preparation",
-      part2Speak: "Part 2: Long Turn", part3: "Part 3: Discussion", finished: "Test Complete",
-      practiceMode: "Practice Mode", thinking: "Thinking...",
-      speak: "🎤 Speak", stop: "⏹ Stop", listening: "Listening...",
-      hintApiKey: "sk-xxxxxxxxxxxx", leaveBlank: "(leave blank to keep current)",
-      saveFailed: "Failed to save configuration.", loadFailed: "Failed to load configuration.",
-    },
-  };
-
-  const t = (key: string) => STRINGS[lang][key] || key;
-  return { lang, setLanguage: setLang, t };
 }
 
 interface Live2DCharacterProps {
@@ -263,7 +165,6 @@ function updateMouthOpen(model: any) {
     if (!core) return;
     const t = Date.now() / 150;
     const params = core.getParameterIds?.() || [];
-    // Haru uses ParamMouthOpenY, Mao uses ParamA
     if (params.includes("ParamMouthOpenY")) {
       core.setParameterValueById("ParamMouthOpenY", 0.3 + 0.7 * Math.sin(t));
     } else if (params.includes("ParamA")) {

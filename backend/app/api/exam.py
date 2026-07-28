@@ -1,16 +1,8 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from app.services.scoring_service import create_session, get_examiner_intro, get_next_question, generate_score_report
+from app.models.schemas import ExamStartRequest, ExamAnswerRequest
+from app.services.exam_service import create_session, get_examiner_intro, get_next_question
+from app.services.scoring_service import generate_score_report
 from app.services.data_loader import get_registry
-
-
-class ExamStartRequest(BaseModel):
-    exam_id: str = "ielts"
-
-
-class ExamAnswerRequest(BaseModel):
-    session_id: str
-    answer: str
 
 
 router = APIRouter(prefix="/exam", tags=["exam"])

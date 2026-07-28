@@ -1,16 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from app.services.scoring_service import create_session, get_examiner_intro, get_next_question
-
-
-class ChatStartRequest(BaseModel):
-    exam_id: str = "ielts"
-    mode: str = "free_chat"
-
-
-class ChatSendRequest(BaseModel):
-    session_id: str
-    text: str
+from app.models.schemas import ChatStartRequest, ChatSendRequest
+from app.services.exam_service import create_session, get_examiner_intro, get_next_question
 
 
 router = APIRouter(prefix="/chat", tags=["chat"])

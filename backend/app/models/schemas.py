@@ -2,26 +2,19 @@ from pydantic import BaseModel
 from typing import Optional
 
 
-class ChatRequest(BaseModel):
-    message: str
-    mode: str = "free_chat"
-    history: list[dict] = []
+# ---- Config ----
+
+class ConfigUpdateRequest(BaseModel):
+    provider: str = ""
+    api_key: str = ""
+    base_url: str = ""
+    model: str = ""
 
 
-class ChatResponse(BaseModel):
-    reply: str
-    audio_url: Optional[str] = None
-
+# ---- Exam ----
 
 class ExamStartRequest(BaseModel):
-    part: str = "part1"
-
-
-class ExamStartResponse(BaseModel):
-    session_id: str
-    examiner_message: str
-    current_part: str
-    question_index: int
+    exam_id: str = "ielts"
 
 
 class ExamAnswerRequest(BaseModel):
@@ -29,12 +22,26 @@ class ExamAnswerRequest(BaseModel):
     answer: str
 
 
-class ExamAnswerResponse(BaseModel):
-    next_question: str = ""
-    is_finished: bool = False
-    current_part: str = ""
-    question_index: int = 0
+# ---- Chat ----
 
+class ChatStartRequest(BaseModel):
+    exam_id: str = "ielts"
+    mode: str = "free_chat"
+
+
+class ChatSendRequest(BaseModel):
+    session_id: str
+    text: str
+
+
+# ---- Whisper ----
+
+class DownloadModelRequest(BaseModel):
+    model_config = {"protected_namespaces": ()}
+    model_id: str
+
+
+# ---- Response types (documentation) ----
 
 class ScoreReport(BaseModel):
     overall_band: float
@@ -44,9 +51,3 @@ class ScoreReport(BaseModel):
     pronunciation: float
     summary: str
     suggestions: list[str]
-
-
-class ExamReportResponse(BaseModel):
-    session_id: str
-    report: ScoreReport
-    conversation: list[dict]

@@ -1,15 +1,8 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from app.models.schemas import ConfigUpdateRequest
 from app.services import config_service
 
 router = APIRouter(prefix="/config", tags=["config"])
-
-
-class ConfigUpdateRequest(BaseModel):
-    provider: str = ""
-    api_key: str = ""
-    base_url: str = ""
-    model: str = ""
 
 
 @router.get("/providers")

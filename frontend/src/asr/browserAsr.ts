@@ -1,15 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 
-interface UseSpeechRecognitionReturn {
-  isListening: boolean;
-  transcript: string;
-  startListening: () => void;
-  stopListening: () => Promise<string>;
-  error: string | null;
-  isSupported: boolean;
-}
-
-export function useSpeechRecognition(): UseSpeechRecognitionReturn {
+export function useBrowserAsr() {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -20,6 +11,7 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
     (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
   const isSupported = !!SpeechRecognition;
+  const clearError = useCallback(() => setError(null), []);
 
   const startListening = useCallback(() => {
     if (!SpeechRecognition) {
@@ -75,5 +67,5 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
     });
   }, []);
 
-  return { isListening, transcript, startListening, stopListening, error, isSupported };
+  return { isListening, transcript, startListening, stopListening, error, isSupported, clearError };
 }

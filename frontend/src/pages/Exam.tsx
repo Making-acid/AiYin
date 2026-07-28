@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { startExam, submitAnswer } from "../api/client";
+import { startExam, submitAnswer } from "../api/exam";
 import { VoiceInput } from "../components/VoiceInput";
 import type { VoiceInputHandle } from "../components/VoiceInput";
 import { ChatBubble } from "../components/ChatBubble";
 import { Timer } from "../components/Timer";
-import { Live2DCharacter, useLive2DBehavior, useLanguage } from "../components/Live2DCharacter";
+import { Live2DCharacter } from "../components/Live2DCharacter";
+import { useLive2DBehavior, useLanguage } from "../i18n";
+import { AsrIndicator } from "../asr";
 import { useSpeechSynthesis } from "../hooks/useSpeechSynthesis";
 import type { ChatMessage } from "../types";
 
@@ -287,6 +289,7 @@ export function Exam() {
           )}
         </div>
       </div>
+      <AsrIndicator />
     </div>
   );
 }

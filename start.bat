@@ -7,7 +7,7 @@ echo ============================================
 echo.
 
 REM Check Python
-echo [1/4] Checking Python...
+echo [1/5] Checking Python...
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo [ERROR] Python not found. Install Python 3.9+
@@ -18,7 +18,7 @@ if %errorlevel% neq 0 (
 for /f "tokens=2" %%v in ('python --version 2^>^&1') do echo         Found Python %%v
 
 REM Check Node.js
-echo [2/4] Checking Node.js...
+echo [2/5] Checking Node.js...
 node --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo [ERROR] Node.js not found. Install Node.js 18+
@@ -29,7 +29,7 @@ if %errorlevel% neq 0 (
 for /f %%v in ('node --version') do echo         Found Node.js %%v
 
 REM Install backend deps
-echo [3/4] Installing backend dependencies...
+echo [3/5] Installing backend dependencies (incl. Whisper)...
 cd /d "%~dp0backend"
 if not exist "venv\" (
     echo         Creating virtual environment...
@@ -42,7 +42,7 @@ if not exist "venv\" (
 echo         Done.
 
 REM Install frontend deps
-echo [4/4] Installing frontend dependencies...
+echo [4/5] Installing frontend dependencies...
 cd /d "%~dp0frontend"
 if not exist "node_modules\" (
     echo         Installing...
@@ -70,6 +70,11 @@ echo.
 echo   Backend  : http://localhost:8000
 echo   Frontend : http://localhost:5173
 echo.
+echo   Tips:
+echo     - Configure API key in Settings page
+echo     - Enable Whisper ASR in Settings
+echo       (download model on first use, ~460MB)
+echo.
 echo   Close this window to stop all services.
 echo ============================================
 
@@ -79,7 +84,7 @@ start "IELTS Backend" cmd /k "chcp 65001 >nul && cd /d %~dp0backend && venv\Scri
 
 REM Start frontend
 cd /d "%~dp0frontend"
-start "IELTS Frontend" cmd /k "chcp 65001 >nul && cd /d %~dp0frontend && npm run dev"
+start "IELTS Frontend" cmd /k "chcp 65001 >nul && cd /d %~dp0frontend && set VITE_API_BASE=http://localhost:8000 && npm run dev"
 
 REM Wait for backend
 echo.

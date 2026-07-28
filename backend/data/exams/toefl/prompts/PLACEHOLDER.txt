@@ -1,0 +1,4 @@
+# TOEFL prompts directory
+# This is a planned future module.
+# See ../README.txt for implementation instructions.
+# Place exam-specific prompt .txt files here when ready.
