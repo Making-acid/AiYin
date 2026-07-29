@@ -1,23 +1,72 @@
 const en: Record<string, string> = {
+  // Navigation & general
+  title: "IELTS Speaking Practice",
   examMode: "IELTS Exam", freeChat: "Free Chat", settings: "Settings",
   back: "← Back", home: "Home", startExam: "Start Exam →",
-  startChat: "Start Chat →", apiConfig: "LLM API Configuration",
-  apiDesc: "Select provider and enter API key. Key is stored server-side.",
-  provider: "Provider", apiKey: "API Key", baseUrl: "Base URL",
-  model: "Model", save: "Save Configuration", saved: "Configuration saved.",
-  live2dSection: "Live2D Character", live2dDesc: "Control virtual character behavior.",
-  eyeBehavior: "Eye Behavior", followMouse: "Follow Mouse", lookForward: "Look Forward",
-  languageSection: "Language", languageDesc: "Switch UI language.",
-  statusConfigured: "Status: configured", viewReport: "View Score Report →",
+  startChat: "Start Chat →",
   configure: "Configure API Key", notConfigured: "API key not configured.",
   subtitle: "AI-Powered IELTS Speaking Assistant",
   desc: "Practice English speaking with an AI examiner. Choose a mode below.",
-  intro: "Introduction", part1: "Part 1: Interview", part2Prep: "Part 2: Preparation",
-  part2Speak: "Part 2: Long Turn", part3: "Part 3: Discussion", finished: "Test Complete",
-  practiceMode: "Practice Mode", thinking: "Thinking...",
-  speak: "🎤 Speak", stop: "⏹ Stop", listening: "Listening...",
+  loading: "Loading...",
+  tryAgain: "Try Again",
+  reportNotFound: "Report not found.",
+  trainingLanguage: "Training Language",
+
+  // Home page
+  examModeDesc: "Simulate a full IELTS Speaking test with Part 1, 2, and 3. Get an estimated band score and detailed feedback.",
+  freeChatDesc: "Practice casual English conversation with an AI partner. No pressure, no scoring—just practice.",
+
+  // Settings
+  apiConfig: "LLM API Configuration",
+  apiDesc: "Select provider and enter API key. Key is stored server-side.",
+  provider: "Provider", apiKey: "API Key", baseUrl: "Base URL",
+  model: "Model", save: "Save Configuration", saved: "Configuration saved.",
+  apiKeyRequired: "API Key is required",
+  live2dSection: "Live2D Character", live2dDesc: "Control virtual character behavior.",
+  eyeBehavior: "Eye Behavior", followMouse: "Follow Mouse", lookForward: "Look Forward",
+  languageSection: "Language", languageDesc: "Switch UI language.",
+  langZh: "中文", langEn: "English",
+  trainingLangSection: "Training Language",
+  trainingLangDesc: "Set the language used for speaking practice and exams. This controls speech recognition, voice output, and available exams.",
+  statusConfigured: "Status: configured",
   hintApiKey: "sk-xxxxxxxxxxxx", leaveBlank: "(leave blank to keep current)",
   saveFailed: "Failed to save configuration.", loadFailed: "Failed to load configuration.",
+
+  // Exam page
+  intro: "Introduction", part1: "Part 1: Interview", part2Prep: "Part 2: Preparation",
+  part2Speak: "Part 2: Long Turn", part3: "Part 3: Discussion", finished: "Test Complete",
+  viewReport: "View Score Report →",
+  stopAndSend: "Stop & Send",
+  youMayBegin: "You may begin speaking now.",
+  thinking: "Thinking...",
+
+  // Free chat
+  practiceMode: "Practice Mode",
+
+  // Voice input
+  speak: "🎤 Speak", stop: "⏹ Stop", listening: "Listening...",
+  stopRecording: "Stop recording", startRecording: "Start recording",
+  voiceNotSupported: "Your browser does not support voice input.",
+  voiceUseChrome: "Please use Chrome or Edge.",
+
+  // Chat bubble
+  you: "You", examiner: "Examiner",
+
+  // Report page
+  reportTitle: "IELTS Speaking Score Report",
+  estimatedBand: "Estimated Band Score",
+  fluencyCoherence: "Fluency & Coherence",
+  lexicalResource: "Lexical Resource",
+  grammarAccuracy: "Grammatical Range & Accuracy",
+  pronunciation: "Pronunciation",
+  summary: "Summary",
+  suggestions: "Suggestions for Improvement",
+  takeAnotherTest: "Take Another Test",
+  practiceFreeChat: "Practice Free Chat",
+  generatingReport: "Generating your score report...",
+  reportLoadFailed: "Failed to load report. Please try again.",
+
+  // Whisper / ASR
   whisperSection: "Whisper ASR",
   whisperDesc: "Use local Whisper AI for speech recognition. More accurate than browser ASR but requires model download.",
   whisperEnable: "Enable Whisper",
@@ -29,6 +78,26 @@ const en: Record<string, string> = {
   whisperDownload: "Download",
   whisperUsing: "Using",
   whisperChange: "Change",
+  asrProviderNotFound: "ASR provider not found",
+
+  // ASR error messages
+  asrMicDenied: "Microphone access denied. Please allow microphone permission.",
+  asrNoMic: "No microphone found. Please connect a microphone.",
+  asrRecordError: "Audio recording error. Please check your microphone.",
+  asrNotSupported: "Audio recording is not supported in this browser.",
+  asrNoAudio: "No audio detected. Please speak louder or check your microphone.",
+  asrTranscribeFailed: "Transcription failed.",
+  asrEmptyText: "Whisper returned empty text. The audio may not be clear enough.",
+  asrServerConnectFailed: "Cannot connect to the server. Please check your network connection.",
+  asrSpeechNotSupported: "Speech recognition is not supported in this browser.",
+  asrSpeechError: "Speech recognition error.",
+  asrStartFailed: "Failed to start recording.",
+
+  // Live2D
+  modelLoadFailed: "Failed to load model",
+
+  // Misc
+  whisperDownloadConfirm: "Download model {modelId}? This model is about {size}. Download may take several minutes.",
 };
 
 export default en;

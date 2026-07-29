@@ -56,9 +56,9 @@ if not exist ".env" (
     echo.
     echo [NOTE] No .env file. Creating from template.
     echo         Edit .env to add API key or use Settings page.
-    echo DEEPSEEK_API_KEY=your_api_key_here> .env
-    echo DEEPSEEK_BASE_URL=https://api.deepseek.com>> .env
-    echo DEEPSEEK_MODEL=deepseek-v4-pro>> .env
+    echo LLM_API_KEY=your_api_key_here> .env
+    echo LLM_BASE_URL=https://api.deepseek.com>> .env
+    echo LLM_MODEL=deepseek-v4-pro>> .env
 )
 
 REM Launch

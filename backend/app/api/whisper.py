@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi import APIRouter, HTTPException, UploadFile, Form
 from app.models.schemas import DownloadModelRequest
 from app.services import whisper_service
 
@@ -11,9 +11,9 @@ def get_config():
 
 
 @router.post("/config")
-def update_config(enabled: bool = None, model: str = None):
+def update_config(enabled: bool = None, model: str = None, language: str = None):
     try:
-        return whisper_service.update_whisper_config(enabled=enabled, model=model)
+        return whisper_service.update_whisper_config(enabled=enabled, model=model, language=language)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -32,7 +32,7 @@ def download_model(request: DownloadModelRequest):
 
 
 @router.post("/transcribe")
-async def transcribe_audio(file: UploadFile):
+async def transcribe_audio(file: UploadFile, language: str = Form(None)):
     if not file.filename:
         raise HTTPException(status_code=400, detail="No audio file provided")
 
@@ -41,7 +41,7 @@ async def transcribe_audio(file: UploadFile):
         raise HTTPException(status_code=400, detail="Empty audio file")
 
     try:
-        text = whisper_service.transcribe(audio_bytes)
+        text = whisper_service.transcribe(audio_bytes, language=language)
     except RuntimeError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"text": text}

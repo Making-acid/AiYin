@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from "react";
+import { useLanguage } from "../i18n";
 
 type CharacterState = "idle" | "speaking" | "listening";
 type BehaviorMode = "follow_mouse" | "look_forward";
@@ -26,6 +27,7 @@ export function Live2DCharacter({
   behavior = "follow_mouse",
   className = "",
 }: Live2DCharacterProps) {
+  const { t } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const domRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<any>(null);
@@ -128,7 +130,7 @@ export function Live2DCharacter({
   return (
     <div ref={domRef} className={`live2d-character ${className}`}>
       <canvas ref={canvasRef} className="live2d-canvas" />
-      {error && <div className="live2d-error"><p>Failed to load model</p><small>{error}</small></div>}
+      {error && <div className="live2d-error"><p>{t("modelLoadFailed")}</p><small>{error}</small></div>}
     </div>
   );
 }

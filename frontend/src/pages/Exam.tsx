@@ -7,6 +7,7 @@ import { ChatBubble } from "../components/ChatBubble";
 import { Timer } from "../components/Timer";
 import { Live2DCharacter } from "../components/Live2DCharacter";
 import { useLive2DBehavior, useLanguage } from "../i18n";
+import { useTrainingLanguage } from "../i18n/trainingLang";
 import { AsrIndicator } from "../asr";
 import { useSpeechSynthesis } from "../hooks/useSpeechSynthesis";
 import type { ChatMessage } from "../types";
@@ -20,9 +21,10 @@ interface CueCard {
 
 export function Exam() {
   const navigate = useNavigate();
-  const { speak, stop: stopSpeech, isSupported: ttsSupported } = useSpeechSynthesis("standard");
+  const { speak, stop: stopSpeech, isSupported: ttsSupported } = useSpeechSynthesis("standard", trainingLang);
   const [behavior] = useLive2DBehavior();
   const { t } = useLanguage();
+  const { trainingLang } = useTrainingLanguage();
   const voiceRef = useRef<VoiceInputHandle>(null);
   const chatRef = useRef<HTMLDivElement>(null);
   const autoTimerRef = useRef<any>(null);
@@ -175,7 +177,7 @@ export function Exam() {
           submitAnswer(sessionId, "[preparation complete]").then((r) => {
             const beginMsg: ChatMessage = {
               role: "examiner",
-              content: r.next_question || "You may begin speaking now.",
+              content: r.next_question || t("youMayBegin"),
             };
             setMessages((prev) => [...prev, beginMsg]);
             startRecordingTimer(120);
@@ -219,7 +221,7 @@ export function Exam() {
     <div className="page exam-page-split">
       <div className="live2d-panel">
         <Live2DCharacter
-          modelPath="/live2d/haru/haru_greeter_t05.model3.json"
+          modelPath="/third_party/live2d/models/haru/haru_greeter_t05.model3.json"
           state={live2dState}
           behavior={behavior}
           scale={0.85}
@@ -284,7 +286,7 @@ export function Exam() {
           )}
           {recordingActive && (
             <button className="btn-primary stop-record-btn" onClick={handleStopRecording}>
-              Stop & Send
+              {t("stopAndSend")}
             </button>
           )}
         </div>

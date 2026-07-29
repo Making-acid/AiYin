@@ -1,0 +1,37 @@
+{
+  "deepseek-v4-flash": {
+    "label": "DeepSeek V4 Flash",
+    "base_url": "https://api.deepseek.com",
+    "default_model": "deepseek-v4-flash"
+  },
+  "deepseek-v4-pro": {
+    "label": "DeepSeek V4 Pro",
+    "base_url": "https://api.deepseek.com",
+    "default_model": "deepseek-v4-pro"
+  },
+  "openai": {
+    "label": "OpenAI",
+    "base_url": "https://api.openai.com/v1",
+    "default_model": "gpt-4o-mini"
+  },
+  "groq": {
+    "label": "Groq",
+    "base_url": "https://api.groq.com/openai/v1",
+    "default_model": "llama-3.3-70b-versatile"
+  },
+  "openrouter": {
+    "label": "OpenRouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "default_model": "openai/gpt-4o-mini"
+  },
+  "ollama": {
+    "label": "Ollama (Local)",
+    "base_url": "http://localhost:11434/v1",
+    "default_model": "llama3"
+  },
+  "custom": {
+    "label": "Custom",
+    "base_url": "",
+    "default_model": ""
+  }
+}

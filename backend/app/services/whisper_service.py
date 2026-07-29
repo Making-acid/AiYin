@@ -55,7 +55,7 @@ def _get_config() -> dict:
     if CONFIG_PATH.exists():
         with open(CONFIG_PATH, encoding="utf-8") as f:
             return json.load(f)
-    return {"model": "small", "enabled": False}
+    return {"model": "small", "enabled": False, "language": "en"}
 
 
 def _save_config(config: dict):
@@ -72,13 +72,16 @@ def get_whisper_config() -> dict:
         "model": current,
         "model_name": WHISPER_MODELS.get(current, {}).get("name", current),
         "is_downloaded": is_model_downloaded(current),
+        "language": config.get("language", "en"),
     }
 
 
-def update_whisper_config(enabled: bool = None, model: str = None) -> dict:
+def update_whisper_config(enabled: bool = None, model: str = None, language: str = None) -> dict:
     config = _get_config()
     if enabled is not None:
         config["enabled"] = enabled
+    if language is not None:
+        config["language"] = language
     if model is not None:
         if model not in WHISPER_MODELS:
             raise ValueError(f"Unknown model: {model}")
@@ -215,12 +218,13 @@ def _convert_to_wav(audio_bytes: bytes, output_path: str):
     input_container.close()
 
 
-def transcribe(audio_bytes: bytes) -> str:
+def transcribe(audio_bytes: bytes, language: str = None) -> str:
     if not audio_bytes:
         return ""
 
     config = _get_config()
     model_id = config.get("model", "small")
+    transcribe_lang = language or config.get("language", "en")
     if not is_model_downloaded(model_id):
         raise RuntimeError(
             f"Model '{model_id}' is not downloaded. "
@@ -233,7 +237,7 @@ def transcribe(audio_bytes: bytes) -> str:
         _convert_to_wav(audio_bytes, tmp_wav.name)
 
         model = _get_model()
-        segments, info = model.transcribe(tmp_wav.name, language="en", beam_size=5)
+        segments, info = model.transcribe(tmp_wav.name, language=transcribe_lang, beam_size=5)
 
         text = " ".join(seg.text.strip() for seg in segments)
         logger.info("Transcribed %d chars, detected language: %s", len(text), info.language)

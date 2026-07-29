@@ -1,9 +1,17 @@
 import json
 import re
+import logging
 from typing import Optional
-from app.services.llm_service import chat_simple
-from app.services.data_loader import ExamDataLoader
-from app.services.exam_service import sessions
+from app.services.llm_service import chat_simple, LLMError
+from app.services.data_loader import ExamDataLoader, DataError
+from app.services import session_manager
+
+
+logger = logging.getLogger("scoring")
+
+
+class ScoringError(Exception):
+    """User-facing error for scoring service failures."""
 
 
 def _get_loader(exam_id: str) -> ExamDataLoader:
@@ -11,40 +19,59 @@ def _get_loader(exam_id: str) -> ExamDataLoader:
 
 
 def generate_score_report(session_id: str) -> Optional[dict]:
-    session = sessions.get(session_id)
-    if not session or not session["finished"]:
-        return None
-
-    loader = _get_loader(session["exam_id"])
-
-    transcript = "\n".join([
-        f"{'Examiner' if m['role'] == 'examiner' else 'Candidate'}: {m['content']}"
-        for m in session["conversation"]
-    ])
-
-    scoring_prompt = loader.render_scoring_prompt()
-    prompt = f"{scoring_prompt}\n\nHere is the conversation transcript:\n\n{transcript}"
-    result_text = chat_simple(prompt, "")
+    session = session_manager.get(session_id)
+    if not session:
+        raise ScoringError("Session not found. The exam session may have expired.")
+    if not session["finished"]:
+        raise ScoringError("The exam is not yet finished. Complete all parts to get your score report.")
 
     try:
-        result = json.loads(result_text)
-    except json.JSONDecodeError:
-        match = re.search(r'\{.*\}', result_text, re.DOTALL)
-        if match:
-            result = json.loads(match.group())
-        else:
-            result = {
-                "overall_band": 6.0,
-                "fluency_coherence": 6.0,
-                "lexical_resource": 6.0,
-                "grammatical_range_accuracy": 6.0,
-                "pronunciation": 6.0,
-                "summary": "Unable to generate detailed report.",
-                "suggestions": ["Practice more speaking exercises.", "Expand your vocabulary.", "Focus on grammar accuracy."]
-            }
+        loader = _get_loader(session["exam_id"])
 
-    return {
-        "session_id": session_id,
-        "report": result,
-        "conversation": session["conversation"],
-    }
+        transcript = "\n".join([
+            f"{'Examiner' if m['role'] == 'examiner' else 'Candidate'}: {m['content']}"
+            for m in session["conversation"]
+        ])
+
+        scoring_prompt = loader.render_scoring_prompt()
+        prompt = f"{scoring_prompt}\n\nHere is the conversation transcript:\n\n{transcript}"
+        result_text = chat_simple(prompt, "")
+
+        try:
+            result = json.loads(result_text)
+        except json.JSONDecodeError:
+            match = re.search(r'\{.*\}', result_text, re.DOTALL)
+            if match:
+                result = json.loads(match.group())
+            else:
+                logger.warning("Could not parse LLM scoring response as JSON")
+                result = {
+                    "overall_band": 6.0,
+                    "fluency_coherence": 6.0,
+                    "lexical_resource": 6.0,
+                    "grammatical_range_accuracy": 6.0,
+                    "pronunciation": 6.0,
+                    "summary": "Unable to generate a detailed report at this time.",
+                    "suggestions": [
+                        "Practice more speaking exercises.",
+                        "Expand your vocabulary.",
+                        "Focus on grammar accuracy.",
+                    ],
+                }
+
+        return {
+            "session_id": session_id,
+            "report": result,
+            "conversation": session["conversation"],
+        }
+    except LLMError as e:
+        if e.recoverable:
+            raise ScoringError(f"Could not generate the score report: {e}")
+        raise ScoringError("Failed to generate score report due to an AI service error. Please try again later.")
+    except DataError:
+        raise
+    except ScoringError:
+        raise
+    except Exception as e:
+        logger.error("Unexpected error generating score report: %s", e)
+        raise ScoringError("An unexpected error occurred while generating your score report. Please try again.")

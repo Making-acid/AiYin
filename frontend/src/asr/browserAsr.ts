@@ -1,26 +1,28 @@
 import { useState, useRef, useCallback } from "react";
 
-export function useBrowserAsr() {
+export function useBrowserAsr(lang: string = "en-US") {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
   const resolveRef = useRef<((text: string) => void) | null>(null);
+  const langRef = useRef(lang);
+  langRef.current = lang;
 
   const SpeechRecognition =
     (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
   const isSupported = !!SpeechRecognition;
-  const clearError = useCallback(() => setError(null), []);
+  const clearError = useCallback(() => setErrorCode(null), []);
 
   const startListening = useCallback(() => {
     if (!SpeechRecognition) {
-      setError("Speech recognition is not supported in this browser.");
+      setErrorCode("asrSpeechNotSupported");
       return;
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
+    recognition.lang = langRef.current;
     recognition.interimResults = true;
     recognition.continuous = true;
 
@@ -39,7 +41,7 @@ export function useBrowserAsr() {
     };
 
     recognition.onerror = (event: any) => {
-      setError(`Speech recognition error: ${event.error}`);
+      setErrorCode("asrSpeechError");
       setIsListening(false);
     };
 
@@ -55,7 +57,7 @@ export function useBrowserAsr() {
     recognition.start();
     setIsListening(true);
     setTranscript("");
-    setError(null);
+    setErrorCode(null);
   }, [SpeechRecognition]);
 
   const stopListening = useCallback((): Promise<string> => {
@@ -67,5 +69,5 @@ export function useBrowserAsr() {
     });
   }, []);
 
-  return { isListening, transcript, startListening, stopListening, error, isSupported, clearError };
+  return { isListening, transcript, errorCode, startListening, stopListening, isSupported, clearError };
 }

@@ -44,7 +44,7 @@ export function useWhisperConfig() {
     setConfig(await res.json());
   };
 
-  const switchModel = async (modelId: string) => {
+  const switchModel = async (modelId: string, confirmMessage: string = "") => {
     setDownloading(modelId);
 
     const model = models.find((m) => m.id === modelId);
@@ -56,10 +56,7 @@ export function useWhisperConfig() {
       return true;
     }
 
-    const confirmDownload = window.confirm(
-      `Download ${modelId}? This model is about ${models.find((m) => m.id === modelId)?.size || "unknown size"}.`
-    );
-    if (!confirmDownload) {
+    if (confirmMessage && !window.confirm(confirmMessage)) {
       setDownloading("");
       return false;
     }

@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getReport } from "../api/exam";
+import { useLanguage } from "../i18n";
 import type { ExamReport } from "../types";
 
 export function Report() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [report, setReport] = useState<ExamReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -21,7 +23,7 @@ export function Report() {
       const data = await getReport(id);
       setReport(data);
     } catch (err) {
-      setError("Failed to load report. Please try again.");
+      setError(t("reportLoadFailed"));
     } finally {
       setLoading(false);
     }
@@ -30,7 +32,7 @@ export function Report() {
   if (loading) {
     return (
       <div className="page report-page">
-        <div className="loading">Generating your score report...</div>
+        <div className="loading">{t("generatingReport")}</div>
       </div>
     );
   }
@@ -39,9 +41,9 @@ export function Report() {
     return (
       <div className="page report-page">
         <div className="error-state">
-          <p>{error || "Report not found."}</p>
+          <p>{error || t("reportNotFound")}</p>
           <button className="btn-primary" onClick={() => navigate("/exam")}>
-            Try Again
+            {t("tryAgain")}
           </button>
         </div>
       </div>
@@ -52,23 +54,23 @@ export function Report() {
   const bandColor = score.overall_band >= 7 ? "good" : score.overall_band >= 5.5 ? "average" : "needs-work";
 
   const criteria = [
-    { label: "Fluency & Coherence", value: score.fluency_coherence },
-    { label: "Lexical Resource", value: score.lexical_resource },
-    { label: "Grammatical Range & Accuracy", value: score.grammatical_range_accuracy },
-    { label: "Pronunciation", value: score.pronunciation },
+    { label: t("fluencyCoherence"), value: score.fluency_coherence },
+    { label: t("lexicalResource"), value: score.lexical_resource },
+    { label: t("grammarAccuracy"), value: score.grammatical_range_accuracy },
+    { label: t("pronunciation"), value: score.pronunciation },
   ];
 
   return (
     <div className="page report-page">
       <button className="back-btn" onClick={() => navigate("/")}>
-        ← Home
+        {t("back")}
       </button>
 
       <div className="report-container">
-        <h1>IELTS Speaking Score Report</h1>
+        <h1>{t("reportTitle")}</h1>
 
         <div className={`overall-score ${bandColor}`}>
-          <div className="score-label">Estimated Band Score</div>
+          <div className="score-label">{t("estimatedBand")}</div>
           <div className="score-value">{score.overall_band.toFixed(1)}</div>
         </div>
 
@@ -82,12 +84,12 @@ export function Report() {
         </div>
 
         <div className="report-summary">
-          <h3>Summary</h3>
+          <h3>{t("summary")}</h3>
           <p>{score.summary}</p>
         </div>
 
         <div className="report-suggestions">
-          <h3>Suggestions for Improvement</h3>
+          <h3>{t("suggestions")}</h3>
           <ul>
             {score.suggestions.map((s, i) => (
               <li key={i}>{s}</li>
@@ -97,10 +99,10 @@ export function Report() {
 
         <div className="report-actions">
           <button className="btn-primary" onClick={() => navigate("/exam")}>
-            Take Another Test
+            {t("takeAnotherTest")}
           </button>
           <button className="btn-secondary" onClick={() => navigate("/free-chat")}>
-            Practice Free Chat
+            {t("practiceFreeChat")}
           </button>
         </div>
       </div>

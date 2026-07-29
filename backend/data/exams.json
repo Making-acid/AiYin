@@ -9,12 +9,6 @@
         { "id": "part2", "label": "Part 2: Long Turn" },
         { "id": "part3", "label": "Part 3: Discussion" }
       ]
-    },
-    {
-      "id": "toefl",
-      "name": "TOEFL Speaking",
-      "language": "en",
-      "parts": []
     }
   ]
 }

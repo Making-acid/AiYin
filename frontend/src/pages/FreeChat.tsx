@@ -5,16 +5,18 @@ import { VoiceInput } from "../components/VoiceInput";
 import { ChatBubble } from "../components/ChatBubble";
 import { Live2DCharacter } from "../components/Live2DCharacter";
 import { useLive2DBehavior, useLanguage } from "../i18n";
+import { useTrainingLanguage } from "../i18n/trainingLang";
 import { AsrIndicator } from "../asr";
 import { useSpeechSynthesis } from "../hooks/useSpeechSynthesis";
 import type { ChatMessage } from "../types";
 
 export function FreeChat() {
   const navigate = useNavigate();
-  const { speak, stop: stopSpeech, isSupported: ttsSupported } = useSpeechSynthesis("young");
+  const { speak, stop: stopSpeech, isSupported: ttsSupported } = useSpeechSynthesis("young", trainingLang);
   const [behavior] = useLive2DBehavior();
   const initRef = useRef(false);
   const { t } = useLanguage();
+  const { trainingLang } = useTrainingLanguage();
   const chatRef = useRef<HTMLDivElement>(null);
 
   const [sessionId, setSessionId] = useState("");
@@ -84,7 +86,7 @@ export function FreeChat() {
     <div className="page free-chat-page-split">
       <div className="live2d-panel">
         <Live2DCharacter
-          modelPath="/live2d/mao/mao_pro.model3.json"
+          modelPath="/third_party/live2d/models/mao/mao_pro.model3.json"
           state={live2dState}
           behavior={behavior}
           scale={0.85}

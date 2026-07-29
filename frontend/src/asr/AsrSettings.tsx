@@ -31,7 +31,13 @@ export function AsrSettings() {
                 </div>
                 <button
                   className={`btn-small ${m.id === whisperCfg.model ? "btn-active" : m.downloaded ? "btn-switch" : "btn-download"}`}
-                  onClick={() => switchModel(m.id)}
+                  onClick={() => {
+                    const confirmMsg = m.downloaded ? ""
+                      : t("whisperDownloadConfirm")
+                          .replace("{modelId}", m.name)
+                          .replace("{size}", m.size);
+                    switchModel(m.id, confirmMsg);
+                  }}
                   disabled={downloading === m.id}
                 >
                   {downloading === m.id ? "..." : m.id === whisperCfg.model ? t("whisperActive") : m.downloaded ? t("whisperSwitch") : t("whisperDownload")}

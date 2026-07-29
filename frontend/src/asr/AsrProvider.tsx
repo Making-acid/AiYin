@@ -2,11 +2,12 @@ import { createContext, useContext, useMemo } from "react";
 import { useBrowserAsr } from "./browserAsr";
 import { useWhisperAsr } from "./whisperAsr";
 import { useWhisperConfig } from "./whisperConfig";
+import { useTrainingLanguage } from "../i18n/trainingLang";
 
 export interface AsrHandle {
   isActive: boolean;
   interimText: string;
-  error: string | null;
+  errorCode: string | null;
   isSupported: boolean;
   start: () => void;
   stop: () => Promise<string>;
@@ -18,16 +19,20 @@ const AsrContext = createContext<AsrHandle | null>(null);
 export function AsrProvider({ children }: { children: React.ReactNode }) {
   const { config: whisperCfg } = useWhisperConfig();
   const useWhisper = whisperCfg?.enabled ?? false;
+  const { trainingLang, getAsrCode } = useTrainingLanguage();
 
-  const browser = useBrowserAsr();
-  const whisper = useWhisperAsr();
+  const asrCode = getAsrCode(trainingLang);
+  const whisperLang = trainingLang;
+
+  const browser = useBrowserAsr(asrCode);
+  const whisper = useWhisperAsr(whisperLang);
 
   const value: AsrHandle = useMemo(() => {
     if (useWhisper) {
       return {
         isActive: whisper.isRecording,
-        interimText: "",
-        error: whisper.error,
+        interimText: whisper.interimText,
+        errorCode: whisper.errorCode,
         isSupported: whisper.isSupported,
         start: () => whisper.start(),
         stop: async () => whisper.stop(),
@@ -37,7 +42,7 @@ export function AsrProvider({ children }: { children: React.ReactNode }) {
     return {
       isActive: browser.isListening,
       interimText: browser.transcript,
-      error: browser.error,
+      errorCode: browser.errorCode,
       isSupported: browser.isSupported,
       start: () => browser.startListening(),
       stop: async () => browser.stopListening(),
@@ -58,7 +63,7 @@ export function useAsr() {
     return {
       isActive: false,
       interimText: "",
-      error: "ASR provider not found",
+      errorCode: "asrProviderNotFound" as const,
       isSupported: false,
       start: () => {},
       stop: async () => "",

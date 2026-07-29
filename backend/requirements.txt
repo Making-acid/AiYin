@@ -1,7 +1,10 @@
-fastapi
-uvicorn[standard]
-httpx
-openai
-python-dotenv
-pydantic
-faster-whisper
+fastapi>=0.100.0
+uvicorn[standard]>=0.20.0
+httpx>=0.24.0
+openai>=1.0.0
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+faster-whisper>=1.0.0
+av>=11.0.0
+requests>=2.28.0
+pyinstaller>=6.0.0

@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchConfig } from "../api/config";
 import { useLanguage } from "../i18n";
+import { useTrainingLanguage } from "../i18n/trainingLang";
 
 export function Home() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { trainingLang, setTrainingLang, supported } = useTrainingLanguage();
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -24,7 +26,7 @@ export function Home() {
   return (
     <div className="page home-page">
       <div className="home-hero">
-        <h1>IELTS Speaking Practice</h1>
+        <h1>{t("title")}</h1>
         <p className="home-subtitle">{t("subtitle")}</p>
         <p className="home-desc">{t("desc")}</p>
       </div>
@@ -38,24 +40,32 @@ export function Home() {
         </div>
       )}
 
+      <div className="training-lang-selector">
+        <label>{t("trainingLanguage")}</label>
+        <select
+          value={trainingLang}
+          onChange={(e) => setTrainingLang(e.target.value as typeof trainingLang)}
+        >
+          {supported.map((s) => (
+            <option key={s.code} value={s.code}>
+              {s.nativeLabel}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className="mode-cards">
         <div className="mode-card" onClick={() => navigate("/exam")}>
           <div className="mode-icon">📝</div>
           <h2>{t("examMode")}</h2>
-          <p>
-            Simulate a full IELTS Speaking test with Part 1, 2, and 3.
-            Get an estimated band score and detailed feedback.
-          </p>
+          <p>{t("examModeDesc")}</p>
           <span className="mode-action">{t("startExam")}</span>
         </div>
 
         <div className="mode-card" onClick={() => navigate("/free-chat")}>
           <div className="mode-icon">💬</div>
           <h2>{t("freeChat")}</h2>
-          <p>
-            Practice casual English conversation with an AI partner.
-            No pressure, no scoring—just practice.
-          </p>
+          <p>{t("freeChatDesc")}</p>
           <span className="mode-action">{t("startChat")}</span>
         </div>
       </div>

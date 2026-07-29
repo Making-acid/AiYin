@@ -1,18 +1,31 @@
+import logging
 from fastapi import APIRouter, HTTPException
 from app.models.schemas import ConfigUpdateRequest
 from app.services import config_service
 
+
+logger = logging.getLogger("api.config")
 router = APIRouter(prefix="/config", tags=["config"])
 
 
 @router.get("/providers")
 def get_providers():
-    return config_service.get_provider_presets()
+    try:
+        return config_service.get_provider_presets()
+    except Exception as e:
+        logger.error("Failed to list providers: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to load provider list. Please try again.")
 
 
 @router.get("")
 def get_config():
-    return config_service.get_config()
+    try:
+        return config_service.get_config()
+    except config_service.ConfigError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        logger.error("Failed to load config: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to load configuration. Please try again.")
 
 
 @router.post("")
@@ -26,3 +39,8 @@ def save_config(request: ConfigUpdateRequest):
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except config_service.ConfigError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        logger.error("Failed to save config: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to save configuration. Please try again.")

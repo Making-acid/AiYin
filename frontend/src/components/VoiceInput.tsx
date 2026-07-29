@@ -1,5 +1,6 @@
 import { useState, useImperativeHandle, forwardRef } from "react";
 import { useAsr } from "../asr";
+import { useLanguage } from "../i18n";
 
 interface VoiceInputProps {
   onResult: (text: string) => void;
@@ -15,8 +16,9 @@ export interface VoiceInputHandle {
 
 export const VoiceInput = forwardRef<VoiceInputHandle, VoiceInputProps>(
   function VoiceInput({ onResult, disabled, onStart, onEnd }, ref) {
-    const { isActive, interimText, error, isSupported, start: asrStart, stop: asrStop } = useAsr();
+    const { isActive, interimText, errorCode, isSupported, start: asrStart, stop: asrStop } = useAsr();
     const [isProcessing, setIsProcessing] = useState(false);
+    const { t } = useLanguage();
 
     useImperativeHandle(ref, () => ({
       start: () => {
@@ -37,8 +39,8 @@ export const VoiceInput = forwardRef<VoiceInputHandle, VoiceInputProps>(
     if (!isSupported) {
       return (
         <div className="voice-input unsupported">
-          <p>Your browser does not support voice input.</p>
-          <p>Please use Chrome or Edge.</p>
+          <p>{t("voiceNotSupported")}</p>
+          <p>{t("voiceUseChrome")}</p>
         </div>
       );
     }
@@ -58,20 +60,20 @@ export const VoiceInput = forwardRef<VoiceInputHandle, VoiceInputProps>(
 
     return (
       <div className="voice-input">
-        {error && <div className="voice-error">{error}</div>}
+        {errorCode && <div className="voice-error">{t(errorCode)}</div>}
         {isActive && interimText && (
           <div className="voice-transcript">{interimText}</div>
         )}
         {isActive && !interimText && (
-          <div className="voice-transcript">Listening...</div>
+          <div className="voice-transcript">{t("listening")}</div>
         )}
         <button
           className={`mic-button ${isActive ? "recording" : ""}`}
           onClick={handleToggle}
           disabled={disabled || isProcessing}
-          title={isActive ? "Stop recording" : "Start recording"}
+          title={isActive ? t("stopRecording") : t("startRecording")}
         >
-          {isActive ? "Stop" : "Speak"}
+          {isActive ? t("stop") : t("speak")}
         </button>
       </div>
     );

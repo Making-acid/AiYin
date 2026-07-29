@@ -1,38 +1,36 @@
-from openai import OpenAI
+import logging
+from typing import Optional
 from app.core.config import settings
+from app.services.providers.openai_compatible import OpenAICompatibleProvider, LLMProviderError
 
-_client = None
+# Re-export for backward compatibility
+logger = logging.getLogger("llm")
+LLMError = LLMProviderError
+
+_provider: Optional[OpenAICompatibleProvider] = None
 
 
-def get_client():
-    global _client
-    if _client is None:
-        _client = OpenAI(
-            api_key=settings.DEEPSEEK_API_KEY,
-            base_url=settings.DEEPSEEK_BASE_URL,
+def _get_provider() -> OpenAICompatibleProvider:
+    global _provider
+    if _provider is None:
+        _provider = OpenAICompatibleProvider(
+            api_key=settings.LLM_API_KEY,
+            base_url=settings.LLM_BASE_URL,
+            model=settings.LLM_MODEL,
         )
-    return _client
+    return _provider
 
 
 def reset_client():
-    global _client
-    _client = None
+    global _provider
+    if _provider is not None:
+        _provider.reset()
+    _provider = None
 
 
 def chat(messages: list[dict], stream: bool = False):
-    response = get_client().chat.completions.create(
-        model=settings.DEEPSEEK_MODEL,
-        messages=messages,
-        stream=stream,
-    )
-    if stream:
-        return response
-    return response.choices[0].message.content
+    return _get_provider().chat(messages, stream=stream)
 
 
 def chat_simple(user_message: str, system_prompt: str = "") -> str:
-    messages = []
-    if system_prompt:
-        messages.append({"role": "system", "content": system_prompt})
-    messages.append({"role": "user", "content": user_message})
-    return chat(messages)
+    return _get_provider().chat_simple(user_message, system_prompt)

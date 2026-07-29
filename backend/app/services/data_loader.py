@@ -2,8 +2,16 @@ from __future__ import annotations
 
 import sys
 import json
+import logging
 from pathlib import Path
 from functools import lru_cache
+
+
+logger = logging.getLogger("data_loader")
+
+
+class DataError(Exception):
+    """User-facing error for data loading failures."""
 
 
 def _get_data_dir() -> Path:
@@ -16,18 +24,42 @@ DATA_DIR = _get_data_dir()
 
 
 def _read_text(path: Path) -> str:
-    with open(path, encoding="utf-8") as f:
-        return f.read()
+    try:
+        with open(path, encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        logger.error("Data file not found: %s", path)
+        raise DataError(f"Required data file is missing: {path.name}. Please reinstall the application.")
+    except OSError as e:
+        logger.error("Cannot read data file %s: %s", path, e)
+        raise DataError(f"Cannot read data file: {path.name}. Please check file permissions.")
 
 
 def _read_json(path: Path) -> dict | list:
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        logger.error("Data file not found: %s", path)
+        raise DataError(f"Required data file is missing: {path.name}. Please reinstall the application.")
+    except json.JSONDecodeError as e:
+        logger.error("Data file is corrupted %s: %s", path, e)
+        raise DataError(f"Data file is corrupted: {path.name}. Please reinstall the application.")
+    except OSError as e:
+        logger.error("Cannot read data file %s: %s", path, e)
+        raise DataError(f"Cannot read data file: {path.name}. Please check file permissions.")
 
 
 @lru_cache(maxsize=1)
 def get_registry() -> dict:
-    return _read_json(DATA_DIR / "exams.json")
+    registry_path = DATA_DIR / "exams.json"
+    try:
+        return _read_json(registry_path)
+    except DataError:
+        raise
+    except Exception as e:
+        logger.error("Failed to load exam registry: %s", e)
+        raise DataError("Failed to load exam registry. The application data may be corrupted.")
 
 
 def get_available_exam_ids() -> list[str]:
@@ -40,7 +72,7 @@ def get_exam_info(exam_id: str) -> dict:
     for e in registry.get("exams", []):
         if e["id"] == exam_id:
             return e
-    raise ValueError(f"Exam '{exam_id}' not found in registry.")
+    raise DataError(f"Exam '{exam_id}' not found. Please check that the exam data is installed correctly.")
 
 
 class ExamDataLoader:
@@ -50,7 +82,7 @@ class ExamDataLoader:
         self.exam_id = exam_id
         self.exam_path = DATA_DIR / "exams" / exam_id
         if not self.exam_path.exists():
-            raise ValueError(f"Exam directory not found: {self.exam_path}")
+            raise DataError(f"Exam directory not found for '{exam_id}'. Please reinstall the application.")
 
     def get_meta(self) -> dict:
         return _read_json(self.exam_path / "meta.json")

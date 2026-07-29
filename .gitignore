@@ -32,10 +32,10 @@ backend/*.whl
 backend/*.wav
 
 # Live2D model files (downloaded separately)
-frontend/public/live2d/haru/**
-frontend/public/live2d/mao/**
-!frontend/public/live2d/haru/DOWNLOAD.txt
-!frontend/public/live2d/mao/DOWNLOAD.txt
+frontend/public/third_party/live2d/models/haru/**
+frontend/public/third_party/live2d/models/mao/**
+!frontend/public/third_party/live2d/models/haru/DOWNLOAD.txt
+!frontend/public/third_party/live2d/models/mao/DOWNLOAD.txt
 
 # IDE
 .idea/

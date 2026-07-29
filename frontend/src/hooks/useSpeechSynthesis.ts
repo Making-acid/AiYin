@@ -8,37 +8,26 @@ const FEMALE_KEYWORDS = [
   "emma", "ava", "luna", "zira", "susan", "samantha", "fiona",
 ];
 
-export function useSpeechSynthesis(profile: VoiceProfile = "standard") {
+export function useSpeechSynthesis(profile: VoiceProfile = "standard", lang: string = "en") {
   const isSupported = typeof window !== "undefined" && "speechSynthesis" in window;
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const profileRef = useRef(profile);
   profileRef.current = profile;
+  const langRef = useRef(lang);
+  langRef.current = lang;
 
   const findVoice = useCallback((): SpeechSynthesisVoice | null => {
     const all = window.speechSynthesis.getVoices();
     if (all.length === 0) return null;
 
-    const en = all.filter((v) => v.lang.startsWith("en"));
-
-    // log for debugging
-    if (!voiceRef.current) {
-      console.log(
-        "[TTS] en-US voices:",
-        en.filter((v) => v.lang === "en-US").map((v) => v.name).join(", ")
-      );
-    }
+    const targetLangVoices = all.filter((v) => v.lang.startsWith(langRef.current));
 
     for (const kw of FEMALE_KEYWORDS) {
-      const found = en.find((v) => v.name.toLowerCase().includes(kw));
-      if (found) {
-        console.log("[TTS] Selected:", found.name, found.lang);
-        return found;
-      }
+      const found = targetLangVoices.find((v) => v.name.toLowerCase().includes(kw));
+      if (found) return found;
     }
 
-    const fallback = en[0] || null;
-    if (fallback) console.log("[TTS] Fallback:", fallback.name);
-    return fallback;
+    return targetLangVoices[0] || null;
   }, []);
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import en from "./en";
 import zh from "./zh";
 
@@ -29,6 +29,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLang] = useState<Language>(
     () => getLS("ui_language", "en") as Language
   );
+
+  useEffect(() => {
+    document.documentElement.lang = lang === "zh" ? "zh-CN" : lang;
+    document.title = STRINGS[lang]?.["title"] || "IELTS Speaking Practice";
+  }, [lang]);
 
   const handleBehavior = (m: BehaviorMode) => {
     setBehavior(m);

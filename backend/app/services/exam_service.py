@@ -1,20 +1,32 @@
 import json
 import random
 import uuid
-from app.services.llm_service import chat
-from app.services.data_loader import ExamDataLoader
+import logging
+from app.services.llm_service import chat, LLMError
+from app.services.data_loader import ExamDataLoader, DataError
+from app.services import session_manager
 
 
-sessions: dict = {}
+logger = logging.getLogger("exam")
+
+
+class ExamError(Exception):
+    """User-facing error for exam service failures."""
 
 
 def _get_loader(exam_id: str) -> ExamDataLoader:
-    return ExamDataLoader(exam_id)
+    try:
+        return ExamDataLoader(exam_id)
+    except DataError:
+        raise
+    except Exception as e:
+        logger.error("Failed to create data loader for '%s': %s", exam_id, e)
+        raise ExamError("Failed to load exam data. Please check your installation.")
 
 
 def create_session(exam_id: str, mode: str) -> str:
     session_id = str(uuid.uuid4())
-    sessions[session_id] = {
+    session_manager.create(session_id, {
         "exam_id": exam_id,
         "mode": mode,
         "current_part": "part1",
@@ -22,35 +34,56 @@ def create_session(exam_id: str, mode: str) -> str:
         "conversation": [],
         "part2_topic": None,
         "finished": False,
-    }
+    })
     return session_id
 
 
 def get_examiner_intro(session_id: str) -> str:
-    session = sessions.get(session_id)
+    session = session_manager.get(session_id)
     if not session:
-        return "Session not found."
+        raise ExamError("Session not found. Please restart the exam.")
 
-    loader = _get_loader(session["exam_id"])
-    dialogs = loader.get_dialogs()
+    try:
+        loader = _get_loader(session["exam_id"])
+        dialogs = loader.get_dialogs()
 
-    if session["mode"] == "exam":
-        return dialogs.get("intro", "Let's begin the speaking test.")
-    else:
-        return dialogs.get("free_chat_intro", "Hi! What would you like to talk about?")
+        if session["mode"] == "exam":
+            return dialogs.get("intro", "Let's begin the speaking test.")
+        else:
+            return dialogs.get("free_chat_intro", "Hi! What would you like to talk about?")
+    except (DataError, ExamError):
+        raise
+    except Exception as e:
+        logger.error("Failed to get examiner intro: %s", e)
+        raise ExamError("Failed to load examiner introduction. Please try again.")
 
 
 def get_next_question(session_id: str, user_answer: str) -> dict:
-    session = sessions.get(session_id)
-    if not session or session["finished"]:
+    session = session_manager.get(session_id)
+    if not session:
+        raise ExamError("Session not found. Please restart the exam.")
+    if session["finished"]:
         return {"next_question": "", "is_finished": True, "current_part": "", "question_index": 0}
 
     session["conversation"].append({"role": "user", "content": user_answer})
 
-    if session["mode"] == "exam":
-        return _handle_exam_flow(session)
-    else:
-        return _handle_free_chat_flow(session, user_answer)
+    try:
+        if session["mode"] == "exam":
+            return _handle_exam_flow(session)
+        else:
+            return _handle_free_chat_flow(session, user_answer)
+    except LLMError as e:
+        return {
+            "next_question": f"I'm sorry, {e}",
+            "is_finished": False,
+            "current_part": session["current_part"],
+            "question_index": session["question_index"],
+        }
+    except (DataError, ExamError):
+        raise
+    except Exception as e:
+        logger.error("Unexpected error in exam flow: %s", e)
+        raise ExamError("An unexpected error occurred. Please try again.")
 
 
 # ---- Exam flow state machine ----
