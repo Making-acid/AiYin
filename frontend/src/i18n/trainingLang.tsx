@@ -2,7 +2,14 @@ import { createContext, useContext, useState, useCallback } from "react";
 
 export type TrainingLanguage = "en" | "zh" | "ja" | "ko" | "fr" | "de" | "es";
 
-const SUPPORTED: { code: TrainingLanguage; label: string; nativeLabel: string; asrCode: string }[] = [
+interface LangEntry {
+    code: TrainingLanguage;
+    label: string;
+    nativeLabel: string;
+    asrCode: string;
+}
+
+const SUPPORTED: LangEntry[] = [
     { code: "en", label: "English", nativeLabel: "English", asrCode: "en-US" },
     { code: "zh", label: "Chinese (中文)", nativeLabel: "中文", asrCode: "zh-CN" },
     { code: "ja", label: "Japanese (日本語)", nativeLabel: "日本語", asrCode: "ja-JP" },
@@ -16,18 +23,18 @@ function getLS(key: string, fallback: string): string {
     return localStorage.getItem(key) || fallback;
 }
 
-interface TrainingLangContextType {
+interface TrainingLangContextValue {
     trainingLang: TrainingLanguage;
     setTrainingLang: (l: TrainingLanguage) => void;
-    supported: typeof SUPPORTED;
+    supported: LangEntry[];
     getAsrCode: (l: TrainingLanguage) => string;
 }
 
-const TrainingLangContext = createContext<TrainingLangContext>({
+const TrainingLangContext = createContext<TrainingLangContextValue>({
     trainingLang: "en",
     setTrainingLang: () => {},
     supported: SUPPORTED,
-    getAsrCode: (l) => SUPPORTED.find((s) => s.code === l)?.asrCode || "en-US",
+    getAsrCode: (l: TrainingLanguage) => SUPPORTED.find((s) => s.code === l)?.asrCode || "en-US",
 });
 
 export function TrainingLanguageProvider({ children }: { children: React.ReactNode }) {

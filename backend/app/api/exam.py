@@ -28,6 +28,15 @@ def list_exams(language: str = Query(None, description="Filter exams by training
 @router.post("/start")
 def start_exam(request: ExamStartRequest):
     try:
+        # Validate exam_id exists before creating session
+        registry = get_registry()
+        valid_ids = [e["id"] for e in registry.get("exams", [])]
+        if request.exam_id not in valid_ids:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unknown exam '{request.exam_id}'. Available exams: {', '.join(valid_ids)}",
+            )
+
         session_id = create_session(request.exam_id, "exam")
         intro = get_examiner_intro(session_id)
         return {
@@ -37,6 +46,8 @@ def start_exam(request: ExamStartRequest):
             "question_index": 0,
             "exam_id": request.exam_id,
         }
+    except HTTPException:
+        raise
     except ExamError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except DataError as e:

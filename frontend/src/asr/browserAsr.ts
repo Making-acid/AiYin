@@ -40,7 +40,7 @@ export function useBrowserAsr(lang: string = "en-US") {
       setTranscript(finalTranscript + interim);
     };
 
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (_event: any) => {
       setErrorCode("asrSpeechError");
       setIsListening(false);
     };

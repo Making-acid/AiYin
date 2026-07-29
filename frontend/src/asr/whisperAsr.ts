@@ -109,8 +109,6 @@ export function useWhisperAsr(lang: string = "en") {
           });
 
           if (!resp.ok) {
-            const errData = await resp.json().catch(() => ({}));
-            const detail = errData.detail || `HTTP ${resp.status}`;
             setErrorCode("asrTranscribeFailed");
             resolve("");
             return;

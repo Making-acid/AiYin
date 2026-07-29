@@ -20,11 +20,27 @@ export default defineConfig({
         target: "http://localhost:8000",
         changeOrigin: true,
       },
-      "/exam": {
+      "/exam/exams": {
         target: "http://localhost:8000",
         changeOrigin: true,
       },
-      "/chat": {
+      "/exam/start": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/exam/answer": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/exam/report": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/chat/start": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/chat/send": {
         target: "http://localhost:8000",
         changeOrigin: true,
       },
