@@ -51,6 +51,12 @@ class OpenAICompatibleProvider(BaseLLMProvider):
             )
             if stream:
                 return response  # Return stream object for advanced usage
+            if not response.choices:
+                logger.error("LLM returned empty choices")
+                raise LLMProviderError(
+                    "AI service returned an empty response. Please try again.",
+                    recoverable=True,
+                )
             return response.choices[0].message.content
         except AuthenticationError:
             logger.error("LLM authentication failed")

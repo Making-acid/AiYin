@@ -151,6 +151,8 @@ def _start_part2(session: dict, loader: ExamDataLoader) -> dict:
         "You have one minute to prepare, then you will speak for one to two minutes. "
         "Please look at the topic on your screen."
     )
+    prep_seconds = part_config.get("part2", {}).get("prep_seconds", 60)
+    speak_seconds = part_config.get("part2", {}).get("speak_seconds", 120)
     session["conversation"].append({"role": "examiner", "content": short_intro})
     return {
         "next_question": short_intro,
@@ -160,6 +162,8 @@ def _start_part2(session: dict, loader: ExamDataLoader) -> dict:
         "cue_card": {
             "topic": topic["topic"],
             "prompt_lines": topic.get("prompt_lines", []),
+            "prep_seconds": prep_seconds,
+            "speak_seconds": speak_seconds,
         },
     }
 
@@ -232,3 +236,14 @@ def _handle_free_chat_flow(session: dict, user_answer: str) -> dict:
     reply = chat(messages)
     session["conversation"].append({"role": "assistant", "content": reply})
     return {"next_question": reply, "is_finished": False, "current_part": "free_chat", "question_index": 0}
+
+
+def end_chat_session(session_id: str) -> dict:
+    session = session_manager.get(session_id)
+    if not session:
+        raise ExamError("Session not found.")
+    if session["mode"] != "free_chat":
+        raise ExamError("This endpoint is only available for free chat sessions.")
+    session["finished"] = True
+    session_manager.delete(session_id)
+    return {"session_id": session_id, "finished": True}

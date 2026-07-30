@@ -18,6 +18,7 @@ const template: Record<string, string> = {
   apiDesc: "Select provider and enter API key. Key is stored server-side.",
   provider: "Provider", apiKey: "API Key", baseUrl: "Base URL",
   model: "Model", save: "Save Configuration", saved: "Configuration saved.",
+  apiKeyRequired: "API Key is required",
   live2dSection: "Live2D Character", live2dDesc: "Control virtual character behavior.",
   eyeBehavior: "Eye Behavior", followMouse: "Follow Mouse", lookForward: "Look Forward",
   languageSection: "Language", languageDesc: "Switch UI language.",

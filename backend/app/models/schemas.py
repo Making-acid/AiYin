@@ -34,11 +34,21 @@ class ChatSendRequest(BaseModel):
     text: str
 
 
+class ChatEndRequest(BaseModel):
+    session_id: str
+
+
 # ---- Whisper ----
 
 class DownloadModelRequest(BaseModel):
     model_config = {"protected_namespaces": ()}
     model_id: str
+
+
+class WhisperConfigRequest(BaseModel):
+    enabled: Optional[bool] = None
+    model: Optional[str] = None
+    language: Optional[str] = None
 
 
 # ---- Response types (documentation) ----

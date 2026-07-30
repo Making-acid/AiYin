@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, UploadFile, Form
-from app.models.schemas import DownloadModelRequest
+from app.models.schemas import DownloadModelRequest, WhisperConfigRequest
 from app.services import whisper_service
 
 router = APIRouter(prefix="/whisper", tags=["whisper"])
@@ -11,9 +11,13 @@ def get_config():
 
 
 @router.post("/config")
-def update_config(enabled: bool = None, model: str = None, language: str = None):
+def update_config(request: WhisperConfigRequest):
     try:
-        return whisper_service.update_whisper_config(enabled=enabled, model=model, language=language)
+        return whisper_service.update_whisper_config(
+            enabled=request.enabled,
+            model=request.model,
+            language=request.language,
+        )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

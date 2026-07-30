@@ -8,9 +8,6 @@ from pathlib import Path
 from threading import Lock
 from typing import Optional
 
-# Use HF mirror for faster downloads in China
-os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
-
 logger = logging.getLogger("whisper")
 
 # Lazy imports for optional dependencies
@@ -117,6 +114,8 @@ def is_model_downloaded(model_id: str) -> bool:
 def download_model(model_id: str) -> dict:
     if model_id not in WHISPER_MODELS:
         raise ValueError(f"Unknown model: {model_id}")
+
+    os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
 
     try:
         from faster_whisper import download_model as dm

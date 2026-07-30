@@ -67,6 +67,13 @@ def get_available_exam_ids() -> list[str]:
     return [e["id"] for e in registry.get("exams", [])]
 
 
+def validate_exam_id(exam_id: str) -> None:
+    """Raise DataError if exam_id is not found in the registry."""
+    valid = get_available_exam_ids()
+    if exam_id not in valid:
+        raise DataError(f"Unknown exam '{exam_id}'. Available exams: {', '.join(valid)}")
+
+
 def get_exam_info(exam_id: str) -> dict:
     registry = get_registry()
     for e in registry.get("exams", []):

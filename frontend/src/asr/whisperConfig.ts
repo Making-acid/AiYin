@@ -39,8 +39,11 @@ export function useWhisperConfig() {
   useEffect(() => { load(); }, [load]);
 
   const toggleEnabled = async (enabled: boolean) => {
-    const params = new URLSearchParams({ enabled: String(enabled) });
-    const res = await fetch(`${API_BASE}/whisper/config?${params}`, { method: "POST" });
+    const res = await fetch(`${API_BASE}/whisper/config`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled }),
+    });
     setConfig(await res.json());
   };
 
@@ -49,8 +52,11 @@ export function useWhisperConfig() {
 
     const model = models.find((m) => m.id === modelId);
     if (model?.downloaded) {
-      const params = new URLSearchParams({ model: modelId });
-      const res = await fetch(`${API_BASE}/whisper/config?${params}`, { method: "POST" });
+      const res = await fetch(`${API_BASE}/whisper/config`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: modelId }),
+      });
       setConfig(await res.json());
       setDownloading("");
       return true;
@@ -68,8 +74,11 @@ export function useWhisperConfig() {
         body: JSON.stringify({ model_id: modelId }),
       });
 
-      const switchParams = new URLSearchParams({ model: modelId });
-      const switchRes = await fetch(`${API_BASE}/whisper/config?${switchParams}`, { method: "POST" });
+      const switchRes = await fetch(`${API_BASE}/whisper/config`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: modelId }),
+      });
       setConfig(await switchRes.json());
       await load();
       return true;
