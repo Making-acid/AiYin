@@ -8,7 +8,10 @@ __pycache__/
 frontend/dist/
 backend/static/
 backend/build/
+backend/dist/
 backend/*.spec
+installer/
+release/
 
 # Environment
 .env
