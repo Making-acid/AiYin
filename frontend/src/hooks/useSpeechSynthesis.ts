@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect } from "react";
+import { useCallback, useRef, useEffect, useState } from "react";
 
 type VoiceProfile = "standard" | "young";
 
@@ -9,12 +9,36 @@ const FEMALE_KEYWORDS = [
 ];
 
 export function useSpeechSynthesis(profile: VoiceProfile = "standard", lang: string = "en") {
-  const isSupported = typeof window !== "undefined" && "speechSynthesis" in window;
+  const isSupported = typeof window !== "undefined" && "speechSynthesis" in window
+    && (typeof window.speechSynthesis?.getVoices === "function");
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const profileRef = useRef(profile);
   profileRef.current = profile;
   const langRef = useRef(lang);
   langRef.current = lang;
+  const pulseRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [mouthOpen, setMouthOpen] = useState(false);
+
+  const stopPulse = () => {
+    if (pulseRef.current) {
+      clearInterval(pulseRef.current);
+      pulseRef.current = null;
+    }
+  };
+
+  const startPulse = () => {
+    stopPulse();
+    setMouthOpen(true);
+    let open = true;
+    pulseRef.current = setInterval(() => {
+      open = !open;
+      setMouthOpen(open);
+    }, 220);
+  };
+
+  useEffect(() => {
+    return () => stopPulse();
+  }, []);
 
   const findVoice = useCallback((): SpeechSynthesisVoice | null => {
     const all = window.speechSynthesis.getVoices();
@@ -59,8 +83,23 @@ export function useSpeechSynthesis(profile: VoiceProfile = "standard", lang: str
       u.voice = v;
       u.rate = 1.05;
       u.pitch = profileRef.current === "young" ? 1.4 : 1.1;
-      u.onstart = () => onStart?.();
-      u.onend = () => onEnd?.();
+
+      u.onstart = () => {
+        startPulse();
+        onStart?.();
+      };
+
+      u.onend = () => {
+        stopPulse();
+        setMouthOpen(false);
+        onEnd?.();
+      };
+
+      u.onerror = () => {
+        stopPulse();
+        setMouthOpen(false);
+        onEnd?.();
+      };
 
       window.speechSynthesis.cancel();
       setTimeout(() => window.speechSynthesis.speak(u), 50);
@@ -69,8 +108,10 @@ export function useSpeechSynthesis(profile: VoiceProfile = "standard", lang: str
   );
 
   const stop = useCallback(() => {
+    stopPulse();
+    setMouthOpen(false);
     if (isSupported) window.speechSynthesis.cancel();
   }, [isSupported]);
 
-  return { speak, stop, isSupported };
+  return { speak, stop, isSupported, mouthOpen };
 }

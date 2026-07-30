@@ -24,7 +24,9 @@ export function Exam() {
   const { t } = useLanguage();
   const dual = useDualRecording();
   const audioBlobsRef = useRef<Blob[]>([]);
-  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const timersRef = useRef<ReturnType<typeof setInterval>[]>([]);
+  const sessionIdRef = useRef("");
+  const loadingRef = useRef(false);
   const initRef = useRef(false);
 
   const [sessionId, setSessionId] = useState("");
@@ -39,10 +41,24 @@ export function Exam() {
   const [prepSeconds, setPrepSeconds] = useState(60);
   const [speakSeconds, setSpeakSeconds] = useState(120);
 
+  useEffect(() => { sessionIdRef.current = sessionId; }, [sessionId]);
+  useEffect(() => { loadingRef.current = loading; }, [loading]);
+
   useEffect(() => { if (!initRef.current) { initRef.current = true; initExam(); } }, []);
 
+  useEffect(() => {
+    return () => {
+      clearTimers();
+      dual.stop();
+      stopSpeech();
+    };
+  }, []);
+
   const clearTimers = useCallback(() => {
-    timersRef.current.forEach(clearTimeout);
+    timersRef.current.forEach((id) => {
+      clearTimeout(id);
+      clearInterval(id);
+    });
     timersRef.current = [];
   }, []);
 
@@ -96,10 +112,10 @@ export function Exam() {
 
   const sendAnswer = useCallback(
     async (text: string) => {
-      if (!sessionId || loading) return;
+      if (!sessionIdRef.current || loadingRef.current) return;
       setLoading(true);
       try {
-        const result = await submitAnswer(sessionId, text);
+        const result = await submitAnswer(sessionIdRef.current, text);
         if (result.next_question) handleTransition(result);
       } catch (err) {
         console.error("Failed to submit answer:", err);
@@ -107,7 +123,7 @@ export function Exam() {
         setSendError(t("asrServerConnectFailed"));
       }
     },
-    [sessionId, loading]
+    []
   );
 
   // Handle dual recording result: save audio, send text to LLM

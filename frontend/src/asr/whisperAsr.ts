@@ -8,8 +8,10 @@ export function useWhisperAsr(lang: string = "en") {
   const chunksRef = useRef<Blob[]>([]);
   const resolveRef = useRef<((text: string) => void) | null>(null);
   const timerRef = useRef<any>(null);
+  const maxTimerRef = useRef<any>(null);
   const langRef = useRef(lang);
   langRef.current = lang;
+  const MAX_DURATION = 180; // seconds
 
   const isSupported = typeof window !== "undefined" &&
     !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
@@ -19,6 +21,12 @@ export function useWhisperAsr(lang: string = "en") {
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      if (maxTimerRef.current) clearTimeout(maxTimerRef.current);
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stream.getTracks().forEach((t) => t.stop());
+      }
+      mediaRecorderRef.current = null;
+      chunksRef.current = [];
     };
   }, []);
 
@@ -57,6 +65,12 @@ export function useWhisperAsr(lang: string = "en") {
       timerRef.current = setInterval(() => {
         setRecordingSeconds((s) => s + 1);
       }, 1000);
+
+      maxTimerRef.current = setTimeout(() => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+          mediaRecorderRef.current.stop();
+        }
+      }, MAX_DURATION * 1000);
     } catch (err: any) {
       console.error("[Recorder] Failed to start:", err);
       const code = err?.name === "NotAllowedError"
@@ -73,6 +87,10 @@ export function useWhisperAsr(lang: string = "en") {
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
+      }
+      if (maxTimerRef.current) {
+        clearTimeout(maxTimerRef.current);
+        maxTimerRef.current = null;
       }
 
       const recorder = mediaRecorderRef.current;
