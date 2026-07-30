@@ -2,12 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchConfig } from "../api/config";
 import { useLanguage } from "../i18n";
-import { useTrainingLanguage } from "../i18n/trainingLang";
 
 export function Home() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { trainingLang, setTrainingLang, supported } = useTrainingLanguage();
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -39,20 +37,6 @@ export function Home() {
           </button>
         </div>
       )}
-
-      <div className="training-lang-selector">
-        <label>{t("trainingLanguage")}</label>
-        <select
-          value={trainingLang}
-          onChange={(e) => setTrainingLang(e.target.value as typeof trainingLang)}
-        >
-          {supported.map((s) => (
-            <option key={s.code} value={s.code}>
-              {s.nativeLabel}
-            </option>
-          ))}
-        </select>
-      </div>
 
       <div className="mode-cards">
         <div className="mode-card" onClick={() => navigate("/exam")}>

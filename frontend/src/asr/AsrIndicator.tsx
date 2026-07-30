@@ -2,9 +2,11 @@ import { useNavigate } from "react-router-dom";
 import { useWhisperConfig } from "./whisperConfig";
 import { useLanguage } from "../i18n";
 
-export function AsrIndicator() {
+type AsrMode = "exam" | "free_chat";
+
+export function AsrIndicator({ mode }: { mode: AsrMode }) {
   const navigate = useNavigate();
-  const { config } = useWhisperConfig();
+  const { config } = useWhisperConfig(mode);
   const { t } = useLanguage();
 
   if (!config?.enabled) return null;

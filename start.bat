@@ -84,7 +84,7 @@ start "IELTS Backend" cmd /k "chcp 65001 >nul && cd /d %~dp0backend && venv\Scri
 
 REM Start frontend
 cd /d "%~dp0frontend"
-start "IELTS Frontend" cmd /k "chcp 65001 >nul && cd /d %~dp0frontend && set VITE_API_BASE=http://localhost:8000 && npm run dev"
+start "IELTS Frontend" cmd /k "chcp 65001 >nul && cd /d %~dp0frontend && npm run dev"
 
 REM Wait for backend
 echo.

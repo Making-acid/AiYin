@@ -3,20 +3,21 @@ import { useNavigate } from "react-router-dom";
 import { startFreeChat, sendFreeChat } from "../api/chat";
 import { VoiceInput } from "../components/VoiceInput";
 import { ChatBubble } from "../components/ChatBubble";
-import { Live2DCharacter } from "../components/Live2DCharacter";
+import { Live2DCharacter } from "../live2d";
 import { useLive2DBehavior, useLanguage } from "../i18n";
 import { useTrainingLanguage } from "../i18n/trainingLang";
 import { AsrIndicator } from "../asr";
+import { AsrProvider } from "../asr";
 import { useSpeechSynthesis } from "../hooks/useSpeechSynthesis";
 import type { ChatMessage } from "../types";
 
 export function FreeChat() {
   const navigate = useNavigate();
-  const { speak, stop: stopSpeech, isSupported: ttsSupported } = useSpeechSynthesis("young", trainingLang);
+  const { trainingLang } = useTrainingLanguage();
+  const { speak, stop: stopSpeech, isSupported: ttsSupported, mouthOpen } = useSpeechSynthesis("young", trainingLang);
   const [behavior] = useLive2DBehavior();
   const initRef = useRef(false);
   const { t } = useLanguage();
-  const { trainingLang } = useTrainingLanguage();
   const chatRef = useRef<HTMLDivElement>(null);
 
   const [sessionId, setSessionId] = useState("");
@@ -83,13 +84,15 @@ export function FreeChat() {
   const handleVoiceEnd = () => setLive2dState("idle");
 
   return (
+    <AsrProvider mode="free_chat">
     <div className="page free-chat-page-split">
       <div className="live2d-panel">
         <Live2DCharacter
           modelPath="/third_party/live2d/models/mao/mao_pro.model3.json"
+          mode="free_chat"
           state={live2dState}
+          mouthOpen={mouthOpen}
           behavior={behavior}
-          scale={0.85}
         />
       </div>
 
@@ -120,7 +123,8 @@ export function FreeChat() {
           <VoiceInput onResult={handleUserMessage} disabled={loading} onStart={handleVoiceStart} onEnd={handleVoiceEnd} />
         </div>
       </div>
-      <AsrIndicator />
+      <AsrIndicator mode="free_chat" />
     </div>
+    </AsrProvider>
   );
 }

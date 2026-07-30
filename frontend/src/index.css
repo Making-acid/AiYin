@@ -649,7 +649,148 @@ body {
   color: var(--text-secondary);
 }
 
-/* ===== Dual-panel Layout (Live2D + Chat) ===== */
+/* ===== Exam Fullscreen ===== */
+.exam-fullscreen {
+  max-width: none;
+  padding: 0;
+  margin: 0;
+  height: 100vh;
+  width: 100vw;
+  position: relative;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  overflow: hidden;
+}
+
+.exam-fullscreen .live2d-character {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.exam-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 100%);
+  z-index: 10;
+  color: white;
+}
+
+.exam-topbar .back-btn {
+  color: rgba(255,255,255,0.85);
+  font-size: 16px;
+}
+
+.exam-topbar .back-btn:hover {
+  color: white;
+}
+
+.exam-phase-label {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.7;
+}
+
+.exam-topbar .exam-timers {
+  display: flex;
+  align-items: center;
+}
+
+.exam-topbar .timer {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.2);
+  color: white;
+  font-size: 22px;
+  padding: 4px 14px;
+}
+
+.exam-topbar .timer.warning {
+  color: #fca5a5;
+  border-color: #fca5a5;
+}
+
+.exam-cuecard {
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(30, 41, 59, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  min-width: 280px;
+  max-width: 340px;
+  z-index: 15;
+  animation: slideInRight 0.35s ease-out;
+  color: #e2e8f0;
+}
+
+@keyframes slideInRight {
+  from { transform: translateY(-50%) translateX(100%); opacity: 0; }
+  to   { transform: translateY(-50%) translateX(0); opacity: 1; }
+}
+
+.exam-cuecard h3 {
+  font-size: 16px;
+  margin-bottom: 14px;
+  color: #fbbf24;
+  line-height: 1.4;
+}
+
+.exam-cuecard ul {
+  list-style: none;
+  padding: 0;
+}
+
+.exam-cuecard li {
+  padding: 4px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #94a3b8;
+}
+
+.exam-cuecard li::before {
+  content: "• ";
+  color: #6366f1;
+}
+
+.exam-thinking {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30,41,59,0.8);
+  color: #94a3b8;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  z-index: 10;
+}
+
+.exam-bottombar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px 24px 28px;
+  background: linear-gradient(0deg, rgba(0,0,0,0.5) 0%, transparent 100%);
+  z-index: 10;
+}
+
+/* ===== Dual-panel Layout (Live2D + Chat) — kept for FreeChat ===== */
 .exam-page-split,
 .free-chat-page-split {
   display: flex;

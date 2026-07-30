@@ -16,8 +16,10 @@ export interface AsrHandle {
 
 const AsrContext = createContext<AsrHandle | null>(null);
 
-export function AsrProvider({ children }: { children: React.ReactNode }) {
-  const { config: whisperCfg } = useWhisperConfig();
+type AsrMode = "exam" | "free_chat";
+
+export function AsrProvider({ children, mode }: { children: React.ReactNode; mode: AsrMode }) {
+  const { config: whisperCfg } = useWhisperConfig(mode);
   const useWhisper = whisperCfg?.enabled ?? false;
   const { trainingLang, getAsrCode } = useTrainingLanguage();
 

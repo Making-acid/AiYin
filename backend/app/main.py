@@ -11,7 +11,17 @@ from app.core.config import settings
 
 logger = logging.getLogger("main")
 
-app = FastAPI(title="IELTS Speaking Practice", version="0.3.0")
+# When running as packaged exe (--windowed), redirect logs to file
+if getattr(sys, "frozen", False):
+    log_path = Path(sys.executable).parent / "ielts.log"
+    logging.basicConfig(
+        filename=str(log_path),
+        level=logging.INFO,
+        format="%(asctime)s [%(name)s] %(levelname)s: %(message)s"
+    )
+    logger.info("Running frozen — logging to %s", log_path)
+
+app = FastAPI(title="IELTS Speaking Practice", version="0.3.1")
 
 app.add_middleware(
     CORSMiddleware,
