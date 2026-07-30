@@ -49,16 +49,27 @@ WHISPER_MODELS = {
 
 
 def _get_config() -> dict:
-    if CONFIG_PATH.exists():
-        with open(CONFIG_PATH, encoding="utf-8") as f:
-            return json.load(f)
-    return {"model": "small", "enabled": False, "language": "en"}
+    try:
+        if CONFIG_PATH.exists():
+            with open(CONFIG_PATH, encoding="utf-8") as f:
+                return json.load(f)
+        return {"model": "small", "enabled": False, "language": "en"}
+    except json.JSONDecodeError as e:
+        logger.error("Whisper config file is corrupted: %s", e)
+        return {"model": "small", "enabled": False, "language": "en"}
+    except OSError as e:
+        logger.error("Cannot read whisper config: %s", e)
+        return {"model": "small", "enabled": False, "language": "en"}
 
 
 def _save_config(config: dict):
-    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=2)
+    try:
+        CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+            json.dump(config, f, indent=2)
+    except OSError as e:
+        logger.error("Cannot write whisper config: %s", e)
+        raise RuntimeError("Cannot save Whisper configuration. Please check file permissions.")
 
 
 def get_whisper_config() -> dict:

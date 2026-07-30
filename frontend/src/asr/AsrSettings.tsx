@@ -1,14 +1,13 @@
 import { useWhisperConfig } from "./whisperConfig";
 import { useLanguage } from "../i18n";
 
-export function AsrSettings() {
+function AsrModeSettings({ mode, label }: { mode: "exam" | "free_chat"; label: string }) {
   const { t } = useLanguage();
-  const { config: whisperCfg, models, downloading, toggleEnabled, switchModel } = useWhisperConfig();
+  const { config: whisperCfg, models, downloading, toggleEnabled, switchModel } = useWhisperConfig(mode);
 
   return (
     <div className="settings-section">
-      <h3>{t("whisperSection")}</h3>
-      <p className="settings-desc">{t("whisperDesc")}</p>
+      <h3>{label}</h3>
       <div className="form-group">
         <label>{t("whisperEnable")}</label>
         <select
@@ -32,11 +31,10 @@ export function AsrSettings() {
                 <button
                   className={`btn-small ${m.id === whisperCfg.model ? "btn-active" : m.downloaded ? "btn-switch" : "btn-download"}`}
                   onClick={() => {
-                    const confirmMsg = m.downloaded ? ""
-                      : t("whisperDownloadConfirm")
-                          .replace("{modelId}", m.name)
-                          .replace("{size}", m.size);
-                    switchModel(m.id, confirmMsg);
+                    const msg = m.downloaded ? "" : t("whisperDownloadConfirm")
+                      .replace("{modelId}", m.name)
+                      .replace("{size}", m.size);
+                    switchModel(m.id, msg);
                   }}
                   disabled={downloading === m.id}
                 >
@@ -48,5 +46,15 @@ export function AsrSettings() {
         </div>
       )}
     </div>
+  );
+}
+
+export function AsrSettings() {
+  const { t } = useLanguage();
+  return (
+    <>
+      <AsrModeSettings mode="exam" label={t("whisperSectionExam")} />
+      <AsrModeSettings mode="free_chat" label={t("whisperSectionFreeChat")} />
+    </>
   );
 }

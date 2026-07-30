@@ -55,6 +55,8 @@ def end_chat(request: ChatEndRequest):
         return end_chat_session(request.session_id)
     except ExamError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except DataError as e:
+        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         logger.error("Failed to end chat: %s", e)
         raise HTTPException(status_code=500, detail="Failed to end chat session. Please try again.")

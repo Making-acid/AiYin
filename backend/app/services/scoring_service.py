@@ -15,7 +15,13 @@ class ScoringError(Exception):
 
 
 def _get_loader(exam_id: str) -> ExamDataLoader:
-    return ExamDataLoader(exam_id)
+    try:
+        return ExamDataLoader(exam_id)
+    except DataError:
+        raise
+    except Exception as e:
+        logger.error("Failed to create scoring data loader for '%s': %s", exam_id, e)
+        raise ScoringError("Failed to load exam data for scoring. Please try again.")
 
 
 def generate_score_report(session_id: str) -> Optional[dict]:

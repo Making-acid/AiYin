@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Query
 from app.models.schemas import ExamStartRequest, ExamAnswerRequest
 from app.services.exam_service import create_session, get_examiner_intro, get_next_question, ExamError
 from app.services.scoring_service import generate_score_report, ScoringError
-from app.services.data_loader import get_registry, DataError
+from app.services.data_loader import get_registry, DataError, validate_exam_id
 
 
 logger = logging.getLogger("api.exam")
@@ -28,15 +28,7 @@ def list_exams(language: str = Query(None, description="Filter exams by training
 @router.post("/start")
 def start_exam(request: ExamStartRequest):
     try:
-        # Validate exam_id exists before creating session
-        registry = get_registry()
-        valid_ids = [e["id"] for e in registry.get("exams", [])]
-        if request.exam_id not in valid_ids:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Unknown exam '{request.exam_id}'. Available exams: {', '.join(valid_ids)}",
-            )
-
+        validate_exam_id(request.exam_id)
         session_id = create_session(request.exam_id, "exam")
         intro = get_examiner_intro(session_id)
         return {
@@ -48,10 +40,10 @@ def start_exam(request: ExamStartRequest):
         }
     except HTTPException:
         raise
+    except DataError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except ExamError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except DataError as e:
-        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         logger.error("Failed to start exam: %s", e)
         raise HTTPException(status_code=500, detail="Failed to start the exam. Please try again.")

@@ -1,13 +1,20 @@
+import logging
 from fastapi import APIRouter, HTTPException, UploadFile, Form
 from app.models.schemas import DownloadModelRequest, WhisperConfigRequest
 from app.services import whisper_service
 
+
+logger = logging.getLogger("api.whisper")
 router = APIRouter(prefix="/whisper", tags=["whisper"])
 
 
 @router.get("/config")
 def get_config():
-    return whisper_service.get_whisper_config()
+    try:
+        return whisper_service.get_whisper_config()
+    except Exception as e:
+        logger.error("Failed to get whisper config: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to load Whisper configuration.")
 
 
 @router.post("/config")
@@ -20,11 +27,18 @@ def update_config(request: WhisperConfigRequest):
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("Failed to update whisper config: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to save Whisper configuration.")
 
 
 @router.get("/models")
 def list_models():
-    return whisper_service.list_models()
+    try:
+        return whisper_service.list_models()
+    except Exception as e:
+        logger.error("Failed to list whisper models: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to load Whisper model list.")
 
 
 @router.post("/models/download")

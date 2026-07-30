@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.api import chat, exam, config
+from app.core.config import settings
 
 logger = logging.getLogger("main")
 
@@ -14,7 +15,7 @@ app = FastAPI(title="IELTS Speaking Practice", version="0.3.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -45,6 +46,23 @@ else:
 
 if STATIC_DIR.exists() and (STATIC_DIR / "index.html").exists():
     app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
+
+
+@app.on_event("startup")
+def _startup_cleanup_task():
+    import asyncio
+    from app.services.session_manager import cleanup_expired
+
+    async def _periodic_cleanup():
+        while True:
+            await asyncio.sleep(1800)  # every 30 minutes
+            cleanup_expired()
+
+    try:
+        loop = asyncio.get_event_loop()
+        loop.create_task(_periodic_cleanup())
+    except RuntimeError:
+        pass
 
 
 def open_browser():

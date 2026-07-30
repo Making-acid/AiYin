@@ -68,6 +68,8 @@ const en: Record<string, string> = {
 
   // Whisper / ASR
   whisperSection: "Whisper ASR",
+  whisperSectionExam: "Exam — Whisper ASR",
+  whisperSectionFreeChat: "Free Chat — Whisper ASR",
   whisperDesc: "Use local Whisper AI for speech recognition. More accurate than browser ASR but requires model download.",
   whisperEnable: "Enable Whisper",
   whisperEnabled: "Enabled (replaces browser ASR)",

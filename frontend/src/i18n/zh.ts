@@ -67,6 +67,8 @@ const zh: Record<string, string> = {
 
   // Whisper / ASR
   whisperSection: "Whisper 语音识别",
+  whisperSectionExam: "考试模式 — Whisper 语音识别",
+  whisperSectionFreeChat: "自由聊天 — Whisper 语音识别",
   whisperDesc: "使用本地 Whisper AI 进行语音识别。比浏览器 ASR 更精准，但需下载模型。",
   whisperEnable: "启用 Whisper",
   whisperEnabled: "已启用（替换浏览器 ASR）",

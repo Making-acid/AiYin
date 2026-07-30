@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "";
 
+type AsrMode = "exam" | "free_chat";
+
 interface WhisperModel {
   id: string;
   name: string;
@@ -15,11 +17,21 @@ interface WhisperConfig {
   model_name: string;
 }
 
-export function useWhisperConfig() {
+export function useWhisperConfig(mode: AsrMode) {
+  const storageKey = `asr_${mode}_enabled`;
+  const defaultEnabled = mode === "exam";
+
   const [config, setConfig] = useState<WhisperConfig | null>(null);
   const [models, setModels] = useState<WhisperModel[]>([]);
+  const [localEnabled, setLocalEnabled] = useState(() => {
+    const stored = localStorage.getItem(storageKey);
+    if (stored !== null) return stored === "true";
+    return defaultEnabled;
+  });
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState("");
+
+  const effectiveConfig = config ? { ...config, enabled: localEnabled } : null;
 
   const load = useCallback(async () => {
     try {
@@ -39,15 +51,16 @@ export function useWhisperConfig() {
   useEffect(() => { load(); }, [load]);
 
   const toggleEnabled = async (enabled: boolean) => {
-    const res = await fetch(`${API_BASE}/whisper/config`, {
+    setLocalEnabled(enabled);
+    localStorage.setItem(storageKey, String(enabled));
+    await fetch(`${API_BASE}/whisper/config`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ enabled }),
-    });
-    setConfig(await res.json());
+    }).catch(() => {});
   };
 
-  const switchModel = async (modelId: string, confirmMessage: string = "") => {
+  const switchModel = async (modelId: string, confirmMessage?: string) => {
     setDownloading(modelId);
 
     const model = models.find((m) => m.id === modelId);
@@ -62,10 +75,7 @@ export function useWhisperConfig() {
       return true;
     }
 
-    if (confirmMessage && !window.confirm(confirmMessage)) {
-      setDownloading("");
-      return false;
-    }
+    if (confirmMessage && !window.confirm(confirmMessage)) { setDownloading(""); return false; }
 
     try {
       await fetch(`${API_BASE}/whisper/models/download`, {
@@ -73,7 +83,6 @@ export function useWhisperConfig() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model_id: modelId }),
       });
-
       const switchRes = await fetch(`${API_BASE}/whisper/config`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -88,5 +97,5 @@ export function useWhisperConfig() {
     }
   };
 
-  return { config, models, loading, downloading, toggleEnabled, switchModel, refresh: load };
+  return { config: effectiveConfig, models, loading, downloading, toggleEnabled, switchModel, refresh: load };
 }

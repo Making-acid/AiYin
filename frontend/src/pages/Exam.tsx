@@ -1,16 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { startExam, submitAnswer } from "../api/exam";
-import { VoiceInput } from "../components/VoiceInput";
-import type { VoiceInputHandle } from "../components/VoiceInput";
-import { ChatBubble } from "../components/ChatBubble";
 import { Timer } from "../components/Timer";
-import { Live2DCharacter } from "../components/Live2DCharacter";
+import { Live2DCharacter } from "../live2d";
 import { useLive2DBehavior, useLanguage } from "../i18n";
 import { useTrainingLanguage } from "../i18n/trainingLang";
-import { AsrIndicator } from "../asr";
 import { useSpeechSynthesis } from "../hooks/useSpeechSynthesis";
-import type { ChatMessage } from "../types";
+import { useDualRecording, type DualRecordingResult } from "../hooks/useDualRecording";
+import { AsrProvider } from "../asr";
 
 type Phase = "intro" | "part1" | "part2_prep" | "part2_speaking" | "part3" | "finished";
 
@@ -21,20 +18,19 @@ interface CueCard {
 
 export function Exam() {
   const navigate = useNavigate();
-  const { speak, stop: stopSpeech, isSupported: ttsSupported } = useSpeechSynthesis("standard", trainingLang);
+  const { trainingLang } = useTrainingLanguage();
+  const { speak, stop: stopSpeech, isSupported: ttsSupported, mouthOpen } = useSpeechSynthesis("standard", trainingLang);
   const [behavior] = useLive2DBehavior();
   const { t } = useLanguage();
-  const { trainingLang } = useTrainingLanguage();
-  const voiceRef = useRef<VoiceInputHandle>(null);
-  const chatRef = useRef<HTMLDivElement>(null);
-  const autoTimerRef = useRef<any>(null);
+  const dual = useDualRecording();
+  const audioBlobsRef = useRef<Blob[]>([]);
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const initRef = useRef(false);
 
   const [sessionId, setSessionId] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [_currentPart, setCurrentPart] = useState("");
   const [isFinished, setIsFinished] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [sendError, setSendError] = useState("");
   const [live2dState, setLive2dState] = useState<"idle" | "speaking" | "listening">("idle");
   const [phase, setPhase] = useState<Phase>("intro");
   const [cueCard, setCueCard] = useState<CueCard | null>(null);
@@ -43,58 +39,18 @@ export function Exam() {
   const [prepSeconds, setPrepSeconds] = useState(60);
   const [speakSeconds, setSpeakSeconds] = useState(120);
 
-  useEffect(() => {
-    if (initRef.current) return;
-    initRef.current = true;
-    initExam();
+  useEffect(() => { if (!initRef.current) { initRef.current = true; initExam(); } }, []);
+
+  const clearTimers = useCallback(() => {
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
   }, []);
-
-  useEffect(() => {
-    if (chatRef.current) {
-      chatRef.current.scrollTop = chatRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  const clearTimers = () => {
-    if (autoTimerRef.current) {
-      clearTimeout(autoTimerRef.current);
-      autoTimerRef.current = null;
-    }
-  };
-
-  const autoStopAndSend = useCallback(() => {
-    if (voiceRef.current) {
-      voiceRef.current.stop();
-    }
-    setRecordingActive(false);
-    setRecordingTimeLeft(0);
-  }, []);
-
-  const startRecordingTimer = useCallback((seconds: number) => {
-    setRecordingTimeLeft(seconds);
-    setRecordingActive(true);
-    clearTimers();
-
-    if (voiceRef.current) {
-      voiceRef.current.start();
-    }
-
-    autoTimerRef.current = setTimeout(() => {
-      autoStopAndSend();
-    }, seconds * 1000);
-  }, [autoStopAndSend, clearTimers]);
 
   const handleExaminerSpeak = useCallback(
     (text: string, onEnd?: () => void) => {
-      if (!ttsSupported) {
-        onEnd?.();
-        return;
-      }
+      if (!ttsSupported) { onEnd?.(); return; }
       setLive2dState("speaking");
-      speak(text, undefined, () => {
-        setLive2dState("idle");
-        onEnd?.();
-      });
+      speak(text, undefined, () => { setLive2dState("idle"); onEnd?.(); });
     },
     [ttsSupported, speak]
   );
@@ -103,98 +59,101 @@ export function Exam() {
     try {
       const data = await startExam();
       setSessionId(data.session_id);
-      setCurrentPart(data.current_part);
-      const msg: ChatMessage = { role: "examiner", content: data.examiner_message };
-      setMessages([msg]);
       setPhase("part1");
-      handleExaminerSpeak(data.examiner_message, () => {
-        startRecordingTimer(45);
+      handleExaminerSpeak(data.examiner_message, () => startRecordingTimer(45));
+    } catch (err) { console.error("Failed to start exam:", err); }
+  };
+
+  const handleTransition = (result: any) => {
+    setIsFinished(result.is_finished);
+    setLoading(false);
+    if (result.cue_card) setCueCard(result.cue_card); else setCueCard(null);
+    if (result.is_finished) { setPhase("finished"); return; }
+
+    const part = result.current_part;
+    if (part === "part1") {
+      setPhase("part1");
+      handleExaminerSpeak(result.next_question, () => startRecordingTimer(45));
+    } else if (part === "part2_prep") {
+      setPhase("part2_prep"); setPrepSeconds(60);
+      handleExaminerSpeak(result.next_question, () => {
+        const prepTimer = setTimeout(() => {
+          setPhase("part2_speaking"); setCueCard(null); setSpeakSeconds(120);
+          submitAnswer(sessionId, "[preparation complete]")
+            .then(() => startRecordingTimer(120))
+            .catch(() => startRecordingTimer(120));
+        }, 60000);
+        timersRef.current.push(prepTimer);
       });
-    } catch (err) {
-      console.error("Failed to start exam:", err);
+    } else if (part === "part2") {
+      setPhase("part2_speaking"); setSpeakSeconds(120);
+      handleExaminerSpeak(result.next_question, () => startRecordingTimer(120));
+    } else if (part === "part3_transition" || part === "part3") {
+      setPhase("part3");
+      handleExaminerSpeak(result.next_question, () => startRecordingTimer(60));
     }
   };
 
   const sendAnswer = useCallback(
     async (text: string) => {
       if (!sessionId || loading) return;
-      clearTimers();
-      setRecordingActive(false);
-
-      const userMsg: ChatMessage = { role: "user", content: text };
-      setMessages((prev) => [...prev, userMsg]);
       setLoading(true);
-
       try {
         const result = await submitAnswer(sessionId, text);
-
-        if (result.next_question) {
-          const examinerMsg: ChatMessage = { role: "examiner", content: result.next_question };
-          setMessages((prev) => [...prev, examinerMsg]);
-          handleTransition(result, examinerMsg);
-        }
+        if (result.next_question) handleTransition(result);
       } catch (err) {
         console.error("Failed to submit answer:", err);
         setLoading(false);
+        setSendError(t("asrServerConnectFailed"));
       }
     },
-    [sessionId, loading, clearTimers, handleExaminerSpeak]
+    [sessionId, loading]
   );
 
-  const handleTransition = (result: any, _examinerMsg: ChatMessage) => {
-    setCurrentPart(result.current_part);
-    setIsFinished(result.is_finished);
-    setLoading(false);
+  // Handle dual recording result: save audio, send text to LLM
+  const handleDualResult = useCallback(
+    (result: DualRecordingResult) => {
+      setRecordingActive(false);
+      if (result.audio.size > 100) audioBlobsRef.current.push(result.audio);
+      if (result.text.trim()) sendAnswer(result.text.trim());
+    },
+    [sendAnswer]
+  );
 
-    if (result.cue_card) {
-      setCueCard(result.cue_card);
+  // Auto-stop: timer expires → stop recording, save audio, submit
+  const autoStopAndSend = useCallback(() => {
+    dual.stop().then(handleDualResult);
+    setRecordingTimeLeft(0);
+  }, [dual, handleDualResult]);
+
+  // Countdown timer: interval decrements the display, timeout auto-stops recording
+  const startRecordingTimer = useCallback((seconds: number) => {
+    clearTimers();
+    setRecordingTimeLeft(seconds);
+    setRecordingActive(true);
+    dual.start();
+
+    // UI countdown
+    let remaining = seconds;
+    const countdown = setInterval(() => {
+      remaining--;
+      setRecordingTimeLeft(Math.max(0, remaining));
+      if (remaining <= 0) clearInterval(countdown);
+    }, 1000);
+    timersRef.current.push(countdown as unknown as ReturnType<typeof setTimeout>);
+
+    // Auto-stop
+    const autoStop = setTimeout(() => autoStopAndSend(), seconds * 1000);
+    timersRef.current.push(autoStop);
+  }, [clearTimers, dual, autoStopAndSend]);
+
+  // Toggle mic button
+  const handleMicToggle = () => {
+    if (dual.isRecording) {
+      dual.stop().then(handleDualResult);
     } else {
-      setCueCard(null);
-    }
-
-    if (result.is_finished) {
-      setPhase("finished");
-      return;
-    }
-
-    const part = result.current_part;
-
-    if (part === "part1") {
-      setPhase("part1");
-      handleExaminerSpeak(result.next_question, () => {
-        startRecordingTimer(45);
-      });
-    } else if (part === "part2_prep") {
-      setPhase("part2_prep");
-      setPrepSeconds(60);
-      handleExaminerSpeak(result.next_question, () => {
-        // Start 60s preparation countdown, then auto-start 120s speaking
-        setTimeout(() => {
-          setPhase("part2_speaking");
-          setCueCard(null);
-          setSpeakSeconds(120);
-          // Send blank answer to trigger the "begin speaking" response
-          submitAnswer(sessionId, "[preparation complete]").then((r) => {
-            const beginMsg: ChatMessage = {
-              role: "examiner",
-              content: r.next_question || t("youMayBegin"),
-            };
-            setMessages((prev) => [...prev, beginMsg]);
-            startRecordingTimer(120);
-          });
-        }, 60000);
-      });
-    } else if (part === "part2") {
-      setPhase("part2_speaking");
-      setSpeakSeconds(120);
-      handleExaminerSpeak(result.next_question, () => {
-        startRecordingTimer(120);
-      });
-    } else if (part === "part3_transition" || part === "part3") {
-      setPhase("part3");
-      handleExaminerSpeak(result.next_question, () => {
-        startRecordingTimer(60);
-      });
+      dual.start();
+      setRecordingActive(true);
     }
   };
 
@@ -204,94 +163,64 @@ export function Exam() {
     navigate(`/report/${sessionId}`);
   };
 
-  const handleStopRecording = () => {
-    autoStopAndSend();
-  };
-
   const partLabels: Record<string, string> = {
-    intro: t("intro"),
-    part1: t("part1"),
-    part2_prep: t("part2Prep"),
-    part2_speaking: t("part2Speak"),
-    part3: t("part3"),
-    finished: t("finished"),
+    intro: t("intro"), part1: t("part1"), part2_prep: t("part2Prep"),
+    part2_speaking: t("part2Speak"), part3: t("part3"), finished: t("finished"),
   };
 
   return (
-    <div className="page exam-page-split">
-      <div className="live2d-panel">
-        <Live2DCharacter
-          modelPath="/third_party/live2d/models/haru/haru_greeter_t05.model3.json"
-          state={live2dState}
-          behavior={behavior}
-          scale={0.85}
-        />
+    <AsrProvider mode="exam">
+    <div className="page exam-fullscreen">
+      <Live2DCharacter
+        modelPath="/third_party/live2d/models/haru/haru_greeter_t05.model3.json"
+        mode="exam"
+        state={live2dState}
+        mouthOpen={mouthOpen}
+        behavior={behavior}
+      />
+
+      <div className="exam-topbar">
+        <button className="back-btn" onClick={() => { clearTimers(); stopSpeech(); navigate("/"); }}>
+          {t("back")}
+        </button>
+        <span className="exam-phase-label">{partLabels[phase]}</span>
+        <div className="exam-timers">
+          {phase === "part2_prep" && <Timer seconds={prepSeconds} running={true} onComplete={() => {}} />}
+          {phase === "part2_speaking" && recordingActive && <Timer seconds={speakSeconds} running={true} onComplete={() => {}} />}
+          {recordingActive && phase !== "part2_prep" && <Timer seconds={recordingTimeLeft} running={true} onComplete={() => {}} />}
+        </div>
       </div>
 
-      <div className="chat-panel">
-        <div className="exam-header">
-          <button className="back-btn" onClick={() => { clearTimers(); stopSpeech(); navigate("/"); }}>
-            {t("back")}
-          </button>
-          <h2>{partLabels[phase]}</h2>
-          {phase === "part2_prep" && (
-            <Timer seconds={prepSeconds} running={true} onComplete={() => {}} />
-          )}
-          {phase === "part2_speaking" && recordingActive && (
-            <Timer seconds={speakSeconds} running={true} onComplete={() => {}} />
-          )}
-          {recordingActive && phase !== "part2_prep" && (
-            <Timer seconds={recordingTimeLeft} running={true} onComplete={() => {}} />
-          )}
+      {cueCard && (
+        <div className="exam-cuecard">
+          <h3>{cueCard.topic}</h3>
+          <ul>{cueCard.prompt_lines.map((line, i) => <li key={i}>{line}</li>)}</ul>
         </div>
+      )}
 
-        {cueCard && (
-          <div className="cue-card">
-            <h3>{cueCard.topic}</h3>
-            <ul>
-              {cueCard.prompt_lines.map((line, i) => (
-                <li key={i}>{line}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+      {loading && <div className="exam-thinking">{t("thinking")}</div>}
+      {dual.error && <div className="exam-thinking error">{t(dual.error)}</div>}
+      {sendError && <div className="exam-thinking error">{sendError}</div>}
 
-        <div className="chat-container" ref={chatRef}>
-          {messages.map((msg, i) => (
-            <ChatBubble key={i} message={msg} />
-          ))}
-          {loading && (
-            <div className="chat-bubble examiner">
-              <div className="bubble-avatar"></div>
-              <div className="bubble-content">
-                <div className="bubble-text typing">{t("thinking")}</div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="exam-input-area">
-          {isFinished ? (
-            <button className="btn-primary" onClick={handleViewReport}>
-              {t("viewReport")}
-            </button>
-          ) : (
-            <VoiceInput
-              ref={voiceRef}
-              onResult={sendAnswer}
+      <div className="exam-bottombar">
+        {isFinished ? (
+          <button className="btn-primary" onClick={handleViewReport}>{t("viewReport")}</button>
+        ) : (
+          <>
+            <button
+              className={`mic-button ${dual.isRecording ? "recording" : ""}`}
+              onClick={handleMicToggle}
               disabled={loading}
-              onStart={() => setLive2dState("listening")}
-              onEnd={() => setLive2dState("idle")}
-            />
-          )}
-          {recordingActive && (
-            <button className="btn-primary stop-record-btn" onClick={handleStopRecording}>
-              {t("stopAndSend")}
+            >
+              {dual.isRecording ? t("stop") : t("speak")}
             </button>
-          )}
-        </div>
+            {recordingActive && (
+              <button className="btn-primary" onClick={handleMicToggle}>{t("stopAndSend")}</button>
+            )}
+          </>
+        )}
       </div>
-      <AsrIndicator />
     </div>
+    </AsrProvider>
   );
 }
