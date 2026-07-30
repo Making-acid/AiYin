@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import shutil
+import sys
 import tempfile
 from pathlib import Path
 from threading import Lock
@@ -28,8 +29,8 @@ def _get_faster_whisper():
         _faster_whisper = _mod
     return _faster_whisper
 
-MODELS_DIR = Path(__file__).parent.parent.parent / "models" / "whisper"
-CONFIG_PATH = Path(__file__).parent.parent.parent / "data" / "whisper_config.json"
+MODELS_DIR = (Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent.parent.parent) / "models" / "whisper"
+CONFIG_PATH = (Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent.parent.parent) / "data" / "whisper_config.json"
 
 _model = None
 _model_lock = Lock()

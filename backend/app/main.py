@@ -1,7 +1,9 @@
 import sys
+import os
 import webbrowser
 import threading
 import logging
+import tempfile
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,15 +13,20 @@ from app.core.config import settings
 
 logger = logging.getLogger("main")
 
-# When running as packaged exe (--windowed), redirect logs to file
+# When running as packaged exe (--windowed), redirect logs to a user-writable location
 if getattr(sys, "frozen", False):
-    log_path = Path(sys.executable).parent / "ielts.log"
-    logging.basicConfig(
-        filename=str(log_path),
-        level=logging.INFO,
-        format="%(asctime)s [%(name)s] %(levelname)s: %(message)s"
-    )
-    logger.info("Running frozen — logging to %s", log_path)
+    log_dir = Path(os.environ.get("LOCALAPPDATA", tempfile.gettempdir())) / "IELTS Speaking"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_path = log_dir / "ielts.log"
+    try:
+        logging.basicConfig(
+            filename=str(log_path),
+            level=logging.INFO,
+            format="%(asctime)s [%(name)s] %(levelname)s: %(message)s"
+        )
+        logger.info("Running frozen — logging to %s", log_path)
+    except PermissionError:
+        pass  # fall back to console-only logging
 
 app = FastAPI(title="IELTS Speaking Practice", version="0.3.1")
 
