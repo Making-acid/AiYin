@@ -98,6 +98,24 @@ const en: Record<string, string> = {
   // Live2D
   modelLoadFailed: "Failed to load model",
 
+  // Tutorial
+  tutorialTitle: "Welcome to IELTS Speaking Practice!",
+  tutorialStep1Title: "Configure API Key",
+  tutorialStep1Desc: "Go to Settings and enter your LLM API key. Supports DeepSeek, OpenAI, Groq, OpenRouter, and Ollama.",
+  tutorialStep2Title: "Choose a Mode",
+  tutorialStep2Desc: "Exam Mode simulates a full IELTS speaking test with scoring. Free Chat lets you practice casual English conversation.",
+  tutorialStep3Title: "Use Your Voice",
+  tutorialStep3Desc: "Click the microphone button to speak. Your speech will be recognised and the AI examiner will respond with voice.",
+  tutorialStep4Title: "Get Feedback",
+  tutorialStep4Desc: "After the exam, you will receive a band score (0-9) across four criteria, along with personalised suggestions.",
+  tutorialTip: "Tip",
+  tutorialTipDesc: "Use Chrome or Edge for the best experience. Whisper local ASR is available in Settings for higher accuracy.",
+  tutorialDismiss: "Got it!",
+
+  // Help
+  helpTitle: "Help",
+  helpOpenPdf: "Open User Guide (PDF)",
+
   // Misc
   whisperDownloadConfirm: "Download model {modelId}? This model is about {size}. Download may take several minutes.",
 };

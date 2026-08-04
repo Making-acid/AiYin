@@ -178,6 +178,22 @@ export function Settings() {
           </div>
         </div>
 
+        <div className="settings-section">
+          <h3>{t("helpTitle")}</h3>
+          <p className="settings-desc">{t("helpOpenPdf")}</p>
+          <div className="form-actions">
+            <a
+              href="/help/user-guide.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary"
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}
+            >
+              {t("helpOpenPdf")}
+            </a>
+          </div>
+        </div>
+
         <AsrSettings />
       </div>
     </div>

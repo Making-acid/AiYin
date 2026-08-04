@@ -27,7 +27,17 @@
         "Do you think social media has more positive or negative effects on society?",
         "How might artificial intelligence affect the job market?",
         "Is technology making people more or less creative?",
-        "What technological development are you most excited about?"
+        "What technological development are you most excited about?",
+        "What technology do young people like to use?",
+        "What are the differences between the technology of the past and that of today?",
+        "What are the differences between online and face-to- face communication?",
+        "What are the differences between making friends in real life and online?",
+        "What kind of technologies can be used at school?",
+        "What negative effects does technology have on people's relationships?",
+        "Do these electronic products bene t students? computers?",
+        "Do you think robots can replace human teachers? if 方 An Expensive Item?",
+        "What are the differences between old and young people when using apps?",
+        "Why do some people not like using apps?"
       ]
     },
     {
@@ -48,6 +58,91 @@
         "Do you think traditional festivals are losing their meaning?",
         "Should children be taught about their cultural heritage?",
         "How do different cultures influence each other today?"
+      ]
+    },
+    {
+      "topic": "People & Relationships",
+      "questions": [
+        "Do you still keep in touch with your friends from childhood? Why or why not?",
+        "How important is childhood friendship to children?",
+        "What do you think of communicating via social media?",
+        "Do you think online communication through social media will replace face-to-face communication?",
+        "What's the difference between having younger friends and older friends?",
+        "Has technology changed people's friendships? How? A Person Who Loves To Grow Plants (New)?",
+        "What are the advantages of growing vegetables or flowers at home?",
+        "Do many people grow vegetables or flowers at home in your country?",
+        "Is it easy to grow plants at home?",
+        "Why do some people like to grow plants?",
+        "Why do some people prefer to grow their own fruits and vegetables instead of buying them from the market? lf lf 方 lf A Person Who Is Good at Language (New)?",
+        "Are there many people who can speak foreign languages in your country?"
+      ]
+    },
+    {
+      "topic": "Places & Travel",
+      "questions": [
+        "Are there many tall buildings in your country?",
+        "What are the differences between tall buildings in your country?",
+        "Why are different places laid out and designed differently?",
+        "What are the advantages of living in tall buildings?",
+        "Why do some people like to remodel and decorate their homes themselves?",
+        "What kind of interior design style do most people like? A Boring Place (New)?",
+        "Why do most children think education is boring?",
+        "Why aren't young people willing to listen to the experiences of older people?",
+        "What can people do when they feel bored?",
+        "Why are some teachers' classes boring? Are there any solutions?",
+        "Why do some young people feel bored when talking with old people?",
+        "Do most people think news about celebrities is boring? A Home You Like To Visit (New)?"
+      ]
+    },
+    {
+      "topic": "Environment & Nature",
+      "questions": [
+        "What kinds of rules do schools in China have?",
+        "Do you think school rules are important?",
+        "Are children unhappy with the school rules?",
+        "How can parents and teachers help children understand and follow rules?",
+        "What are the rules people should obey at work?",
+        "What is the purpose of punishment? i i f f 方 A New Law You Want To Introduce (New)?",
+        "What rules should students follow at a school?",
+        "Do people in your country usually obey the law?",
+        "What kinds of behavior are considered good?",
+        "Do you think children can learn about the law outside of school?",
+        "What are the bene ts for people to obey rules?",
+        "How can parents teach children to obey rules? if 方 An Environmental Law (New)?"
+      ]
+    },
+    {
+      "topic": "Culture & Entertainment",
+      "questions": [
+        "What kind of videos do people in your country like to watch?",
+        "Which is more helpful, watching videos or reading books?",
+        "What skills can people learn from watching videos?",
+        "Are there any differences between the videos that young people and old people like to watch?",
+        "Are there any differences between the videos that young men or young women like to watch?",
+        "What makes a video go viral online? An Advertisement (New)?",
+        "What kind of movies do you think are successful in your country?",
+        "What are the factors that make a successful movie?",
+        "Do Chinese people prefer to watch domestic movies or foreign movies?",
+        "Do you think only well-known directors can create the best movies?",
+        "Why do people prefer to watch movies in the cinema?",
+        "Do you think successful movies should have more known actors or actresses in leading roles? An Area / Subject of Science?"
+      ]
+    },
+    {
+      "topic": "Work & Education",
+      "questions": [
+        "What jobs do children want to do when they grow up?",
+        "What kind of jobs are the most popular in your country?",
+        "What kind of job can be called a 'dream job'?",
+        "Do people's ideal jobs change as they grow up?",
+        "What should people consider when choosing jobs?",
+        "Is salary the main reason people choose a certain job? A Short-Term Job?",
+        "What short-term jobs do young people do in other countries?",
+        "What kind of work can young people do in foreign countries?",
+        "What challenges do young people face when working abroad?",
+        "What are the bene ts of working for an international company?",
+        "What personal skills are required to work in an international company?",
+        "Why are some people unwilling to work in other if 方 A Movie You Watched Recently?"
       ]
     }
   ]

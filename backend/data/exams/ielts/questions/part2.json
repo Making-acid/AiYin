@@ -83,6 +83,938 @@
         "Do you think it is easier to learn new skills today than in the past?",
         "What skills do you think will be most important in the future?"
       ]
+    },
+    {
+      "id": "p2_006",
+      "topic": "Describe a friend from your childhood.",
+      "prompt_lines": [
+        "Who he / she is",
+        "Where and how you met each other",
+        "What you often did together",
+        "And explain what made you like him / her"
+      ],
+      "follow_up": [
+        "Do you still keep in touch with your friends from childhood? Why or why not?",
+        "How important is childhood friendship to children?"
+      ]
+    },
+    {
+      "id": "p2_007",
+      "topic": "Describe a person who loves to grow plants",
+      "prompt_lines": [
+        "Who this person is",
+        "What plants he / she grows",
+        "How he / she grows the plants",
+        "And explain why he / she loves growing plants"
+      ],
+      "follow_up": [
+        "What are the advantages of growing vegetables or flowers at home?",
+        "Do many people grow vegetables or flowers at home in your country?"
+      ]
+    },
+    {
+      "id": "p2_008",
+      "topic": "Describe a person who is good at learning and",
+      "prompt_lines": [
+        "How you got to know him / her",
+        "How he / she learns a new language",
+        "What languages he / she can speak",
+        "And explain how you feel about him / her"
+      ],
+      "follow_up": [
+        "Are there many people who can speak foreign languages in your country?",
+        "Does speaking other languages help at work?"
+      ]
+    },
+    {
+      "id": "p2_009",
+      "topic": "Describe a person who met difficulties but",
+      "prompt_lines": [
+        "Who this person is",
+        "What difficulties he met",
+        "How he overcame the difficulties",
+        "And explain how you feel about this person"
+      ],
+      "follow_up": [
+        "In your country, what industry is it easier to be successful in?",
+        "What's the difference between ordinary people and a successful people?"
+      ]
+    },
+    {
+      "id": "p2_010",
+      "topic": "Describe a person you know who has a",
+      "prompt_lines": [
+        "Who this person is",
+        "How you got to know him / her",
+        "What business he / she does and how he / she started the business",
+        "And explain why you think the business is successful"
+      ],
+      "follow_up": [
+        "Why do some people start their own business?",
+        "Should government provide nancial support to startups?"
+      ]
+    },
+    {
+      "id": "p2_011",
+      "topic": "Describe a person you know who would like to",
+      "prompt_lines": [
+        "When you got to know him / her",
+        "When he / she started to think about that",
+        "What he / she would like to do",
+        "And explain why he / she would like to choose this career"
+      ],
+      "follow_up": [
+        "Do you think it's easy or difficult to be a doctor?",
+        "Do you think learning biology is interesting for children?"
+      ]
+    },
+    {
+      "id": "p2_012",
+      "topic": "Describe a person who works in a successful",
+      "prompt_lines": [
+        "Who he / she is",
+        "What he / she does in the company",
+        "What kind of business the company is in",
+        "And explain why you think it is a successful company"
+      ],
+      "follow_up": [
+        "Do you think governments should provide nancial support to companies?",
+        "Do you think companies should donate money to help society?"
+      ]
+    },
+    {
+      "id": "p2_013",
+      "topic": "Describe a good friend who is important to you.",
+      "prompt_lines": [
+        "Who he / she is",
+        "How / where you got to know him / her",
+        "How long you have known each other",
+        "And explain why he / she is important to you"
+      ],
+      "follow_up": [
+        "How do children make friends at school?",
+        "How do children make friends when they are not at school?"
+      ]
+    },
+    {
+      "id": "p2_014",
+      "topic": "Describe a person who often helps others.",
+      "prompt_lines": [
+        "Who this person is",
+        "How often he / she helps others",
+        "How / why he / she helps others",
+        "And explain how you feel about this person"
+      ],
+      "follow_up": [
+        "What kind of help do people need when looking for a new job?",
+        "What can children do to help their parents?"
+      ]
+    },
+    {
+      "id": "p2_015",
+      "topic": "Describe a child who loves drawing or painting.",
+      "prompt_lines": [
+        "Who this person is",
+        "How / when you got to know him / her",
+        "How often he / she draws / paints",
+        "And explain why you think he / she loves drawing / painting"
+      ],
+      "follow_up": [
+        "Why do most children draw more often than adults do?",
+        "What is the right age for a child to learn drawing?"
+      ]
+    },
+    {
+      "id": "p2_016",
+      "topic": "Describe a person who makes plans a lot and is",
+      "prompt_lines": [
+        "Who he / she is",
+        "How / when you got to know him / her",
+        "What plans he / she makes",
+        "And explain how you feel about this person"
+      ],
+      "follow_up": [
+        "What activities do we need to plan ahead?",
+        "Do you think it's important to plan ahead?"
+      ]
+    },
+    {
+      "id": "p2_017",
+      "topic": "Describe a person who likes to look after the",
+      "prompt_lines": [
+        "Who this person is",
+        "What he / she does",
+        "How he / she does it",
+        "How often he / she does it",
+        "And explain how you feel about this person"
+      ],
+      "follow_up": [
+        "Do you think parents should teach their children how to protect the environment?",
+        "What can people do to protect the natural world?"
+      ]
+    },
+    {
+      "id": "p2_018",
+      "topic": "Describe a person who solved a problem in a",
+      "prompt_lines": [
+        "Who he / she is",
+        "What the problem was",
+        "How he or she solved it",
+        "And explain why you think he / she did it in a smart way"
+      ],
+      "follow_up": [
+        "How do children become smart at school?",
+        "Do you think children are born smart or they learn to become smart?"
+      ]
+    },
+    {
+      "id": "p2_019",
+      "topic": "Describe one of your friends who learned",
+      "prompt_lines": [
+        "Who this person is",
+        "What skill he / she learned",
+        "How he / she learned",
+        "And explain whether it would be easier to learn from a teacher"
+      ],
+      "follow_up": [
+        "Is it necessary to keep learning after graduating from school?",
+        "Should teachers make learning in their classes fun?"
+      ]
+    },
+    {
+      "id": "p2_020",
+      "topic": "Describe a famous person you would like to",
+      "prompt_lines": [
+        "Who he / she is",
+        "How you got to know him / her",
+        "How and where you would like to meet him / her",
+        "And explain why you would like to meet him / her"
+      ],
+      "follow_up": [
+        "What are the advantages and disadvantages of being a famous child?",
+        "What can children do with their fame?"
+      ]
+    },
+    {
+      "id": "p2_021",
+      "topic": "Describe a tall building you like or dislike.",
+      "prompt_lines": [
+        "What it is used for",
+        "Where it is",
+        "What it looks like",
+        "And explain why you like / dislike it"
+      ],
+      "follow_up": [
+        "Are there many tall buildings in your country?",
+        "What are the differences between tall buildings in your country?"
+      ]
+    },
+    {
+      "id": "p2_022",
+      "topic": "Describe a boring place.",
+      "prompt_lines": [
+        "Where it is",
+        "Who you went there with",
+        "What you did there",
+        "And explain why you think it is a boring place"
+      ],
+      "follow_up": [
+        "Why do most children think education is boring?",
+        "Why aren't young people willing to listen to the experiences of older people?"
+      ]
+    },
+    {
+      "id": "p2_023",
+      "topic": "Describe a home that you like to visit but do not",
+      "prompt_lines": [
+        "Where it is",
+        "What it is like",
+        "Why you like to visit it",
+        "And explain why you would not like to live there"
+      ],
+      "follow_up": [
+        "Do Chinese people like to visit others' homes?",
+        "What do Chinese people do when they visit others?"
+      ]
+    },
+    {
+      "id": "p2_024",
+      "topic": "Describe a place you have travelled to that you",
+      "prompt_lines": [
+        "What it is",
+        "Where it is",
+        "What you saw and did there",
+        "And explain why you would like to recommend it to others"
+      ],
+      "follow_up": [
+        "Where do people in your country often go for holidays?",
+        "What is the ideal length for a holiday?"
+      ]
+    },
+    {
+      "id": "p2_025",
+      "topic": "Describe a place you would like to visit in your",
+      "prompt_lines": [
+        "Where it is",
+        "What you will do there",
+        "How long you will stay there",
+        "And explain why you would like to visit it"
+      ],
+      "follow_up": [
+        "Why do you think some people choose not to travel abroad?",
+        "Do you think taking a gap year is important? An Important River / Lake* (New)?"
+      ]
+    },
+    {
+      "id": "p2_026",
+      "topic": "Describe an important river / lake in your",
+      "prompt_lines": [
+        "Where it is located",
+        "How big / long it is",
+        "What it looks like",
+        "And explain why it is important"
+      ],
+      "follow_up": [
+        "Are rivers and lakes important to a country?",
+        "What are the popular water sports in your country?"
+      ]
+    },
+    {
+      "id": "p2_027",
+      "topic": "Describe a quiet place you like to go to.",
+      "prompt_lines": [
+        "Where it is and how you knew it",
+        "How often you go there",
+        "What you do there",
+        "And explain how you feel about the place"
+      ],
+      "follow_up": [
+        "Is it easy to find quiet places in your country? Why?",
+        "How do people spend their leisure time in your country?"
+      ]
+    },
+    {
+      "id": "p2_028",
+      "topic": "Describe an interesting building.",
+      "prompt_lines": [
+        "What it looks like",
+        "Where it is",
+        "What function it has",
+        "And explain why you think it is interesting"
+      ],
+      "follow_up": [
+        "What types of buildings are popular in your country?",
+        "Is it more important for a building to look good on the outside or on the inside?"
+      ]
+    },
+    {
+      "id": "p2_029",
+      "topic": "Describe a city you enjoyed visiting.",
+      "prompt_lines": [
+        "Where it is",
+        "When you visited it and what you did there",
+        "How long you stayed there",
+        "And explain why you enjoyed visiting it"
+      ],
+      "follow_up": [
+        "What kind of facilities do big cities have?",
+        "Do you think modern cities are suitable for young people or old people?"
+      ]
+    },
+    {
+      "id": "p2_030",
+      "topic": "Describe a city that you have been to and would",
+      "prompt_lines": [
+        "When you visited it",
+        "What you did there",
+        "What it was like",
+        "And explain why you would like to visit it again"
+      ],
+      "follow_up": [
+        "Are there any changes in your city?",
+        "What's the difference between the city and the countryside?"
+      ]
+    },
+    {
+      "id": "p2_031",
+      "topic": "Describe a city that you think is very",
+      "prompt_lines": [
+        "Where it is",
+        "What it is famous for",
+        "How you knew this city",
+        "And explain why you think it is very interesting / famous"
+      ],
+      "follow_up": [
+        "What advantages can tourism bring to a city?",
+        "Why do some young people like to live in cities?"
+      ]
+    },
+    {
+      "id": "p2_032",
+      "topic": "Describe a food that people eat on special",
+      "prompt_lines": [
+        "What it is",
+        "What the special event / occasion is",
+        "How it is cooked / made",
+        "And explain why people eat it on that special occasion / event"
+      ],
+      "follow_up": [
+        "Why are there special foods on special occasions or events?",
+        "What are the differences between everyday food and festival food?"
+      ]
+    },
+    {
+      "id": "p2_033",
+      "topic": "Describe a special cake you received from",
+      "prompt_lines": [
+        "When it happened",
+        "Where it happened",
+        "Who you got the cake from",
+        "And explain why it's a special cake"
+      ],
+      "follow_up": [
+        "What are the differences between special food in China and other countries?",
+        "Is there any food in your country that is eaten at special times or on special occasions?"
+      ]
+    },
+    {
+      "id": "p2_034",
+      "topic": "Describe something important that has been",
+      "prompt_lines": [
+        "What it is",
+        "When your family had it",
+        "How your family got it",
+        "And explain why it is important to your family"
+      ],
+      "follow_up": [
+        "What things do families keep for a long time?",
+        "What's the difference between things valued by people in the past and today?"
+      ]
+    },
+    {
+      "id": "p2_035",
+      "topic": "Describe a piece of technology (not a phone)",
+      "prompt_lines": [
+        "What it is",
+        "How much it costs",
+        "How you found out about it",
+        "And explain why you would like to own it"
+      ],
+      "follow_up": [
+        "What technology do young people like to use?",
+        "What are the differences between the technology of the past and that of today?"
+      ]
+    },
+    {
+      "id": "p2_036",
+      "topic": "Describe an item on which you spent more than",
+      "prompt_lines": [
+        "What it is",
+        "How much you spent on it",
+        "Why you bought it",
+        "And explain why you think you spent more than expected"
+      ],
+      "follow_up": [
+        "What do you think young people spend most of their money on?",
+        "What kind of things are people happy to pay a high price for?"
+      ]
+    },
+    {
+      "id": "p2_037",
+      "topic": "Describe an interesting video.",
+      "prompt_lines": [
+        "When and where you watched it",
+        "What it is about",
+        "Why you watched it",
+        "And explain how you felt about it"
+      ],
+      "follow_up": [
+        "What kind of videos do people in your country like to watch?",
+        "Which is more helpful, watching videos or reading books?"
+      ]
+    },
+    {
+      "id": "p2_038",
+      "topic": "Describe an advertisement with a famous",
+      "prompt_lines": [
+        "Who the person is",
+        "Where you can see it",
+        "What the advertisement is about",
+        "And explain how you feel about the advertisement"
+      ],
+      "follow_up": [
+        "What are the advantages and disadvantages of advertisements?",
+        "Why are many advertisements endorsed by celebrities? How useful are they?"
+      ]
+    },
+    {
+      "id": "p2_039",
+      "topic": "Describe a piece of local news that people are",
+      "prompt_lines": [
+        "What it was about",
+        "Where you saw / heard it",
+        "Who was involved",
+        "And explain why people were interested in it"
+      ],
+      "follow_up": [
+        "Do people read the newspaper where you live?",
+        "Do people prefer local or international news?"
+      ]
+    },
+    {
+      "id": "p2_040",
+      "topic": "Describe a story about animals (e.g. children's",
+      "prompt_lines": [
+        "What animals are in it",
+        "What the story / book is about",
+        "Why you read it",
+        "And explain what you think of this story / book"
+      ],
+      "follow_up": [
+        "Should schools teach children about animals?",
+        "Some people think pets should not be kept in cities. What do you think?"
+      ]
+    },
+    {
+      "id": "p2_041",
+      "topic": "Describe an important decision that you made.",
+      "prompt_lines": [
+        "What the decision was",
+        "How you made your decision",
+        "What the results of the decision were",
+        "And explain why it was important"
+      ],
+      "follow_up": [
+        "Do you think children sometimes have to make important decisions?",
+        "What important decisions do teenagers need to make after graduation?"
+      ]
+    },
+    {
+      "id": "p2_042",
+      "topic": "Describe a long-term goal / ambition you would",
+      "prompt_lines": [
+        "How long you've had this goal / ambition",
+        "What it is",
+        "How you will achieve it",
+        "And explain why you set it"
+      ],
+      "follow_up": [
+        "Why should children have ambitions?",
+        "What do you think of people going after high positions?"
+      ]
+    },
+    {
+      "id": "p2_043",
+      "topic": "Describe a plan that you had to change recently.",
+      "prompt_lines": [
+        "When this happened",
+        "What made you change the plan",
+        "What the new plan was",
+        "And explain how you felt about the change"
+      ],
+      "follow_up": [
+        "Do people often change their plans?",
+        "Would you tell others if you change your plan?"
+      ]
+    },
+    {
+      "id": "p2_044",
+      "topic": "Describe a change that you made recently.",
+      "prompt_lines": [
+        "What the change was",
+        "What caused the change",
+        "What you did for the change",
+        "And explain how you feel about the change"
+      ],
+      "follow_up": [
+        "Do you think it is good to change one's daily routine?",
+        "Do you think it is good to change jobs?"
+      ]
+    },
+    {
+      "id": "p2_045",
+      "topic": "Describe a law on environmental protection.",
+      "prompt_lines": [
+        "What it is",
+        "How you rst learned about it",
+        "Who bene ts from it",
+        "And explain how you feel about this law"
+      ],
+      "follow_up": [
+        "What kinds of rules do schools in China have?",
+        "Do you think school rules are important?"
+      ]
+    },
+    {
+      "id": "p2_046",
+      "topic": "Describe a new law you would like to introduce",
+      "prompt_lines": [
+        "What law it is",
+        "What changes this law brings whether this new law will be popular",
+        "And explain how you feel about this new law"
+      ],
+      "follow_up": [
+        "What rules should students follow at a school?",
+        "Do people in your country usually obey the law?"
+      ]
+    },
+    {
+      "id": "p2_047",
+      "topic": "Describe an environmental law you would like",
+      "prompt_lines": [
+        "What law it should be",
+        "Why people should follow the law whether the law will be popular",
+        "And explain how you feel about this law"
+      ],
+      "follow_up": [
+        "How does technology affect the law?",
+        "What kinds of rules do schools in China have?"
+      ]
+    },
+    {
+      "id": "p2_048",
+      "topic": "Describe a program or app on your computer or",
+      "prompt_lines": [
+        "What it is",
+        "When / how you use it",
+        "Where you found it",
+        "And explain how you feel about it"
+      ],
+      "follow_up": [
+        "What are the differences between old and young people when using apps?",
+        "Why do some people not like using apps?"
+      ]
+    },
+    {
+      "id": "p2_049",
+      "topic": "Describe your perfect job.",
+      "prompt_lines": [
+        "What it is",
+        "Where you heard about it",
+        "What you need to learn to get the job",
+        "And explain why you think it is your perfect job"
+      ],
+      "follow_up": [
+        "What jobs do children want to do when they grow up?",
+        "What kind of jobs are the most popular in your country?"
+      ]
+    },
+    {
+      "id": "p2_050",
+      "topic": "Describe a short-term job you want to have in a",
+      "prompt_lines": [
+        "Where it is",
+        "How you knew of it",
+        "What the job is",
+        "And explain why you want to do it"
+      ],
+      "follow_up": [
+        "What short-term jobs do young people do in other countries?",
+        "What kind of work can young people do in foreign countries?"
+      ]
+    },
+    {
+      "id": "p2_051",
+      "topic": "Describe a movie you watched and enjoyed",
+      "prompt_lines": [
+        "When and where you watched it",
+        "Who you watched it with",
+        "What it was about",
+        "And explain why you watched this movie"
+      ],
+      "follow_up": [
+        "What kind of movies do you think are successful in your country?",
+        "What are the factors that make a successful movie?"
+      ]
+    },
+    {
+      "id": "p2_052",
+      "topic": "Describe an area / subject of science (biology,",
+      "prompt_lines": [
+        "Which area / subject it is",
+        "When and where you came to know this area / subject",
+        "How you get information about this area / subject",
+        "And explain why you are interested in this area / subject"
+      ],
+      "follow_up": [
+        "Why do some children not like learning science at school?",
+        "Is it important to study science at school?"
+      ]
+    },
+    {
+      "id": "p2_053",
+      "topic": "Describe a bicycle / motorcycle / car trip you",
+      "prompt_lines": [
+        "Who you would like to go with",
+        "Where you would like to go",
+        "When you would like to go",
+        "And explain why you would like to travel by this means of transport"
+      ],
+      "follow_up": [
+        "Which form of vehicle is more popular in your country, bikes, cars or motorcycles?",
+        "Do you think air pollution comes mostly from mobile vehicles?"
+      ]
+    },
+    {
+      "id": "p2_054",
+      "topic": "Describe a time when you got up early.",
+      "prompt_lines": [
+        "When it was",
+        "What you did",
+        "Why you got up early",
+        "And explain how you felt about it"
+      ],
+      "follow_up": [
+        "Do you know anyone who likes to get up early?",
+        "Why do people get up early?"
+      ]
+    },
+    {
+      "id": "p2_055",
+      "topic": "Describe a time when you worked in a group.",
+      "prompt_lines": [
+        "What you did",
+        "Who you worked with",
+        "What problems you faced",
+        "And explain why you worked in the group"
+      ],
+      "follow_up": [
+        "Why do some people prefer to work by themselves?",
+        "What should a leader do to make team members want to follow him or her?"
+      ]
+    },
+    {
+      "id": "p2_056",
+      "topic": "Describe a time when you changed an important",
+      "prompt_lines": [
+        "When you changed your opinion",
+        "What the original opinion was",
+        "Why you changed it",
+        "And explain how you felt about the experience"
+      ],
+      "follow_up": [
+        "When do most children begin to have their own opinions?",
+        "Whose opinions are more important to children, their parents' or teachers'?"
+      ]
+    },
+    {
+      "id": "p2_057",
+      "topic": "Describe a time when you had a problem with",
+      "prompt_lines": [
+        "When it happened",
+        "Where it happened",
+        "What the problem was",
+        "And explain how you solved the problem in the end"
+      ],
+      "follow_up": [
+        "Why are people keen on buying new electronic devices?",
+        "What impact do electronic devices have on people? A Technological Problem (New)?"
+      ]
+    },
+    {
+      "id": "p2_058",
+      "topic": "Describe a challenging technological problem",
+      "prompt_lines": [
+        "What the problem was",
+        "When and where you faced it",
+        "How challenging it was",
+        "And explain how you solved it"
+      ],
+      "follow_up": [
+        "What are the advantages and disadvantages of AI?",
+        "Do you think people today should learn about AI technology?"
+      ]
+    },
+    {
+      "id": "p2_059",
+      "topic": "Describe a live sports event you watched and",
+      "prompt_lines": [
+        "What it was",
+        "When and where you watched it",
+        "Who you watched it with",
+        "And explain why you liked it"
+      ],
+      "follow_up": [
+        "Why do some people like to watch sports events?",
+        "Where do people normally watch sports events?"
+      ]
+    },
+    {
+      "id": "p2_060",
+      "topic": "Describe a time when you sent a message or an",
+      "prompt_lines": [
+        "Who you sent it to",
+        "What the message / email was about whether you nally received the reply",
+        "And explain how you felt about the experience"
+      ],
+      "follow_up": [
+        "In what situations do people spend a long time responding to others' messages?",
+        "In what situations do people not respond to messages at all?"
+      ]
+    },
+    {
+      "id": "p2_061",
+      "topic": "Describe a time when a person did something to",
+      "prompt_lines": [
+        "Who the person is",
+        "What the problem was",
+        "How he / she helped you",
+        "And explain how you felt about the experience"
+      ],
+      "follow_up": []
+    },
+    {
+      "id": "p2_062",
+      "topic": "Describe a time when you were stuck in a traffic",
+      "prompt_lines": [
+        "When it happened",
+        "Where you were stuck",
+        "What you did while waiting",
+        "And explain how you felt in the traffic jam"
+      ],
+      "follow_up": [
+        "Do you like to use public transport?",
+        "How can we solve the traffic jam problem?"
+      ]
+    },
+    {
+      "id": "p2_063",
+      "topic": "Describe a thing you did to learn another",
+      "prompt_lines": [
+        "What language you learned",
+        "What you did",
+        "How it helped you learn the language",
+        "And explain how you felt about it"
+      ],
+      "follow_up": [
+        "What difficulties do people face when learning a language?",
+        "Do you think language learning is important? Why?"
+      ]
+    },
+    {
+      "id": "p2_064",
+      "topic": "Describe a special day out that cost you little",
+      "prompt_lines": [
+        "When the day was",
+        "Where you went",
+        "How much you spent",
+        "And explain how you feel about the day"
+      ],
+      "follow_up": [
+        "Do people like to spend their leisure time out in your country?",
+        "How do people spend their leisure time in your country?"
+      ]
+    },
+    {
+      "id": "p2_065",
+      "topic": "Describe a time when you organized a happy",
+      "prompt_lines": [
+        "What the event was",
+        "How you prepared for it",
+        "Who helped you to organize it",
+        "And explain why you think it was a successful event"
+      ],
+      "follow_up": [
+        "How can parents help children to be organized?",
+        "On what occasions do people need to be organized?"
+      ]
+    },
+    {
+      "id": "p2_066",
+      "topic": "Describe an occasion when you were not",
+      "prompt_lines": [
+        "When it was",
+        "Where it was",
+        "Why you were not allowed to use your mobile phone",
+        "And explain how you felt about it"
+      ],
+      "follow_up": [
+        "How do young people and old people use mobile phones differently?",
+        "What positive and negative impacts do mobile phones have on friendship?"
+      ]
+    },
+    {
+      "id": "p2_067",
+      "topic": "Describe a time when you felt proud of a family",
+      "prompt_lines": [
+        "When it happened",
+        "Who the person is",
+        "What the person did",
+        "And explain why you felt proud of him / her"
+      ],
+      "follow_up": [
+        "When would parents feel proud of their children?",
+        "On what occasions would adults be proud of themselves?"
+      ]
+    },
+    {
+      "id": "p2_068",
+      "topic": "Describe a time when you gave advice to others.",
+      "prompt_lines": [
+        "When it was to whom you gave the advice",
+        "What the advice was",
+        "And explain why you gave the advice"
+      ],
+      "follow_up": [
+        "What are the personalities of people whose job is to give advice to others?",
+        "Should people prepare before giving advice?"
+      ]
+    },
+    {
+      "id": "p2_069",
+      "topic": "Describe a time when you encouraged",
+      "prompt_lines": [
+        "Who he or she is",
+        "What you encouraged him / her to do",
+        "How he / she reacted",
+        "And explain why you encouraged him / her to do it"
+      ],
+      "follow_up": [
+        "What kind of encouragement should parents give?",
+        "When should parents encourage their children?"
+      ]
+    },
+    {
+      "id": "p2_070",
+      "topic": "Describe an occasion when many people were",
+      "prompt_lines": [
+        "When it happened",
+        "Who you were with",
+        "What happened",
+        "And explain why most people were smiling"
+      ],
+      "follow_up": [
+        "Do you think people who like to smile are friendlier?",
+        "Do people smile more when they are younger or older?"
+      ]
+    },
+    {
+      "id": "p2_071",
+      "topic": "Describe a music event you attended in which",
+      "prompt_lines": [
+        "What it was",
+        "Who you went with",
+        "Why you decided to go there",
+        "And explain why you didn't enjoy it"
+      ],
+      "follow_up": [
+        "What kind of music events do people like today?",
+        "What kind of music do people like at different ages?"
+      ]
+    },
+    {
+      "id": "p2_072",
+      "topic": "Describe a time when you needed to use your",
+      "prompt_lines": [
+        "When it was",
+        "Why you needed to use your imagination",
+        "How difficult or easy it was",
+        "And explain how you felt about it"
+      ],
+      "follow_up": [
+        "What kinds of jobs need imagination?",
+        "What subjects are helpful for children's imagination?"
+      ]
     }
   ]
 }

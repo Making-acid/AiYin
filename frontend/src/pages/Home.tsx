@@ -2,14 +2,19 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchConfig } from "../api/config";
 import { useLanguage } from "../i18n";
+import { TutorialModal, hasSeenTutorial } from "../components/TutorialModal";
 
 export function Home() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
     checkConfig();
+    if (!hasSeenTutorial()) {
+      setShowTutorial(true);
+    }
   }, []);
 
   const checkConfig = async () => {
@@ -57,6 +62,8 @@ export function Home() {
       <button className="settings-link" onClick={() => navigate("/settings")}>
         ⚙ {t("settings")}
       </button>
+
+      {showTutorial && <TutorialModal onClose={() => setShowTutorial(false)} />}
     </div>
   );
 }

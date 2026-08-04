@@ -97,6 +97,24 @@ const zh: Record<string, string> = {
   // Live2D
   modelLoadFailed: "模型加载失败",
 
+  // Tutorial
+  tutorialTitle: "欢迎使用 IELTS 口语练习！",
+  tutorialStep1Title: "配置 API Key",
+  tutorialStep1Desc: "前往设置页面，填入你的 LLM API Key。支持 DeepSeek、OpenAI、Groq、OpenRouter、Ollama。",
+  tutorialStep2Title: "选择模式",
+  tutorialStep2Desc: "考试模式模拟完整雅思口语考试并生成评分报告。自由聊天模式可随意用英语交流。",
+  tutorialStep3Title: "使用语音输入",
+  tutorialStep3Desc: "点击麦克风按钮开始说话，系统会识别你的语音，AI 考官将以语音回复。",
+  tutorialStep4Title: "获取反馈",
+  tutorialStep4Desc: "考试结束后会生成 0-9 分的预估分数，包含四项评分标准和个性化提升建议。",
+  tutorialTip: "提示",
+  tutorialTipDesc: "推荐使用 Chrome 或 Edge 浏览器以获得最佳体验。可在设置中开启 Whisper 本地 ASR 提高识别精度。",
+  tutorialDismiss: "知道了！",
+
+  // Help
+  helpTitle: "帮助",
+  helpOpenPdf: "打开用户指南 (PDF)",
+
   // Misc
   whisperDownloadConfirm: "下载模型 {modelId}？该模型大小约 {size}。下载可能需要几分钟时间。",
 };

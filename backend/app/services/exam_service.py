@@ -122,7 +122,9 @@ def _handle_part1(session: dict, idx: int, loader: ExamDataLoader, part_config: 
     count = part_config.get("part1", {}).get("question_count", 3)
     data = loader.get_questions("part1")
     topics = data.get("topics", [])
-    topic = random.choice(topics) if topics else {"questions": ["Tell me about yourself."]}
+    if "part1_topic" not in session:
+        session["part1_topic"] = random.choice(topics) if topics else {"questions": ["Tell me about yourself."]}
+    topic = session["part1_topic"]
     questions = topic.get("questions", [])
 
     if idx < count and idx < len(questions):
@@ -151,6 +153,8 @@ def _start_part2(session: dict, loader: ExamDataLoader) -> dict:
         "You have one minute to prepare, then you will speak for one to two minutes. "
         "Please look at the topic on your screen."
     )
+    meta = loader.get_meta()
+    part_config = meta["parts"]
     prep_seconds = part_config.get("part2", {}).get("prep_seconds", 60)
     speak_seconds = part_config.get("part2", {}).get("speak_seconds", 120)
     session["conversation"].append({"role": "examiner", "content": short_intro})

@@ -78,6 +78,14 @@ const template: Record<string, string> = {
   asrStartFailed: "Failed to start recording.",
   modelLoadFailed: "Failed to load model",
   whisperDownloadConfirm: "Download model {modelId}? This model is about {size}. Download may take several minutes.",
+  tutorialTitle: "Welcome!",
+  tutorialStep1Title: "Configure API Key", tutorialStep1Desc: "Set up your LLM API key in Settings.",
+  tutorialStep2Title: "Choose a Mode", tutorialStep2Desc: "Exam Mode or Free Chat.",
+  tutorialStep3Title: "Use Your Voice", tutorialStep3Desc: "Click the mic and speak.",
+  tutorialStep4Title: "Get Feedback", tutorialStep4Desc: "Receive a band score and suggestions.",
+  tutorialTip: "Tip", tutorialTipDesc: "Use Chrome or Edge for best experience.",
+  tutorialDismiss: "Got it!",
+  helpTitle: "Help", helpOpenPdf: "Open User Guide (PDF)",
 };
 
 export default template;
