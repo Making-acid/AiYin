@@ -91,8 +91,18 @@ def main():
 
     if getattr(sys, "frozen", False):
         threading.Timer(1.5, open_browser).start()
+        # --windowed mode has no console handles; uvicorn needs them alive
+        if sys.stderr is None:
+            sys.stderr = open(os.devnull, "w")
+        if sys.stdout is None:
+            sys.stdout = open(os.devnull, "w")
 
-    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
+    uvicorn.run(
+        app, host="0.0.0.0", port=8000,
+        log_level="info",
+        # Disable coloured logging in frozen mode (stderr may not support it)
+        use_colors=False,
+    )
 
 
 if __name__ == "__main__":
