@@ -1,5 +1,5 @@
 ; -*- mode: pascal -*-
-; IELTS Speaking v0.4.0 — Windows Installer
+; IELTS Speaking v0.4.0 -- Windows Installer
 ; Build: ISCC.exe setup.iss
 ; Requires: dist\IELTS Speaking v0.4.0\ prepared by PyInstaller
 
@@ -54,26 +54,43 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 
 [Code]
 var
-  DisclaimerPage: TInputOptionWizardPage;
+  DisclaimerPage: TWizardPage;
+  AgreeRadio: TNewRadioButton;
+  DisagreeRadio: TNewRadioButton;
 
 procedure InitializeWizard;
+var
+  S: string;
 begin
-  DisclaimerPage := CreateInputOptionPage(
+  S := 'This software uses AI to estimate IELTS speaking band scores.' + #13#10 + #13#10;
+  S := S + 'These scores are NOT official IELTS results. They are not endorsed by,' + #13#10;
+  S := S + 'affiliated with, or recognised by IELTS, British Council, IDP, or Cambridge' + #13#10;
+  S := S + 'Assessment English.' + #13#10 + #13#10;
+  S := S + 'AI-generated scores are for practice and self-assessment purposes ONLY.' + #13#10;
+  S := S + 'Do not rely on them for university admissions, visa applications,' + #13#10;
+  S := S + 'or other high-stakes decisions.';
+
+  DisclaimerPage := CreateCustomPage(
     wpLicense,
-    'Disclaimer — AI Score Notice',
-    'Important: Read Before Using',
-    'This software uses artificial intelligence to estimate IELTS speaking band scores.' + #13#10 +
-    'These scores are NOT official IELTS results. They are not endorsed by, affiliated with,' + #13#10 +
-    'or recognised by IELTS, British Council, IDP, or Cambridge Assessment English.' + #13#10#13#10 +
-    'AI-generated scores are for practice and self-assessment purposes ONLY.' + #13#10 +
-    'Do not rely on them for university admissions, visa applications, or other high-stakes decisions.' + #13#10#13#10 +
-    'By proceeding, you acknowledge the above and accept the full terms in the DISCLAIMER file.',
-    'Do you agree to the above terms?',
-    False
+    'Disclaimer - AI Score Notice',
+    S
   );
-  DisclaimerPage.Add('I agree to the above terms');
-  DisclaimerPage.Add('I do not agree (installation will stop)');
-  DisclaimerPage.Values[0] := False;
+
+  AgreeRadio := TNewRadioButton.Create(DisclaimerPage);
+  AgreeRadio.Parent := DisclaimerPage.Surface;
+  AgreeRadio.Top := ScaleY(12);
+  AgreeRadio.Left := ScaleX(0);
+  AgreeRadio.Width := DisclaimerPage.SurfaceWidth;
+  AgreeRadio.Caption := 'I agree to the above terms';
+  AgreeRadio.Checked := False;
+
+  DisagreeRadio := TNewRadioButton.Create(DisclaimerPage);
+  DisagreeRadio.Parent := DisclaimerPage.Surface;
+  DisagreeRadio.Top := ScaleY(40);
+  DisagreeRadio.Left := ScaleX(0);
+  DisagreeRadio.Width := DisclaimerPage.SurfaceWidth;
+  DisagreeRadio.Caption := 'I do not agree (installation will stop)';
+  DisagreeRadio.Checked := True;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -81,16 +98,14 @@ begin
   Result := True;
   if CurPageID = DisclaimerPage.ID then
   begin
-    if not DisclaimerPage.Values[0] then
+    // In silent mode, skip the disclaimer (user cannot interact)
+    if WizardSilent then
+      Exit;
+    if not AgreeRadio.Checked then
     begin
-      MsgBox(
-        'You must agree to the AI score disclaimer before continuing.' + #13#10 +
-        'Please select "I agree" and click Next.',
-        mbError,
-        MB_OK
-      );
+      MsgBox('You must agree to the AI score disclaimer before continuing.' + #13#10 +
+        'Please select "I agree" and click Next.', mbError, MB_OK);
       Result := False;
     end;
   end;
 end;
-

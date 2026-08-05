@@ -8,6 +8,7 @@ import tempfile
 from pathlib import Path
 from threading import Lock
 from typing import Optional
+from app.core.user_data import get_writable_dir, migrate_if_needed
 
 logger = logging.getLogger("whisper")
 
@@ -29,8 +30,10 @@ def _get_faster_whisper():
         _faster_whisper = _mod
     return _faster_whisper
 
-MODELS_DIR = (Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent.parent.parent) / "models" / "whisper"
-CONFIG_PATH = (Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent.parent.parent) / "data" / "whisper_config.json"
+_MODELS_DIR = get_writable_dir() / "models" / "whisper"
+_MODELS_DIR.mkdir(parents=True, exist_ok=True)
+CONFIG_PATH = get_writable_dir() / "whisper_config.json"
+migrate_if_needed("whisper_config.json")
 
 _model = None
 _model_lock = Lock()
@@ -119,7 +122,7 @@ def list_models() -> list:
 
 
 def is_model_downloaded(model_id: str) -> bool:
-    path = MODELS_DIR / model_id
+    path = _MODELS_DIR / model_id
     return (path / "model.bin").exists()
 
 
@@ -136,7 +139,7 @@ def download_model(model_id: str) -> dict:
 
     import requests
 
-    path = str(MODELS_DIR / model_id)
+    path = str(_MODELS_DIR / model_id)
     os.makedirs(path, exist_ok=True)
 
     try:
@@ -173,7 +176,7 @@ def _get_model():
         except ImportError:
             raise RuntimeError("faster-whisper is not installed. Run: pip install faster-whisper")
 
-        model_path = str(MODELS_DIR / model_id) if is_model_downloaded(model_id) else model_id
+        model_path = str(_MODELS_DIR / model_id) if is_model_downloaded(model_id) else model_id
         _model = WhisperModel(model_path, device="cpu", compute_type="int8")
         _current_model_name = model_id
         return _model

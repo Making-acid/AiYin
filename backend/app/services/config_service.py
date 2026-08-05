@@ -3,6 +3,7 @@ import json
 import logging
 from pathlib import Path
 from threading import Lock
+from app.core.user_data import get_writable_dir, migrate_if_needed
 
 
 logger = logging.getLogger("config")
@@ -12,16 +13,19 @@ class ConfigError(Exception):
     """User-facing error for configuration issues."""
 
 
-def _get_data_dir() -> Path:
+def _get_readonly_data_dir() -> Path:
     if getattr(sys, "frozen", False):
         return Path(sys.executable).parent / "data"
     return Path(__file__).parent.parent.parent / "data"
 
 
-DATA_DIR = _get_data_dir()
-CONFIG_PATH = DATA_DIR / "config.json"
-PROVIDERS_PATH = DATA_DIR / "providers.json"
+RO_DATA_DIR = _get_readonly_data_dir()
+PROVIDERS_PATH = RO_DATA_DIR / "providers.json"
 _lock = Lock()
+
+# config.json lives in the writable user data directory
+migrate_if_needed("config.json")
+CONFIG_PATH = get_writable_dir() / "config.json"
 
 
 DEFAULT_PROVIDER_PRESETS = {
