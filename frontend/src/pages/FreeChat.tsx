@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { startFreeChat, sendFreeChat } from "../api/chat";
 import { VoiceInput } from "../components/VoiceInput";
 import { ChatBubble } from "../components/ChatBubble";
-import { Live2DCharacter } from "../live2d";
+import { MaoCharacter } from "../live2d";
 import { useLive2DBehavior, useLanguage } from "../i18n";
 import { useTrainingLanguage } from "../i18n/trainingLang";
 import { AsrIndicator } from "../asr";
@@ -87,9 +87,7 @@ export function FreeChat() {
     <AsrProvider mode="free_chat">
     <div className="page free-chat-page-split">
       <div className="live2d-panel">
-        <Live2DCharacter
-          modelPath="/third_party/live2d/models/mao/mao_pro.model3.json"
-          mode="free_chat"
+        <MaoCharacter
           state={live2dState}
           mouthOpen={mouthOpen}
           behavior={behavior}

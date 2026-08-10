@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { startExam, submitAnswer } from "../api/exam";
+import { advanceExam, startExam, submitAnswer, type ExamStepResponse } from "../api/exam";
 import { Timer } from "../components/Timer";
-import { Live2DCharacter } from "../live2d";
+import { HaruCharacter } from "../live2d";
 import { useLive2DBehavior, useLanguage } from "../i18n";
 import { useTrainingLanguage } from "../i18n/trainingLang";
 import { useSpeechSynthesis } from "../hooks/useSpeechSynthesis";
@@ -14,6 +14,14 @@ type Phase = "intro" | "part1" | "part2_prep" | "part2_speaking" | "part3" | "fi
 interface CueCard {
   topic: string;
   prompt_lines: string[];
+  prep_seconds: number;
+  speak_seconds: number;
+}
+
+function formatTime(seconds: number) {
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+  return `${minutes}:${remainder.toString().padStart(2, "0")}`;
 }
 
 export function Exam() {
@@ -23,11 +31,14 @@ export function Exam() {
   const [behavior] = useLive2DBehavior();
   const { t } = useLanguage();
   const dual = useDualRecording();
+  const stopDualRecording = dual.stop;
   const audioBlobsRef = useRef<Blob[]>([]);
   const timersRef = useRef<ReturnType<typeof setInterval>[]>([]);
   const sessionIdRef = useRef("");
   const loadingRef = useRef(false);
   const initRef = useRef(false);
+  const speakSecondsRef = useRef(120);
+  const handleTransitionRef = useRef<(result: ExamStepResponse) => void>(() => {});
 
   const [sessionId, setSessionId] = useState("");
   const [isFinished, setIsFinished] = useState(false);
@@ -39,20 +50,9 @@ export function Exam() {
   const [recordingActive, setRecordingActive] = useState(false);
   const [recordingTimeLeft, setRecordingTimeLeft] = useState(0);
   const [prepSeconds, setPrepSeconds] = useState(60);
-  const [speakSeconds, setSpeakSeconds] = useState(120);
 
   useEffect(() => { sessionIdRef.current = sessionId; }, [sessionId]);
   useEffect(() => { loadingRef.current = loading; }, [loading]);
-
-  useEffect(() => { if (!initRef.current) { initRef.current = true; initExam(); } }, []);
-
-  useEffect(() => {
-    return () => {
-      clearTimers();
-      dual.stop();
-      stopSpeech();
-    };
-  }, []);
 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach((id) => {
@@ -71,59 +71,39 @@ export function Exam() {
     [ttsSupported, speak]
   );
 
-  const initExam = async () => {
+  const advanceToNextPrompt = useCallback(async () => {
+    if (!sessionIdRef.current || loadingRef.current) return;
+    loadingRef.current = true;
+    setLoading(true);
+    setSendError("");
     try {
-      const data = await startExam();
-      setSessionId(data.session_id);
-      setPhase("part1");
-      handleExaminerSpeak(data.examiner_message, () => startRecordingTimer(45));
-    } catch (err) { console.error("Failed to start exam:", err); }
-  };
-
-  const handleTransition = (result: any) => {
-    setIsFinished(result.is_finished);
-    setLoading(false);
-    if (result.cue_card) setCueCard(result.cue_card); else setCueCard(null);
-    if (result.is_finished) { setPhase("finished"); return; }
-
-    const part = result.current_part;
-    if (part === "part1") {
-      setPhase("part1");
-      handleExaminerSpeak(result.next_question, () => startRecordingTimer(45));
-    } else if (part === "part2_prep") {
-      setPhase("part2_prep"); setPrepSeconds(60);
-      handleExaminerSpeak(result.next_question, () => {
-        const prepTimer = setTimeout(() => {
-          setPhase("part2_speaking"); setCueCard(null); setSpeakSeconds(120);
-          submitAnswer(sessionId, "[preparation complete]")
-            .then(() => startRecordingTimer(120))
-            .catch(() => startRecordingTimer(120));
-        }, 60000);
-        timersRef.current.push(prepTimer);
-      });
-    } else if (part === "part2") {
-      setPhase("part2_speaking"); setSpeakSeconds(120);
-      handleExaminerSpeak(result.next_question, () => startRecordingTimer(120));
-    } else if (part === "part3_transition" || part === "part3") {
-      setPhase("part3");
-      handleExaminerSpeak(result.next_question, () => startRecordingTimer(60));
+      const result = await advanceExam(sessionIdRef.current);
+      handleTransitionRef.current(result);
+    } catch (err) {
+      console.error("Failed to advance exam:", err);
+      loadingRef.current = false;
+      setLoading(false);
+      setSendError(t("asrServerConnectFailed"));
     }
-  };
+  }, [t]);
 
   const sendAnswer = useCallback(
     async (text: string) => {
       if (!sessionIdRef.current || loadingRef.current) return;
+      loadingRef.current = true;
       setLoading(true);
+      setSendError("");
       try {
         const result = await submitAnswer(sessionIdRef.current, text);
-        if (result.next_question) handleTransition(result);
+        handleTransitionRef.current(result);
       } catch (err) {
         console.error("Failed to submit answer:", err);
+        loadingRef.current = false;
         setLoading(false);
         setSendError(t("asrServerConnectFailed"));
       }
     },
-    []
+    [t]
   );
 
   // Handle dual recording result: save audio, send text to LLM
@@ -163,6 +143,81 @@ export function Exam() {
     timersRef.current.push(autoStop);
   }, [clearTimers, dual, autoStopAndSend]);
 
+  const handleTransition = useCallback((result: ExamStepResponse) => {
+    setIsFinished(result.is_finished);
+    setLoading(false);
+    loadingRef.current = false;
+    if (result.cue_card) {
+      setCueCard(result.cue_card);
+      setPrepSeconds(result.cue_card.prep_seconds);
+      speakSecondsRef.current = result.cue_card.speak_seconds;
+    } else {
+      setCueCard(null);
+    }
+    if (result.is_finished) {
+      setPhase("finished");
+      setRecordingActive(false);
+      if (result.next_question) handleExaminerSpeak(result.next_question);
+      return;
+    }
+
+    const part = result.current_part;
+    if (part === "part1") {
+      setPhase("part1");
+      handleExaminerSpeak(result.next_question, () => startRecordingTimer(45));
+    } else if (part === "part2_prep") {
+      const duration = result.cue_card?.prep_seconds ?? 60;
+      setPhase("part2_prep");
+      handleExaminerSpeak(result.next_question, () => {
+        const prepTimer = setTimeout(() => {
+          setCueCard(null);
+          void advanceToNextPrompt();
+        }, duration * 1000);
+        timersRef.current.push(prepTimer);
+      });
+    } else if (part === "part2") {
+      const duration = result.question_index === 0 ? speakSecondsRef.current : 45;
+      setPhase("part2_speaking");
+      handleExaminerSpeak(result.next_question, () => startRecordingTimer(duration));
+    } else if (part === "part3_transition") {
+      setPhase("part3");
+      handleExaminerSpeak(result.next_question, () => { void advanceToNextPrompt(); });
+    } else if (part === "part3") {
+      setPhase("part3");
+      handleExaminerSpeak(result.next_question, () => startRecordingTimer(60));
+    }
+  }, [advanceToNextPrompt, handleExaminerSpeak, startRecordingTimer]);
+
+  useEffect(() => {
+    handleTransitionRef.current = handleTransition;
+  }, [handleTransition]);
+
+  const initExam = useCallback(async () => {
+    try {
+      const data = await startExam();
+      setSessionId(data.session_id);
+      setPhase("part1");
+      handleExaminerSpeak(data.examiner_message, () => startRecordingTimer(45));
+    } catch (err) {
+      console.error("Failed to start exam:", err);
+    }
+  }, [handleExaminerSpeak, startRecordingTimer]);
+
+  useEffect(() => {
+    if (!initRef.current) {
+      initRef.current = true;
+      void initExam();
+    }
+  }, [initExam]);
+
+  useEffect(() => {
+    return () => {
+      clearTimers();
+      void stopDualRecording().catch(() => {});
+      stopSpeech();
+    };
+  }, [clearTimers, stopDualRecording, stopSpeech]);
+
   // Toggle mic button
   const handleMicToggle = () => {
     if (dual.isRecording) {
@@ -187,9 +242,7 @@ export function Exam() {
   return (
     <AsrProvider mode="exam">
     <div className="page exam-fullscreen">
-      <Live2DCharacter
-        modelPath="/third_party/live2d/models/haru/haru_greeter_t05.model3.json"
-        mode="exam"
+      <HaruCharacter
         state={live2dState}
         mouthOpen={mouthOpen}
         behavior={behavior}
@@ -201,9 +254,12 @@ export function Exam() {
         </button>
         <span className="exam-phase-label">{partLabels[phase]}</span>
         <div className="exam-timers">
-          {phase === "part2_prep" && <Timer seconds={prepSeconds} running={true} onComplete={() => {}} />}
-          {phase === "part2_speaking" && recordingActive && <Timer seconds={speakSeconds} running={true} onComplete={() => {}} />}
-          {recordingActive && phase !== "part2_prep" && <Timer seconds={recordingTimeLeft} running={true} onComplete={() => {}} />}
+          {phase === "part2_prep" && <Timer seconds={prepSeconds} running={true} />}
+          {recordingActive && phase !== "part2_prep" && (
+            <div className={`timer ${recordingTimeLeft <= 30 ? "warning" : ""}`}>
+              {formatTime(recordingTimeLeft)}
+            </div>
+          )}
         </div>
       </div>
 
@@ -226,7 +282,11 @@ export function Exam() {
             <button
               className={`mic-button ${dual.isRecording ? "recording" : ""}`}
               onClick={handleMicToggle}
-              disabled={loading}
+              disabled={
+                loading ||
+                phase === "part2_prep" ||
+                (live2dState === "speaking" && !dual.isRecording)
+              }
             >
               {dual.isRecording ? t("stop") : t("speak")}
             </button>

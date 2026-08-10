@@ -1,7 +1,14 @@
 export { Live2DCharacter } from "./Live2DCharacter";
 export type { Live2DCharacterProps } from "./Live2DCharacter";
-export type { StateEvent, Live2DMode } from "./stateMachine";
+export type { StateEvent } from "./stateMachine";
 export { StateRunner } from "./stateRunner";
-export type { CharacterConfig, CharacterState } from "./stateRunner";
-export { haruExam } from "./haruExam";
-export { maoChat } from "./maoChat";
+export type { CharacterBehaviorConfig, CharacterState } from "./stateRunner";
+export type {
+  CharacterLayout,
+  CharacterViewProps,
+  Live2DBehavior,
+  Live2DCharacterDefinition,
+  Live2DVisualState,
+} from "./types";
+export { HaruCharacter, haruDefinition } from "./characters/haru";
+export { MaoCharacter, maoDefinition } from "./characters/mao";

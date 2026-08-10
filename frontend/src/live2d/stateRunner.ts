@@ -8,8 +8,7 @@ export interface CharacterState {
   duration?: number;
 }
 
-export interface CharacterConfig {
-  layout: { scale: number; offsetX: number; offsetY: number };
+export interface CharacterBehaviorConfig {
   states: Record<string, CharacterState>;
   transitions: Record<string, Record<string, string>>;
   initial: string;
@@ -47,7 +46,7 @@ export class StateRunner {
   // Listening fade
   private listenFaded = false;
 
-  constructor(model: ModelRef, config: CharacterConfig) {
+  constructor(model: ModelRef, config: CharacterBehaviorConfig) {
     this.model = model;
     this.hasExpr = typeof model.current?.expression === "function";
 

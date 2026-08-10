@@ -1,7 +1,13 @@
 import logging
 from fastapi import APIRouter, HTTPException, Query
-from app.models.schemas import ExamStartRequest, ExamAnswerRequest
-from app.services.exam_service import create_session, get_examiner_intro, get_next_question, ExamError
+from app.models.schemas import ExamStartRequest, ExamAnswerRequest, ExamAdvanceRequest
+from app.services.exam_service import (
+    create_session,
+    get_examiner_intro,
+    get_next_question,
+    advance_session,
+    ExamError,
+)
 from app.services.scoring_service import generate_score_report, ScoringError
 from app.services.data_loader import get_registry, DataError, validate_exam_id
 
@@ -61,6 +67,19 @@ def submit_answer(request: ExamAnswerRequest):
     except Exception as e:
         logger.error("Failed to process answer: %s", e)
         raise HTTPException(status_code=500, detail="Failed to process your answer. Please try again.")
+
+
+@router.post("/advance")
+def advance_exam(request: ExamAdvanceRequest):
+    try:
+        return advance_session(request.session_id)
+    except ExamError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except DataError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        logger.error("Failed to advance exam: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to advance the exam. Please try again.")
 
 
 @router.get("/report/{session_id}")

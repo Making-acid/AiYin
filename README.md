@@ -59,12 +59,14 @@ IELTS/
 │       │   ├── VoiceInput.tsx         # 语音输入（依赖 useAsr()）
 │       │   ├── ChatBubble.tsx
 │       │   └── Timer.tsx
-│       ├── live2d/                    # Live2D 状态机 + 角色配置
-│       │   ├── Live2DCharacter.tsx    # PixiJS 渲染引擎
+│       ├── live2d/                    # Live2D 通用渲染 + 独立角色模块
+│       │   ├── Live2DCharacter.tsx    # 角色无关的 PixiJS 渲染引擎
+│       │   ├── types.ts               # 角色定义与布局接口
 │       │   ├── stateMachine.ts        # 通用状态机
 │       │   ├── stateRunner.ts         # 状态驱动（表情/动作/嘴型）
-│       │   ├── haruExam.ts            # Haru 角色（考试模式）
-│       │   └── maoChat.ts             # Mao 角色（聊天模式）
+│       │   └── characters/
+│       │       ├── haru/              # Haru 模型、布局和行为配置
+│       │       └── mao/               # Mao 模型、布局和行为配置
 │       ├── hooks/
 │       │   ├── useSpeechSynthesis.ts  # TTS（Web Speech API）
 │       │   └── useDualRecording.ts    # 录音 + 浏览器 ASR 双重采集
@@ -167,6 +169,7 @@ Copy-Item -Recurse data "dist\IELTS Speaking v0.4\data"
 | `GET` | `/exam/exams` | 考试列表 |
 | `POST` | `/exam/start` | 开始考试 |
 | `POST` | `/exam/answer` | 提交答案 |
+| `POST` | `/exam/advance` | 推进无需作答的考试过渡阶段 |
 | `GET` | `/exam/report/{id}` | 获取评分报告 |
 | `POST` | `/chat/start` | 开始自由聊天 |
 | `POST` | `/chat/send` | 发送聊天消息 |

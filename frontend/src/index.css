@@ -668,6 +668,12 @@ body {
   height: 100%;
 }
 
+.exam-fullscreen .live2d-character--haru {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+}
+
 .exam-topbar {
   position: absolute;
   top: 0;
@@ -802,7 +808,7 @@ body {
 }
 
 .live2d-panel {
-  flex: 0 0 55%;
+  flex: 0 0 54%;
   position: relative;
   background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
   overflow: hidden;
@@ -841,7 +847,7 @@ body {
 }
 
 .chat-panel {
-  flex: 0 0 45%;
+  flex: 0 0 46%;
   display: flex;
   flex-direction: column;
   background: var(--bg);

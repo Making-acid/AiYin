@@ -1,5 +1,4 @@
 export type Live2DState = "IDLE" | "LISTENING" | "REACTING" | "THINKING" | "SPEAKING";
-export type Live2DMode = "exam" | "free_chat";
 export type StateEvent = "START_LISTENING" | "STOP_LISTENING" | "TTS_START" | "TTS_DONE";
 
 type TickFn = (dt: number, elapsed: number) => void;

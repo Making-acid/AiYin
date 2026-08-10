@@ -22,6 +22,10 @@ class ExamAnswerRequest(BaseModel):
     answer: str
 
 
+class ExamAdvanceRequest(BaseModel):
+    session_id: str
+
+
 # ---- Chat ----
 
 class ChatStartRequest(BaseModel):

@@ -65,6 +65,9 @@ def get_next_question(session_id: str, user_answer: str) -> dict:
     if session["finished"]:
         return {"next_question": "", "is_finished": True, "current_part": "", "question_index": 0}
 
+    if session["mode"] == "exam" and session["current_part"] in {"part2_prep", "part3_transition"}:
+        raise ExamError("The exam is waiting for a transition, not an answer.")
+
     session["conversation"].append({"role": "user", "content": user_answer})
 
     try:
@@ -83,6 +86,27 @@ def get_next_question(session_id: str, user_answer: str) -> dict:
         raise
     except Exception as e:
         logger.error("Unexpected error in exam flow: %s", e)
+        raise ExamError("An unexpected error occurred. Please try again.")
+
+
+def advance_session(session_id: str) -> dict:
+    """Advance an exam-only transition without adding a candidate answer."""
+    session = session_manager.get(session_id)
+    if not session:
+        raise ExamError("Session not found. Please restart the exam.")
+    if session["mode"] != "exam":
+        raise ExamError("Only exam sessions can be advanced.")
+    if session["finished"]:
+        return {"next_question": "", "is_finished": True, "current_part": "finished", "question_index": 0}
+    if session["current_part"] not in {"part2_prep", "part3_transition"}:
+        raise ExamError("The exam is not waiting at a transition.")
+
+    try:
+        return _handle_exam_flow(session)
+    except (DataError, ExamError):
+        raise
+    except Exception as e:
+        logger.error("Unexpected error advancing exam flow: %s", e)
         raise ExamError("An unexpected error occurred. Please try again.")
 
 
@@ -133,7 +157,7 @@ def _handle_part1(session: dict, idx: int, loader: ExamDataLoader, part_config: 
         session["conversation"].append({"role": "examiner", "content": question})
         return {"next_question": question, "is_finished": False, "current_part": "part1", "question_index": idx + 1}
     else:
-        session["current_part"] = "part2"
+        session["current_part"] = "part2_prep"
         session["question_index"] = 0
         return _start_part2(session, loader)
 

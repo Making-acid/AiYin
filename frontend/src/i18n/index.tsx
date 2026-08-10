@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import type { Live2DBehavior } from "../live2d/types";
 import en from "./en";
 import zh from "./zh";
 
@@ -15,16 +16,14 @@ function getLS(key: string, fallback: string) {
   return localStorage.getItem(key) || fallback;
 }
 
-type BehaviorMode = "follow_mouse" | "look_forward";
-
 const BehaviorContext = createContext<{
-  behavior: BehaviorMode;
-  setBehavior: (m: BehaviorMode) => void;
-}>({ behavior: "follow_mouse", setBehavior: () => {} });
+  behavior: Live2DBehavior;
+  setBehavior: (m: Live2DBehavior) => void;
+}>({ behavior: "look_forward", setBehavior: () => {} });
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [behavior, setBehavior] = useState<BehaviorMode>(
-    () => getLS("live2d_behavior", "follow_mouse") as BehaviorMode
+  const [behavior, setBehavior] = useState<Live2DBehavior>(
+    () => getLS("live2d_behavior", "look_forward") as Live2DBehavior
   );
   const [lang, setLang] = useState<Language>(
     () => getLS("ui_language", "en") as Language
@@ -35,7 +34,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     document.title = STRINGS[lang]?.["title"] || "IELTS Speaking Practice";
   }, [lang]);
 
-  const handleBehavior = (m: BehaviorMode) => {
+  const handleBehavior = (m: Live2DBehavior) => {
     setBehavior(m);
     localStorage.setItem("live2d_behavior", m);
   };

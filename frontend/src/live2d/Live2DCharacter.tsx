@@ -1,13 +1,19 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useLanguage } from "../i18n";
-import { StateRunner, type CharacterConfig } from "./stateRunner";
-import { haruExam } from "./haruExam";
-import { maoChat } from "./maoChat";
-import type { Live2DMode, StateEvent } from "./stateMachine";
-
-type BehaviorMode = "follow_mouse" | "look_forward";
+import { StateRunner } from "./stateRunner";
+import type {
+  CharacterViewProps,
+  Live2DCharacterDefinition,
+} from "./types";
 
 let pixiReady = false;
+
+function lookAtCamera(model: any, instant = false) {
+  // Live2DModel.focus(x, y) expects a point in canvas coordinates. The
+  // FocusController, however, uses normalized gaze coordinates where 0, 0 is
+  // straight ahead, so it is the correct API for eye contact with the user.
+  model.internalModel?.focusController?.focus(0, 0, instant);
+}
 
 async function ensurePixi() {
   if (pixiReady) return;
@@ -16,23 +22,16 @@ async function ensurePixi() {
   pixiReady = true;
 }
 
-export interface Live2DCharacterProps {
-  modelPath: string;
-  mode: Live2DMode;
-  state?: "idle" | "speaking" | "listening";
-  event?: StateEvent | null;
-  mouthOpen?: boolean;
-  behavior?: BehaviorMode;
-  className?: string;
+export interface Live2DCharacterProps extends CharacterViewProps {
+  character: Live2DCharacterDefinition;
 }
 
 export function Live2DCharacter({
-  modelPath,
-  mode,
+  character,
   state: visualState = "idle",
   event,
   mouthOpen = false,
-  behavior = "follow_mouse",
+  behavior = "look_forward",
   className = "",
 }: Live2DCharacterProps) {
   const { t } = useLanguage();
@@ -41,12 +40,18 @@ export function Live2DCharacter({
   const appRef = useRef<any>(null);
   const modelRef = useRef<any>(null);
   const runnerRef = useRef<StateRunner | null>(null);
-  const behaviorRef = useRef<BehaviorMode>(behavior);
+  const behaviorRef = useRef(behavior);
   const mouthOpenRef = useRef(mouthOpen);
   const [error, setError] = useState<string | null>(null);
 
   behaviorRef.current = behavior;
   mouthOpenRef.current = mouthOpen;
+
+  useEffect(() => {
+    if (behavior === "look_forward" && modelRef.current) {
+      lookAtCamera(modelRef.current, true);
+    }
+  }, [behavior]);
 
   // External events
   useEffect(() => {
@@ -93,22 +98,35 @@ export function Live2DCharacter({
       });
       appRef.current = app;
 
-      const model = await Live2DModel.from(modelPath);
-      const container = new PIXI.Container();
-      app.stage.addChild(container);
-      container.addChild(model);
+      // Pointer tracking is handled locally below. Disabling the library's
+      // global interaction hook keeps each character canvas self-contained.
+      const model = await Live2DModel.from(character.modelPath, {
+        autoInteract: false,
+      });
+      app.stage.addChild(model);
 
-      // Create state runner
-      const config: CharacterConfig = mode === "exam" ? haruExam : maoChat;
-
-      const { scale, offsetX, offsetY } = config.layout;
+      const layout = character.layout;
       const modelHeight = model.internalModel?.height || model.height || 2000;
-      model.scale.set((h * scale) / modelHeight);
-      container.x = w * offsetX;
-      container.y = h * offsetY;
+      const applyLayout = (width: number, height: number) => {
+        model.anchor?.set(layout.anchorX, layout.anchorY);
+        model.scale.set((height * layout.heightRatio) / modelHeight);
+        model.position.set(width * layout.x, height * layout.y);
+      };
+      applyLayout(w, h);
       modelRef.current = model;
+      lookAtCamera(model, true);
 
-      const runner = new StateRunner(modelRef, config);
+      const handlePointerMove = (pointerEvent: PointerEvent) => {
+        if (behaviorRef.current !== "follow_mouse") return;
+        const bounds = canvas.getBoundingClientRect();
+        if (!bounds.width || !bounds.height) return;
+        const x = ((pointerEvent.clientX - bounds.left) / bounds.width) * app.renderer.screen.width;
+        const y = ((pointerEvent.clientY - bounds.top) / bounds.height) * app.renderer.screen.height;
+        model.focus(x, y, false);
+      };
+      canvas.addEventListener("pointermove", handlePointerMove);
+
+      const runner = new StateRunner(modelRef, character.behavior);
       runnerRef.current = runner;
 
       // Main loop
@@ -116,7 +134,7 @@ export function Live2DCharacter({
         if (!model || model.destroyed) return;
 
         if (behaviorRef.current === "look_forward") {
-          model.focus(0, 0, false);
+          lookAtCamera(model);
         }
 
         runner.tick(app.ticker.deltaMS / 1000, mouthOpenRef.current);
@@ -128,21 +146,19 @@ export function Live2DCharacter({
         const nw = domEl.clientWidth || window.innerWidth * 0.55;
         const nh = domEl.clientHeight || window.innerHeight;
         app.renderer.resize(nw, nh);
-        const mh = model.internalModel?.height || model.height || 2000;
-        model.scale.set((nh * scale) / mh);
-        container.x = nw * offsetX;
-        container.y = nh * offsetY;
+        applyLayout(nw, nh);
       };
       window.addEventListener("resize", handleResize);
 
       return () => {
         window.removeEventListener("resize", handleResize);
+        canvas.removeEventListener("pointermove", handlePointerMove);
       };
     } catch (err: any) {
       console.error("[Live2D] Init failed:", err.message || err);
       setError(err.message || String(err));
     }
-  }, [modelPath, mode]);
+  }, [character]);
 
   useEffect(() => {
     const promise = initLive2D();
@@ -159,7 +175,7 @@ export function Live2DCharacter({
   }, [initLive2D]);
 
   return (
-    <div ref={domRef} className={`live2d-character ${className}`}>
+    <div ref={domRef} className={`live2d-character live2d-character--${character.id} ${className}`}>
       <canvas ref={canvasRef} className="live2d-canvas" />
       {error && <div className="live2d-error"><p>{t("modelLoadFailed")}</p><small>{error}</small></div>}
     </div>
