@@ -13,33 +13,73 @@ export const maoDefinition: Live2DCharacterDefinition = {
   },
   behavior: {
     initial: "IDLE",
+    faces: {
+      neutral: { kind: "expression", id: "exp_01" },
+      soft_smile: { kind: "expression", id: "exp_02" },
+      eyes_closed: { kind: "expression", id: "exp_03" },
+      excited: { kind: "expression", id: "exp_04" },
+      sad: { kind: "expression", id: "exp_05" },
+      embarrassed: { kind: "expression", id: "exp_06" },
+      surprised: { kind: "expression", id: "exp_07" },
+      pout: { kind: "expression", id: "exp_08" },
+    },
+    motions: {
+      settled_idle: [
+        { group: "Idle", index: 0, loop: true, priority: 1 },
+      ],
+      speaking_accent: [
+        { group: "", index: 0, durationMs: 3400, priority: 2 },
+      ],
+      soft_reaction: [
+        { group: "", index: 1, durationMs: 4200, priority: 2 },
+      ],
+      considering: [
+        { group: "", index: 2, durationMs: 4000, priority: 2 },
+      ],
+      special_create: [
+        { group: "", index: 3, durationMs: 7600, priority: 3 },
+      ],
+      special_affection: [
+        { group: "", index: 4, durationMs: 9100, priority: 3 },
+      ],
+      special_showcase: [
+        { group: "", index: 5, durationMs: 9000, priority: 3 },
+      ],
+    },
     states: {
       IDLE: {
-        expression: ["happy", "smile", "happy", "surprised", "happy", "smile", "closedEyes"],
-        motion: "idle",
+        face: "neutral",
+        motion: "settled_idle",
       },
       LISTENING: {
-        expression: ["surprised", "happy"],
+        face: "neutral",
       },
       REACTING: {
-        expression: ["happy", "surprised", "happy", "smile", "closedEyes", "surprised", "happy"],
-        motion: ["special", "gesture", "gesture", "gesture", "special", "gesture"],
-        duration: 700,
+        face: "soft_smile",
+        motion: "soft_reaction",
+        duration: 1200,
+        after: "IDLE",
       },
       THINKING: {
-        expression: "closedEyes",
+        face: "eyes_closed",
+        motion: "considering",
       },
       SPEAKING: {
-        expression: ["happy", "smile", "surprised", "happy", "smile", "closedEyes", "happy"],
-        motion: ["gesture", "", "", "gesture", "", "", "gesture"],
+        face: "neutral",
+        speakingAccent: {
+          motions: ["speaking_accent", "soft_reaction"],
+          faces: ["soft_smile", "neutral"],
+          intervalMs: [5200, 7600],
+          faceHoldMs: 1100,
+        },
       },
     },
     transitions: {
-      IDLE:      { START_LISTENING: "LISTENING" },
-      LISTENING: { STOP_LISTENING: "REACTING" },
-      REACTING:  { TTS_START: "SPEAKING", TTS_DONE: "SPEAKING" },
-      THINKING:  { TTS_START: "SPEAKING" },
-      SPEAKING:  { TTS_DONE: "IDLE" },
+      IDLE:      { START_LISTENING: "LISTENING", TTS_START: "SPEAKING" },
+      LISTENING: { STOP_LISTENING: "REACTING", TTS_START: "SPEAKING" },
+      REACTING:  { START_LISTENING: "LISTENING", TTS_START: "SPEAKING", TTS_DONE: "IDLE" },
+      THINKING:  { START_LISTENING: "LISTENING", TTS_START: "SPEAKING", TTS_DONE: "IDLE" },
+      SPEAKING:  { START_LISTENING: "LISTENING", TTS_DONE: "IDLE" },
     },
   },
 };

@@ -88,7 +88,7 @@ export function FreeChat() {
     <div className="page free-chat-page-split">
       <div className="live2d-panel">
         <MaoCharacter
-          state={live2dState}
+          state={loading && live2dState === "idle" ? "thinking" : live2dState}
           mouthOpen={mouthOpen}
           behavior={behavior}
         />

@@ -13,32 +13,83 @@ export const haruDefinition: Live2DCharacterDefinition = {
   },
   behavior: {
     initial: "IDLE",
+    faces: {
+      neutral: {
+        kind: "parameters",
+        values: {
+          ParamTere: 0,
+          ParamEyeLSmile: 0,
+          ParamEyeRSmile: 0,
+          ParamEyeForm: 0,
+          ParamBrowLAngle: 0,
+          ParamBrowRAngle: 0,
+          ParamBrowLForm: 0,
+          ParamBrowRForm: 0,
+          ParamMouthForm: 0,
+        },
+      },
+      attentive: {
+        kind: "parameters",
+        values: {
+          ParamTere: 0,
+          ParamEyeLSmile: 0.08,
+          ParamEyeRSmile: 0.08,
+          ParamBrowLAngle: 0.08,
+          ParamBrowRAngle: 0.08,
+          ParamMouthForm: 0.03,
+        },
+      },
+      soft_smile: {
+        kind: "parameters",
+        values: {
+          ParamTere: 0,
+          ParamEyeLSmile: 0.18,
+          ParamEyeRSmile: 0.18,
+          ParamMouthForm: 0.12,
+        },
+      },
+    },
+    // Exam-safe whitelist. The remaining source motions stay available as
+    // assets, but are deliberately unreachable from the examiner policy.
+    motions: {
+      settled_idle: [
+        { group: "", index: 0, loop: true, priority: 1 },
+      ],
+      acknowledge_small: [
+        { group: "", index: 2, durationMs: 1200, priority: 2 },
+      ],
+      present_question: [
+        { group: "", index: 7, durationMs: 1800, priority: 2 },
+      ],
+    },
     states: {
       IDLE: {
-        expression: "neutral",
-        motion: "idle",
+        face: "neutral",
+        motion: "settled_idle",
       },
       LISTENING: {
-        expression: "interested",
+        face: "attentive",
       },
       REACTING: {
-        expression: "smile",
-        motion: "nod",
-        duration: 600,
+        face: "soft_smile",
+        motion: "acknowledge_small",
+        duration: 900,
+        after: "IDLE",
       },
       THINKING: {
-        expression: "thinking",
+        // API latency must not look like judging or confusion.
+        face: "neutral",
       },
       SPEAKING: {
-        expression: "neutral",
+        face: "neutral",
       },
     },
     transitions: {
-      IDLE:      { START_LISTENING: "LISTENING" },
-      LISTENING: { STOP_LISTENING: "REACTING" },
-      REACTING:  { TTS_START: "SPEAKING", TTS_DONE: "SPEAKING" },
-      THINKING:  { TTS_START: "SPEAKING" },
-      SPEAKING:  { TTS_DONE: "IDLE" },
+      IDLE:      { START_LISTENING: "LISTENING", TTS_START: "SPEAKING" },
+      LISTENING: { STOP_LISTENING: "REACTING", TTS_START: "SPEAKING" },
+      REACTING:  { START_LISTENING: "LISTENING", TTS_START: "SPEAKING", TTS_DONE: "IDLE" },
+      THINKING:  { START_LISTENING: "LISTENING", TTS_START: "SPEAKING", TTS_DONE: "IDLE" },
+      SPEAKING:  { START_LISTENING: "LISTENING", TTS_DONE: "IDLE" },
     },
   },
 };

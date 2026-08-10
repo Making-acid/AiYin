@@ -1,63 +1,51 @@
-import { StateMachine } from "./stateMachine";
+import type {
+  CharacterBehaviorConfig,
+  CharacterStatePresentation,
+  FaceIntent,
+  MotionAsset,
+  MotionIntent,
+  SpeakingAccentPolicy,
+} from "./behavior";
+import { StateMachine, type Live2DState } from "./stateMachine";
+import type { Live2DVisualState } from "./types";
 
 type ModelRef = { current: any };
 
-export interface CharacterState {
-  expression: string | string[];
-  motion?: string | string[];
-  duration?: number;
-}
-
-export interface CharacterBehaviorConfig {
-  states: Record<string, CharacterState>;
-  transitions: Record<string, Record<string, string>>;
-  initial: string;
-}
-
-const MAO_EXPR: Record<string, string> = {
-  "neutral":    "exp_01",
-  "smile":      "exp_02",
-  "closedEyes": "exp_03",
-  "happy":      "exp_04",
-  "surprised":  "exp_07",
+const VISUAL_TO_INTERNAL: Record<Live2DVisualState, Live2DState> = {
+  idle: "IDLE",
+  listening: "LISTENING",
+  thinking: "THINKING",
+  speaking: "SPEAKING",
 };
 
-const HARU_PARAMS: Record<string, Record<string, number>> = {
-  "neutral":    { EyeLSmile: 0, EyeRSmile: 0, EyeLOpen: 0, EyeROpen: 0, BrowLAngle: 0, BrowRAngle: 0, BrowLForm: 0, BrowRForm: 0, EyeBallY: 0 },
-  "smile":      { EyeLSmile: 0.3, EyeRSmile: 0.3 },
-  "interested": { EyeLOpen: 0.12, EyeROpen: 0.12, BrowLAngle: 0.2, BrowRAngle: 0.2 },
-  "thinking":   { BrowLAngle: -0.15, BrowRAngle: -0.15, EyeBallY: 0.08 },
-  "surprised":  { EyeLOpen: 0.3, EyeROpen: 0.3, BrowLAngle: 0.35, BrowRAngle: 0.35, BrowLForm: 0.2, BrowRForm: 0.2 },
-};
-
-const SPEAK_CYCLE = ["happy", "smile", "surprised", "happy", "smile", "closedEyes", "happy"];
-const IDLE_EXPR =  ["happy", "smile", "happy", "surprised", "closedEyes"];
+const CADENCE_PATTERN = [0.25, 0.72, 0.43, 0.86, 0.58];
 
 export class StateRunner {
-  sm: StateMachine;
-  private model: ModelRef;
-  private hasExpr: boolean;
-  private idleTimer: ReturnType<typeof setTimeout> | null = null;
-  // Speaking cycle
-  private speakIdx = 0;
-  private speakNextSec = 0;
-  // Idle expression cycling
-  private idleNextSec = 0;
-  // Listening fade
-  private listenFaded = false;
+  readonly sm: StateMachine;
+
+  private readonly model: ModelRef;
+  private readonly config: CharacterBehaviorConfig;
+  private motionTimer: ReturnType<typeof setTimeout> | null = null;
+  private faceTimer: ReturnType<typeof setTimeout> | null = null;
+  private motionCursor = new Map<MotionIntent, number>();
+  private accentCursor = 0;
+  private accentNextSec = Number.POSITIVE_INFINITY;
 
   constructor(model: ModelRef, config: CharacterBehaviorConfig) {
     this.model = model;
-    this.hasExpr = typeof model.current?.expression === "function";
+    this.config = config;
 
-    const handlers: Record<string, any> = {};
-    for (const [name, cs] of Object.entries(config.states)) {
-      handlers[name] = {
-        enter: () => this.onEnter(name, cs),
-        exit: () => this.onExit(name),
-        duration: cs.duration,
-      };
-    }
+    const handlers = Object.fromEntries(
+      Object.entries(config.states).map(([name, presentation]) => [
+        name,
+        {
+          enter: () => this.onEnter(name as Live2DState, presentation),
+          exit: () => this.onExit(),
+          duration: presentation.duration,
+          after: presentation.after,
+        },
+      ]),
+    );
 
     this.sm = new StateMachine({
       states: handlers,
@@ -65,159 +53,148 @@ export class StateRunner {
       initial: config.initial,
     });
     this.sm.start();
-
-    try { model.current?.focus?.(0, 0, true); } catch { /* nop */ }
   }
 
-  send(event: string): void { this.sm.send(event); }
+  send(event: string): void {
+    this.sm.send(event);
+  }
 
-  tick(dt: number, mouthOpen: boolean): void {
+  setVisualState(state: Live2DVisualState): void {
+    const next = VISUAL_TO_INTERNAL[state];
+    if (next === "IDLE" && this.sm.state === "LISTENING") {
+      this.sm.send("STOP_LISTENING");
+      return;
+    }
+    this.sm.setState(next);
+  }
+
+  tick(dt: number, mouthOpen: boolean, lockGaze: boolean): void {
     this.sm.update(dt);
 
-    const st = this.sm.state;
-    const smElapsed = (this.sm as any).elapsed ?? 0;
+    const state = this.sm.state as Live2DState;
+    const presentation = this.config.states[state];
+    if (lockGaze) this.updateGaze(presentation);
+    this.updateMouth(state === "SPEAKING" && mouthOpen);
 
-    // Per-frame behavior by state
-    if (st === "SPEAKING") {
-      this.tickSpeaking(smElapsed);
-      this.updateMouth(mouthOpen);
-    } else {
-      this.updateMouth(false);
-    }
-
-    if (st === "IDLE" && this.hasExpr) {
-      this.tickIdleExpr(smElapsed);
-    }
-    if (st === "LISTENING" && this.hasExpr && !this.listenFaded) {
-      if (smElapsed > 1.5) {
-        this.listenFaded = true;
-        this.applyExpression("happy");
-      }
-    }
-
-    // Idle motion cycling
-    if (st === "IDLE") {
-      this.maybePlayIdle();
+    if (state === "SPEAKING" && presentation.speakingAccent) {
+      this.tickSpeakingAccent(presentation.speakingAccent);
     }
   }
 
   destroy(): void {
-    this.stopIdleTimer();
+    this.clearMotionTimer();
+    this.clearFaceTimer();
+    this.stopAllMotions();
     this.sm.destroy();
   }
 
-  // ---- State transitions ----
+  private onEnter(state: Live2DState, presentation: CharacterStatePresentation): void {
+    this.clearFaceTimer();
+    this.stopBodyChannel();
+    this.applyFace(presentation.face);
 
-  private onEnter(stateName: string, cs: CharacterState): void {
-    const expr = Array.isArray(cs.expression)
-      ? cs.expression[Math.floor(Math.random() * cs.expression.length)]
-      : cs.expression;
-    this.applyExpression(expr);
+    if (presentation.motion) this.playMotion(presentation.motion);
 
-    if (cs.motion && cs.motion !== "") {
-      const mot = Array.isArray(cs.motion)
-        ? cs.motion[Math.floor(Math.random() * cs.motion.length)]
-        : cs.motion;
-      if (mot) this.playMotion(mot);
-    }
-
-    if (stateName === "SPEAKING") {
-      this.speakIdx = 0;
-      this.speakNextSec = 1.2;
-    }
-    if (stateName === "LISTENING") this.listenFaded = false;
-    // Haru: on REACTING with "nod", play reaction
-    if (stateName === "REACTING" && !this.hasExpr && (cs.motion === "nod" || (Array.isArray(cs.motion) && cs.motion.includes("nod")))) {
-      // handled by onEnter above which calls playMotion
-    }
-  }
-
-  private onExit(_stateName: string): void {
-    this.stopIdleTimer();
-  }
-
-  // ---- Per-frame handlers ----
-
-  private tickSpeaking(elapsed: number): void {
-    if (!this.hasExpr) return;
-    if (elapsed >= this.speakNextSec) {
-      this.speakNextSec = elapsed + 1.2 + Math.random() * 1.3;
-      this.speakIdx = (this.speakIdx + 1) % SPEAK_CYCLE.length;
-      this.applyExpression(SPEAK_CYCLE[this.speakIdx]);
-      // Gesture every ~2nd expression
-      if (this.speakIdx % 2 === 1 && Math.random() < 0.5) {
-        this.playMotion("gesture");
-      }
-    }
-  }
-
-  private tickIdleExpr(elapsed: number): void {
-    if (elapsed >= this.idleNextSec) {
-      this.idleNextSec = elapsed + 3.5 + Math.random() * 4;
-      const e = IDLE_EXPR[Math.floor(Math.random() * IDLE_EXPR.length)];
-      this.applyExpression(e);
-      if (e === "closedEyes") this.playMotion("gesture");
-    }
-  }
-
-  private maybePlayIdle(): void {
-    // Idle motion cycling via timer
-    if (this.idleTimer) return;
-    const delay = this.hasExpr
-      ? 3000 + Math.random() * 4000
-      : 4500 + Math.random() * 7500;
-    this.idleTimer = setTimeout(() => {
-      this.idleTimer = null;
-      this.playMotion("idle");
-    }, delay);
-  }
-
-  // ---- Expression / Motion ----
-
-  private applyExpression(name: string): void {
-    const model = this.model.current;
-    if (!model) return;
-
-    if (this.hasExpr) {
-      const expId = MAO_EXPR[name] || name;
-      try { model.expression?.(expId); } catch { /* nop */ }
+    if (state === "SPEAKING" && presentation.speakingAccent) {
+      this.accentCursor = 0;
+      this.accentNextSec = this.nextAccentDelay(presentation.speakingAccent) / 1000;
     } else {
-      const params = HARU_PARAMS[name] || HARU_PARAMS["neutral"];
-      const core = model.internalModel?.coreModel;
-      if (!core) return;
-      for (const [pid, val] of Object.entries(params)) {
-        try { core.setParameterValueById("Param" + pid, val); } catch { /* nop */ }
-      }
+      this.accentNextSec = Number.POSITIVE_INFINITY;
     }
   }
 
-  private playMotion(type: string): void {
+  private onExit(): void {
+    this.clearFaceTimer();
+    this.stopBodyChannel();
+  }
+
+  private tickSpeakingAccent(policy: SpeakingAccentPolicy): void {
+    const elapsed = this.sm.elapsedSeconds;
+    if (elapsed < this.accentNextSec || policy.motions.length === 0) return;
+
+    const index = this.accentCursor % policy.motions.length;
+    const durationMs = this.playMotion(policy.motions[index]);
+    if (policy.faces?.length) {
+      this.applyFace(policy.faces[index % policy.faces.length]);
+      this.scheduleFaceReset(policy.faceHoldMs ?? 1000);
+    }
+
+    this.accentCursor += 1;
+    this.accentNextSec = elapsed + (durationMs + this.nextAccentDelay(policy)) / 1000;
+  }
+
+  private nextAccentDelay(policy: SpeakingAccentPolicy): number {
+    const [min, max] = policy.intervalMs;
+    const ratio = CADENCE_PATTERN[this.accentCursor % CADENCE_PATTERN.length];
+    return min + (max - min) * ratio;
+  }
+
+  private applyFace(intent: FaceIntent): void {
     const model = this.model.current;
-    if (!model || !type) return;
-    const mgr = model.internalModel?.motionManager;
-    if (!mgr) return;
-    const groups: Record<string, any> = mgr.groups || {};
+    const definition = this.config.faces[intent];
+    if (!model || !definition) return;
 
-    const priorities: Record<string, number> = { idle: 1, nod: 2, gesture: 2, special: 3 };
-    const filters: Record<string, (k: string) => boolean> = {
-      idle:    (k) => k.toLowerCase().includes("idle"),
-      nod:     (_k) => true,
-      gesture: (k) => !k.toLowerCase().includes("idle"),
-      special: (k) => !k.toLowerCase().includes("idle"),
-    };
+    if (definition.kind === "expression") {
+      try { model.expression?.(definition.id); } catch { /* optional model feature */ }
+      return;
+    }
 
-    const priority = priorities[type] ?? 1;
-    const filter = filters[type] ?? ((_k) => true);
+    const core = model.internalModel?.coreModel;
+    if (!core) return;
+    for (const [parameterId, value] of Object.entries(definition.values)) {
+      try { core.setParameterValueById(parameterId, value); } catch { /* optional parameter */ }
+    }
+  }
 
-    const keys = Object.keys(groups).filter(filter);
-    if (keys.length === 0) return;
+  private scheduleFaceReset(delayMs: number): void {
+    this.clearFaceTimer();
+    this.faceTimer = setTimeout(() => {
+      this.faceTimer = null;
+      const state = this.sm.state as Live2DState;
+      this.applyFace(this.config.states[state].face);
+    }, delayMs);
+  }
 
-    const group = keys[Math.floor(Math.random() * keys.length)];
-    const motions = groups[group];
-    if (!motions?.length) return;
+  private playMotion(intent: MotionIntent): number {
+    const assets = this.config.motions[intent];
+    if (!assets?.length) return 0;
 
-    const idx = Math.floor(Math.random() * motions.length);
-    mgr.startMotion(group, idx, priority as any)?.catch(() => {});
+    const cursor = this.motionCursor.get(intent) ?? 0;
+    const asset = assets[cursor % assets.length];
+    this.motionCursor.set(intent, cursor + 1);
+    this.startMotion(asset);
+    return asset.durationMs ?? 0;
+  }
+
+  private startMotion(asset: MotionAsset): void {
+    const manager = this.model.current?.internalModel?.motionManager;
+    if (!manager) return;
+
+    this.clearMotionTimer();
+    manager.stopAllMotions?.();
+    manager.startMotion(asset.group, asset.index, asset.priority ?? 1)?.catch(() => {});
+
+    if (asset.loop || !asset.durationMs) return;
+    this.motionTimer = setTimeout(() => {
+      this.motionTimer = null;
+      manager.stopAllMotions?.();
+    }, asset.durationMs);
+  }
+
+  private stopBodyChannel(): void {
+    this.clearMotionTimer();
+    this.stopAllMotions();
+  }
+
+  private stopAllMotions(): void {
+    try { this.model.current?.internalModel?.motionManager?.stopAllMotions?.(); } catch { /* destroyed */ }
+  }
+
+  private updateGaze(presentation: CharacterStatePresentation): void {
+    const gaze = presentation.gaze ?? { x: 0, y: 0 };
+    try {
+      this.model.current?.internalModel?.focusController?.focus(gaze.x, gaze.y, false);
+    } catch { /* destroyed */ }
   }
 
   private updateMouth(open: boolean): void {
@@ -226,20 +203,25 @@ export class StateRunner {
       if (!model || model.destroyed) return;
       const core = model.internalModel?.coreModel;
       if (!core) return;
-      const params = core.getParameterIds?.() || [];
-      const val = open ? 0.6 : 0;
-      if (params.includes("ParamMouthOpenY")) {
-        core.setParameterValueById("ParamMouthOpenY", val);
-      } else if (params.includes("ParamA")) {
-        core.setParameterValueById("ParamA", val);
+      const parameterIds = core.getParameterIds?.() || [];
+      const value = open ? 0.6 : 0;
+      if (parameterIds.includes("ParamMouthOpenY")) {
+        core.setParameterValueById("ParamMouthOpenY", value);
+      } else if (parameterIds.includes("ParamA")) {
+        core.setParameterValueById("ParamA", value);
       }
-    } catch { /* skip */ }
+    } catch { /* destroyed */ }
   }
 
-  private stopIdleTimer(): void {
-    if (this.idleTimer) {
-      clearTimeout(this.idleTimer);
-      this.idleTimer = null;
-    }
+  private clearMotionTimer(): void {
+    if (!this.motionTimer) return;
+    clearTimeout(this.motionTimer);
+    this.motionTimer = null;
+  }
+
+  private clearFaceTimer(): void {
+    if (!this.faceTimer) return;
+    clearTimeout(this.faceTimer);
+    this.faceTimer = null;
   }
 }

@@ -42,10 +42,12 @@ export function Live2DCharacter({
   const runnerRef = useRef<StateRunner | null>(null);
   const behaviorRef = useRef(behavior);
   const mouthOpenRef = useRef(mouthOpen);
+  const visualStateRef = useRef(visualState);
   const [error, setError] = useState<string | null>(null);
 
   behaviorRef.current = behavior;
   mouthOpenRef.current = mouthOpen;
+  visualStateRef.current = visualState;
 
   useEffect(() => {
     if (behavior === "look_forward" && modelRef.current) {
@@ -60,21 +62,9 @@ export function Live2DCharacter({
     }
   }, [event]);
 
-  // Visual state → events
-  const prevState = useRef(visualState);
+  // The page owns conversational state; the runner handles visual transitions.
   useEffect(() => {
-    if (!runnerRef.current) return;
-    const prev = prevState.current;
-    prevState.current = visualState;
-    if (prev === visualState) return;
-
-    if (visualState === "listening") runnerRef.current.send("START_LISTENING");
-    else if (visualState === "speaking" && prev === "listening") {
-      runnerRef.current.send("STOP_LISTENING");
-      runnerRef.current.send("TTS_START");
-    } else if (visualState === "idle" && prev === "speaking") {
-      runnerRef.current.send("TTS_DONE");
-    }
+    runnerRef.current?.setVisualState(visualState);
   }, [visualState]);
 
   const initLive2D = useCallback(async () => {
@@ -127,17 +117,18 @@ export function Live2DCharacter({
       canvas.addEventListener("pointermove", handlePointerMove);
 
       const runner = new StateRunner(modelRef, character.behavior);
+      runner.setVisualState(visualStateRef.current);
       runnerRef.current = runner;
 
       // Main loop
       app.ticker.add(() => {
         if (!model || model.destroyed) return;
 
-        if (behaviorRef.current === "look_forward") {
-          lookAtCamera(model);
-        }
-
-        runner.tick(app.ticker.deltaMS / 1000, mouthOpenRef.current);
+        runner.tick(
+          app.ticker.deltaMS / 1000,
+          mouthOpenRef.current,
+          behaviorRef.current === "look_forward",
+        );
       });
 
       // Resize

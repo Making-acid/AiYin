@@ -2,7 +2,13 @@ export type Live2DState = "IDLE" | "LISTENING" | "REACTING" | "THINKING" | "SPEA
 export type StateEvent = "START_LISTENING" | "STOP_LISTENING" | "TTS_START" | "TTS_DONE";
 
 type TickFn = (dt: number, elapsed: number) => void;
-type StateHandler = { enter?: () => void; exit?: () => void; tick?: TickFn; duration?: number };
+type StateHandler = {
+  enter?: () => void;
+  exit?: () => void;
+  tick?: TickFn;
+  duration?: number;
+  after?: string;
+};
 
 interface StateMachineConfig {
   states: Record<string, StateHandler>;
@@ -15,7 +21,7 @@ export class StateMachine {
   private transitions: Map<string, Map<string, string>> = new Map();
   private current: string;
   private elapsed = 0;
-  private timerId: ReturnType<typeof setTimeout> | null = null;
+  private started = false;
 
   constructor(config: StateMachineConfig) {
     this.current = config.initial;
@@ -35,16 +41,26 @@ export class StateMachine {
     return this.current;
   }
 
+  get elapsedSeconds(): number {
+    return this.elapsed;
+  }
+
   start(): void {
+    if (this.started) return;
+    this.started = true;
     const h = this.states.get(this.current);
     h?.enter?.();
-    this.scheduleAutoAdvance();
   }
 
   send(event: string): void {
     const tmap = this.transitions.get(this.current);
     const next = tmap?.get(event);
     if (!next || next === this.current) return;
+    this.transitionTo(next);
+  }
+
+  setState(next: string): void {
+    if (!this.states.has(next) || next === this.current) return;
     this.transitionTo(next);
   }
 
@@ -55,23 +71,16 @@ export class StateMachine {
   }
 
   destroy(): void {
-    if (this.timerId) clearTimeout(this.timerId);
+    if (!this.started) return;
+    this.states.get(this.current)?.exit?.();
+    this.started = false;
   }
 
   private transitionTo(next: string): void {
     this.states.get(this.current)?.exit?.();
-    if (this.timerId) clearTimeout(this.timerId);
     this.elapsed = 0;
     this.current = next;
     this.states.get(next)?.enter?.();
-    this.scheduleAutoAdvance();
-  }
-
-  private scheduleAutoAdvance(): void {
-    const d = this.states.get(this.current)?.duration;
-    if (d && d > 0) {
-      this.timerId = setTimeout(() => this.autoAdvance(), d);
-    }
   }
 
   private checkAutoAdvance(): void {
@@ -82,6 +91,7 @@ export class StateMachine {
   }
 
   private autoAdvance(): void {
-    this.transitionTo("IDLE");
+    const next = this.states.get(this.current)?.after ?? "IDLE";
+    this.transitionTo(next);
   }
 }

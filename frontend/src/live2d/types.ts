@@ -1,7 +1,7 @@
-import type { CharacterBehaviorConfig } from "./stateRunner";
+import type { CharacterBehaviorConfig } from "./behavior";
 import type { StateEvent } from "./stateMachine";
 
-export type Live2DVisualState = "idle" | "speaking" | "listening";
+export type Live2DVisualState = "idle" | "speaking" | "listening" | "thinking";
 export type Live2DBehavior = "follow_mouse" | "look_forward";
 
 export interface CharacterLayout {

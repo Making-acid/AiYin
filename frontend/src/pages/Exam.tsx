@@ -243,7 +243,7 @@ export function Exam() {
     <AsrProvider mode="exam">
     <div className="page exam-fullscreen">
       <HaruCharacter
-        state={live2dState}
+        state={loading && live2dState === "idle" ? "thinking" : live2dState}
         mouthOpen={mouthOpen}
         behavior={behavior}
       />
