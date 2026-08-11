@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useLanguage } from "../i18n";
 import { StateRunner } from "./stateRunner";
+import { validateBehaviorConfig } from "./behavior";
 import type {
   CharacterViewProps,
   Live2DCharacterDefinition,
@@ -40,6 +41,8 @@ export function Live2DCharacter({
   const appRef = useRef<any>(null);
   const modelRef = useRef<any>(null);
   const runnerRef = useRef<StateRunner | null>(null);
+  const initTokenRef = useRef(0);
+  const resourceTokenRef = useRef(0);
   const behaviorRef = useRef(behavior);
   const mouthOpenRef = useRef(mouthOpen);
   const visualStateRef = useRef(visualState);
@@ -67,32 +70,43 @@ export function Live2DCharacter({
     runnerRef.current?.setVisualState(visualState);
   }, [visualState]);
 
-  const initLive2D = useCallback(async () => {
+  const initLive2D = useCallback(async (token: number) => {
     const canvas = canvasRef.current;
     const domEl = domRef.current;
     if (!canvas || !domEl) return;
+
+    if (import.meta.env.DEV) {
+      const behaviorIssues = validateBehaviorConfig(character.behavior);
+      if (behaviorIssues.length) console.warn(`[Live2D:${character.id}] Invalid behavior config`, behaviorIssues);
+    }
 
     const w = domEl.clientWidth || window.innerWidth * 0.55;
     const h = domEl.clientHeight || window.innerHeight;
     canvas.width = w;
     canvas.height = h;
+    if (token === initTokenRef.current) setError(null);
 
+    let app: any = null;
     try {
       await ensurePixi();
+      if (token !== initTokenRef.current) return;
       const { Live2DModel } = await import("pixi-live2d-display/cubism4");
       const PIXI = (window as any).PIXI;
 
-      const app = new PIXI.Application({
+      app = new PIXI.Application({
         view: canvas, width: w, height: h, backgroundAlpha: 0,
         antialias: true, resolution: window.devicePixelRatio || 1, autoDensity: true,
       });
-      appRef.current = app;
-
       // Pointer tracking is handled locally below. Disabling the library's
       // global interaction hook keeps each character canvas self-contained.
       const model = await Live2DModel.from(character.modelPath, {
         autoInteract: false,
       });
+      if (token !== initTokenRef.current) {
+        try { model.destroy?.(); } catch { /* stale initialization */ }
+        try { app.destroy(true, { children: true }); } catch { /* stale initialization */ }
+        return;
+      }
       app.stage.addChild(model);
 
       const layout = character.layout;
@@ -103,7 +117,9 @@ export function Live2DCharacter({
         model.position.set(width * layout.x, height * layout.y);
       };
       applyLayout(w, h);
+      appRef.current = app;
       modelRef.current = model;
+      resourceTokenRef.current = token;
       lookAtCamera(model, true);
 
       const handlePointerMove = (pointerEvent: PointerEvent) => {
@@ -129,7 +145,7 @@ export function Live2DCharacter({
           mouthOpenRef.current,
           behaviorRef.current === "look_forward",
         );
-      });
+      }, undefined, PIXI.UPDATE_PRIORITY.LOW);
 
       // Resize
       const handleResize = () => {
@@ -139,22 +155,42 @@ export function Live2DCharacter({
         app.renderer.resize(nw, nh);
         applyLayout(nw, nh);
       };
-      window.addEventListener("resize", handleResize);
+      const resizeObserver = typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(handleResize)
+        : null;
+      if (resizeObserver) resizeObserver.observe(domEl);
+      else window.addEventListener("resize", handleResize);
 
       return () => {
-        window.removeEventListener("resize", handleResize);
+        resizeObserver?.disconnect();
+        if (!resizeObserver) window.removeEventListener("resize", handleResize);
         canvas.removeEventListener("pointermove", handlePointerMove);
       };
     } catch (err: any) {
       console.error("[Live2D] Init failed:", err.message || err);
-      setError(err.message || String(err));
+      if (resourceTokenRef.current === token) {
+        runnerRef.current?.destroy();
+        runnerRef.current = null;
+        appRef.current = null;
+        modelRef.current = null;
+        resourceTokenRef.current = 0;
+      }
+      if (app) {
+        try { app.destroy(true, { children: true }); } catch { /* failed initialization */ }
+      }
+      if (token === initTokenRef.current) setError(err.message || String(err));
     }
   }, [character]);
 
   useEffect(() => {
-    const promise = initLive2D();
-    return () => {
-      promise?.then?.((fn: any) => fn?.());
+    const token = ++initTokenRef.current;
+    let disposed = false;
+    let initCleanup: (() => void) | undefined;
+
+    const dispose = () => {
+      initCleanup?.();
+      initCleanup = undefined;
+      if (resourceTokenRef.current !== token) return;
       runnerRef.current?.destroy();
       runnerRef.current = null;
       if (appRef.current) {
@@ -162,11 +198,28 @@ export function Live2DCharacter({
         appRef.current = null;
       }
       modelRef.current = null;
+      resourceTokenRef.current = 0;
+    };
+
+    void initLive2D(token).then((cleanup) => {
+      initCleanup = cleanup;
+      if (disposed) dispose();
+    });
+
+    return () => {
+      disposed = true;
+      if (initTokenRef.current === token) initTokenRef.current += 1;
+      dispose();
     };
   }, [initLive2D]);
 
   return (
-    <div ref={domRef} className={`live2d-character live2d-character--${character.id} ${className}`}>
+    <div
+      ref={domRef}
+      className={`live2d-character live2d-character--${character.id} ${className}`}
+      data-live2d-character={character.id}
+      data-live2d-state={visualState}
+    >
       <canvas ref={canvasRef} className="live2d-canvas" />
       {error && <div className="live2d-error"><p>{t("modelLoadFailed")}</p><small>{error}</small></div>}
     </div>

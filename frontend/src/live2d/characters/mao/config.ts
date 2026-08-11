@@ -49,27 +49,43 @@ export const maoDefinition: Live2DCharacterDefinition = {
     states: {
       IDLE: {
         face: "neutral",
-        motion: "settled_idle",
+        baseMotion: "settled_idle",
+        gaze: { x: 0, y: 0, drift: 0.025, headLock: 0.58 },
       },
       LISTENING: {
         face: "neutral",
+        baseMotion: "settled_idle",
+        gaze: { x: 0, y: 0, drift: 0.018, headLock: 0.66 },
+        accents: {
+          motions: ["soft_reaction"],
+          faces: ["soft_smile"],
+          intervalMs: [8500, 12500],
+          initialDelayMs: [5500, 8000],
+          faceHoldMs: 1200,
+        },
       },
       REACTING: {
         face: "soft_smile",
-        motion: "soft_reaction",
-        duration: 1200,
+        entryMotion: "soft_reaction",
+        gaze: { x: 0, y: 0, drift: 0.015, headLock: 0.62 },
+        duration: 1800,
         after: "IDLE",
       },
       THINKING: {
         face: "eyes_closed",
-        motion: "considering",
+        baseMotion: "settled_idle",
+        entryMotion: "considering",
+        gaze: { x: -0.08, y: 0.04, drift: 0.012, headLock: 0.34 },
       },
       SPEAKING: {
         face: "neutral",
-        speakingAccent: {
+        baseMotion: "settled_idle",
+        gaze: { x: 0, y: 0, drift: 0.02, headLock: 0.6 },
+        accents: {
           motions: ["speaking_accent", "soft_reaction"],
           faces: ["soft_smile", "neutral"],
           intervalMs: [5200, 7600],
+          initialDelayMs: [1800, 3000],
           faceHoldMs: 1100,
         },
       },

@@ -56,32 +56,46 @@ export const haruDefinition: Live2DCharacterDefinition = {
         { group: "", index: 0, loop: true, priority: 1 },
       ],
       acknowledge_small: [
-        { group: "", index: 2, durationMs: 1200, priority: 2 },
+        { group: "", index: 2, durationMs: 1900, priority: 2 },
       ],
       present_question: [
-        { group: "", index: 7, durationMs: 1800, priority: 2 },
+        { group: "", index: 7, durationMs: 3700, priority: 2 },
       ],
     },
     states: {
       IDLE: {
         face: "neutral",
-        motion: "settled_idle",
+        baseMotion: "settled_idle",
+        gaze: { x: 0, y: 0, drift: 0.012, headLock: 0.42 },
       },
       LISTENING: {
         face: "attentive",
+        baseMotion: "settled_idle",
+        gaze: { x: 0, y: 0, drift: 0.008, headLock: 0.52 },
+        accents: {
+          motions: ["acknowledge_small"],
+          intervalMs: [9000, 13500],
+          initialDelayMs: [6500, 9500],
+        },
       },
       REACTING: {
         face: "soft_smile",
-        motion: "acknowledge_small",
-        duration: 900,
+        entryMotion: "acknowledge_small",
+        gaze: { x: 0, y: 0, drift: 0.006, headLock: 0.5 },
+        duration: 1500,
         after: "IDLE",
       },
       THINKING: {
         // API latency must not look like judging or confusion.
         face: "neutral",
+        baseMotion: "settled_idle",
+        gaze: { x: 0, y: 0, drift: 0.01, headLock: 0.46 },
       },
       SPEAKING: {
         face: "neutral",
+        baseMotion: "settled_idle",
+        entryMotion: "present_question",
+        gaze: { x: 0, y: 0, drift: 0.008, headLock: 0.5 },
       },
     },
     transitions: {

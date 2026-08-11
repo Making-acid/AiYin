@@ -110,6 +110,7 @@ export function Exam() {
   const handleDualResult = useCallback(
     (result: DualRecordingResult) => {
       setRecordingActive(false);
+      setLive2dState("idle");
       if (result.audio.size > 100) audioBlobsRef.current.push(result.audio);
       if (result.text.trim()) sendAnswer(result.text.trim());
     },
@@ -118,6 +119,7 @@ export function Exam() {
 
   // Auto-stop: timer expires → stop recording, save audio, submit
   const autoStopAndSend = useCallback(() => {
+    setLive2dState("idle");
     dual.stop().then(handleDualResult);
     setRecordingTimeLeft(0);
   }, [dual, handleDualResult]);
@@ -127,6 +129,7 @@ export function Exam() {
     clearTimers();
     setRecordingTimeLeft(seconds);
     setRecordingActive(true);
+    setLive2dState("listening");
     dual.start();
 
     // UI countdown
@@ -221,12 +224,21 @@ export function Exam() {
   // Toggle mic button
   const handleMicToggle = () => {
     if (dual.isRecording) {
+      setLive2dState("idle");
       dual.stop().then(handleDualResult);
     } else {
+      setLive2dState("listening");
       dual.start();
       setRecordingActive(true);
     }
   };
+
+  useEffect(() => {
+    if (dual.error) {
+      setLive2dState("idle");
+      setRecordingActive(false);
+    }
+  }, [dual.error]);
 
   const handleViewReport = () => {
     clearTimers();
