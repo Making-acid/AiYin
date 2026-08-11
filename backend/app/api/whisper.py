@@ -1,11 +1,13 @@
 import logging
 from fastapi import APIRouter, HTTPException, UploadFile, Form
+from starlette.concurrency import run_in_threadpool
 from app.models.schemas import DownloadModelRequest, WhisperConfigRequest
 from app.services import whisper_service
 
 
 logger = logging.getLogger("api.whisper")
 router = APIRouter(prefix="/whisper", tags=["whisper"])
+MAX_AUDIO_BYTES = 25 * 1024 * 1024
 
 
 @router.get("/config")
@@ -54,12 +56,14 @@ async def transcribe_audio(file: UploadFile, language: str = Form(None)):
     if not file.filename:
         raise HTTPException(status_code=400, detail="No audio file provided")
 
-    audio_bytes = await file.read()
+    audio_bytes = await file.read(MAX_AUDIO_BYTES + 1)
+    if len(audio_bytes) > MAX_AUDIO_BYTES:
+        raise HTTPException(status_code=413, detail="Audio file is too large (maximum 25 MB)")
     if not audio_bytes:
         raise HTTPException(status_code=400, detail="Empty audio file")
 
     try:
-        text = whisper_service.transcribe(audio_bytes, language=language)
+        text = await run_in_threadpool(whisper_service.transcribe, audio_bytes, language)
     except RuntimeError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"text": text}

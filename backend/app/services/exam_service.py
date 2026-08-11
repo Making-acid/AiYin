@@ -39,6 +39,11 @@ def create_session(exam_id: str, mode: str) -> str:
 
 
 def get_examiner_intro(session_id: str) -> str:
+    with session_manager.session_lock(session_id):
+        return _get_examiner_intro_locked(session_id)
+
+
+def _get_examiner_intro_locked(session_id: str) -> str:
     session = session_manager.get(session_id)
     if not session:
         raise ExamError("Session not found. Please restart the exam.")
@@ -59,6 +64,11 @@ def get_examiner_intro(session_id: str) -> str:
 
 
 def get_next_question(session_id: str, user_answer: str) -> dict:
+    with session_manager.session_lock(session_id):
+        return _get_next_question_locked(session_id, user_answer)
+
+
+def _get_next_question_locked(session_id: str, user_answer: str) -> dict:
     session = session_manager.get(session_id)
     if not session:
         raise ExamError("Session not found. Please restart the exam.")
@@ -91,6 +101,11 @@ def get_next_question(session_id: str, user_answer: str) -> dict:
 
 def advance_session(session_id: str) -> dict:
     """Advance an exam-only transition without adding a candidate answer."""
+    with session_manager.session_lock(session_id):
+        return _advance_session_locked(session_id)
+
+
+def _advance_session_locked(session_id: str) -> dict:
     session = session_manager.get(session_id)
     if not session:
         raise ExamError("Session not found. Please restart the exam.")
@@ -267,11 +282,12 @@ def _handle_free_chat_flow(session: dict, user_answer: str) -> dict:
 
 
 def end_chat_session(session_id: str) -> dict:
-    session = session_manager.get(session_id)
-    if not session:
-        raise ExamError("Session not found.")
-    if session["mode"] != "free_chat":
-        raise ExamError("This endpoint is only available for free chat sessions.")
-    session["finished"] = True
-    session_manager.delete(session_id)
-    return {"session_id": session_id, "finished": True}
+    with session_manager.session_lock(session_id):
+        session = session_manager.get(session_id)
+        if not session:
+            raise ExamError("Session not found.")
+        if session["mode"] != "free_chat":
+            raise ExamError("This endpoint is only available for free chat sessions.")
+        session["finished"] = True
+        session_manager.delete(session_id)
+        return {"session_id": session_id, "finished": True}

@@ -2,7 +2,7 @@ import logging
 from fastapi import APIRouter, HTTPException
 from app.models.schemas import ChatStartRequest, ChatSendRequest, ChatEndRequest
 from app.services.exam_service import create_session, get_examiner_intro, get_next_question, end_chat_session, ExamError
-from app.services.data_loader import DataError, validate_exam_id
+from app.services.data_loader import DataError, InvalidExamError, validate_exam_id
 
 
 logger = logging.getLogger("api.chat")
@@ -21,6 +21,8 @@ def start_chat(request: ChatStartRequest):
             "mode": request.mode,
             "exam_id": request.exam_id,
         }
+    except InvalidExamError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except ExamError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except DataError as e:

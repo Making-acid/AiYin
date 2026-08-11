@@ -41,6 +41,9 @@ const zh: Record<string, string> = {
 
   // Free chat
   practiceMode: "练习模式",
+  mao: "Mao",
+  chatStartFailed: "启动自由聊天失败，请重试。",
+  chatSendFailed: "发送消息失败，请重试。",
 
   // Voice input
   speak: "🎤 说话", stop: "⏹ 停止", listening: "聆听中...",

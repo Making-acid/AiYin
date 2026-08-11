@@ -14,6 +14,10 @@ class DataError(Exception):
     """User-facing error for data loading failures."""
 
 
+class InvalidExamError(DataError):
+    """The requested exam identifier is not present in the registry."""
+
+
 def _get_data_dir() -> Path:
     if getattr(sys, "frozen", False):
         return Path(sys.executable).parent / "data"
@@ -68,10 +72,10 @@ def get_available_exam_ids() -> list[str]:
 
 
 def validate_exam_id(exam_id: str) -> None:
-    """Raise DataError if exam_id is not found in the registry."""
+    """Raise InvalidExamError if exam_id is not found in the registry."""
     valid = get_available_exam_ids()
     if exam_id not in valid:
-        raise DataError(f"Unknown exam '{exam_id}'. Available exams: {', '.join(valid)}")
+        raise InvalidExamError(f"Unknown exam '{exam_id}'. Available exams: {', '.join(valid)}")
 
 
 def get_exam_info(exam_id: str) -> dict:

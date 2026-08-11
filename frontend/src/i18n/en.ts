@@ -42,6 +42,9 @@ const en: Record<string, string> = {
 
   // Free chat
   practiceMode: "Practice Mode",
+  mao: "Mao",
+  chatStartFailed: "Failed to start free chat. Please try again.",
+  chatSendFailed: "Failed to send the message. Please try again.",
 
   // Voice input
   speak: "🎤 Speak", stop: "⏹ Stop", listening: "Listening...",

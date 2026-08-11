@@ -74,10 +74,16 @@ export function useSpeechSynthesis(profile: VoiceProfile = "standard", lang: str
 
   const speak = useCallback(
     (text: string, onStart?: () => void, onEnd?: () => void) => {
-      if (!isSupported) return;
+      if (!isSupported) {
+        setTimeout(() => onEnd?.(), 0);
+        return;
+      }
 
       let v = voiceRef.current || findVoice();
-      if (!v) return;
+      if (!v) {
+        setTimeout(() => onEnd?.(), 0);
+        return;
+      }
 
       const u = new SpeechSynthesisUtterance(text);
       u.voice = v;

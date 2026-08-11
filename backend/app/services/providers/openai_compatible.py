@@ -57,7 +57,14 @@ class OpenAICompatibleProvider(BaseLLMProvider):
                     "AI service returned an empty response. Please try again.",
                     recoverable=True,
                 )
-            return response.choices[0].message.content
+            content = response.choices[0].message.content
+            if not isinstance(content, str) or not content.strip():
+                logger.error("LLM returned empty message content")
+                raise LLMProviderError(
+                    "AI service returned an empty response. Please try again.",
+                    recoverable=True,
+                )
+            return content
         except AuthenticationError:
             logger.error("LLM authentication failed")
             raise LLMProviderError(

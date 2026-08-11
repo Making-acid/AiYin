@@ -130,7 +130,6 @@ def download_model(model_id: str) -> dict:
     if model_id not in WHISPER_MODELS:
         raise ValueError(f"Unknown model: {model_id}")
 
-    os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
 
     try:
         from faster_whisper import download_model as dm

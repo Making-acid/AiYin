@@ -3,9 +3,10 @@ import { useLanguage } from "../i18n";
 
 interface ChatBubbleProps {
   message: ChatMessage;
+  assistantLabel?: string;
 }
 
-export function ChatBubble({ message }: ChatBubbleProps) {
+export function ChatBubble({ message, assistantLabel }: ChatBubbleProps) {
   const isUser = message.role === "user";
   const { t } = useLanguage();
 
@@ -15,7 +16,7 @@ export function ChatBubble({ message }: ChatBubbleProps) {
         {isUser ? "👤" : "🤖"}
       </div>
       <div className="bubble-content">
-        <div className="bubble-role">{isUser ? t("you") : t("examiner")}</div>
+        <div className="bubble-role">{isUser ? t("you") : assistantLabel || t("examiner")}</div>
         <div className="bubble-text">{message.content}</div>
       </div>
     </div>

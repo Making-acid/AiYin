@@ -50,7 +50,8 @@ export function Settings() {
   };
 
   const handleSave = async () => {
-    if (!apiKey.trim() || apiKey.trim().length < 4) {
+    const trimmedApiKey = apiKey.trim();
+    if ((!config?.is_configured && !trimmedApiKey) || (trimmedApiKey && trimmedApiKey.length < 4)) {
       setMessage(t("apiKeyRequired"));
       return;
     }
@@ -59,7 +60,7 @@ export function Settings() {
     try {
       const result = await saveConfig({
         provider,
-        api_key: apiKey.trim(),
+        api_key: trimmedApiKey || undefined,
         base_url: baseUrl.trim() || undefined,
         model: model.trim() || undefined,
       });

@@ -1,6 +1,7 @@
 import json
 import re
 import logging
+from copy import deepcopy
 from typing import Optional
 from app.services.llm_service import chat_simple, LLMError
 from app.services.data_loader import ExamDataLoader, DataError
@@ -14,6 +15,18 @@ class ScoringError(Exception):
     """User-facing error for scoring service failures."""
 
 
+class ScoringSessionNotFoundError(ScoringError):
+    """The requested scoring session does not exist or has expired."""
+
+
+class ReportNotReadyError(ScoringError):
+    """The session exists but the exam is not complete."""
+
+
+class ScoringProviderError(ScoringError):
+    """The upstream AI provider could not produce a report."""
+
+
 def _get_loader(exam_id: str) -> ExamDataLoader:
     try:
         return ExamDataLoader(exam_id)
@@ -25,11 +38,13 @@ def _get_loader(exam_id: str) -> ExamDataLoader:
 
 
 def generate_score_report(session_id: str) -> Optional[dict]:
-    session = session_manager.get(session_id)
-    if not session:
-        raise ScoringError("Session not found. The exam session may have expired.")
-    if not session["finished"]:
-        raise ScoringError("The exam is not yet finished. Complete all parts to get your score report.")
+    with session_manager.session_lock(session_id):
+        current_session = session_manager.get(session_id)
+        if not current_session:
+            raise ScoringSessionNotFoundError("Session not found. The exam session may have expired.")
+        if not current_session["finished"]:
+            raise ReportNotReadyError("The exam is not yet finished. Complete all parts to get your score report.")
+        session = deepcopy(current_session)
 
     try:
         loader = _get_loader(session["exam_id"])
@@ -72,8 +87,8 @@ def generate_score_report(session_id: str) -> Optional[dict]:
         }
     except LLMError as e:
         if e.recoverable:
-            raise ScoringError(f"Could not generate the score report: {e}")
-        raise ScoringError("Failed to generate score report due to an AI service error. Please try again later.")
+            raise ScoringProviderError(f"Could not generate the score report: {e}")
+        raise ScoringProviderError("Failed to generate score report due to an AI service error. Please try again later.")
     except DataError:
         raise
     except ScoringError:

@@ -1,9 +1,11 @@
 import sys
 import os
+import asyncio
 import webbrowser
 import threading
 import logging
 import tempfile
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,6 +14,25 @@ from app.api import chat, exam, config
 from app.core.config import settings
 
 logger = logging.getLogger("main")
+
+
+async def _periodic_session_cleanup():
+    from app.services.session_manager import cleanup_expired
+
+    while True:
+        await asyncio.sleep(1800)
+        cleanup_expired()
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    cleanup_task = asyncio.create_task(_periodic_session_cleanup())
+    try:
+        yield
+    finally:
+        cleanup_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await cleanup_task
 
 # When running as packaged exe (--windowed), redirect logs to a user-writable location
 if getattr(sys, "frozen", False):
@@ -28,7 +49,7 @@ if getattr(sys, "frozen", False):
     except PermissionError:
         pass  # fall back to console-only logging
 
-app = FastAPI(title="IELTS Speaking Practice", version="0.4.0")
+app = FastAPI(title="IELTS Speaking Practice", version="0.4.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -65,23 +86,6 @@ if STATIC_DIR.exists() and (STATIC_DIR / "index.html").exists():
     app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
 
 
-@app.on_event("startup")
-def _startup_cleanup_task():
-    import asyncio
-    from app.services.session_manager import cleanup_expired
-
-    async def _periodic_cleanup():
-        while True:
-            await asyncio.sleep(1800)  # every 30 minutes
-            cleanup_expired()
-
-    try:
-        loop = asyncio.get_event_loop()
-        loop.create_task(_periodic_cleanup())
-    except RuntimeError:
-        pass
-
-
 def open_browser():
     webbrowser.open("http://localhost:8000")
 
@@ -98,7 +102,7 @@ def main():
             sys.stdout = open(os.devnull, "w")
 
     uvicorn.run(
-        app, host="0.0.0.0", port=8000,
+        app, host="127.0.0.1", port=8000,
         log_level="info",
         # Disable coloured logging in frozen mode (stderr may not support it)
         use_colors=False,

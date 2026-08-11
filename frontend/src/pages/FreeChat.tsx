@@ -23,6 +23,7 @@ export function FreeChat() {
   const [sessionId, setSessionId] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [live2dState, setLive2dState] = useState<"idle" | "speaking" | "listening">("idle");
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export function FreeChat() {
   }, [messages]);
 
   const initChat = async () => {
+    setError("");
     try {
       const data = await startFreeChat();
       setSessionId(data.session_id);
@@ -49,12 +51,14 @@ export function FreeChat() {
       }
     } catch (err) {
       console.error("Failed to start chat:", err);
+      setError(t("chatStartFailed"));
     }
   };
 
   const handleUserMessage = useCallback(
     async (text: string) => {
       if (!sessionId || loading) return;
+      setError("");
       setLive2dState("idle");
 
       const userMsg: ChatMessage = { role: "user", content: text };
@@ -73,11 +77,13 @@ export function FreeChat() {
         }
       } catch (err) {
         console.error("Failed to send message:", err);
+        setError(t("chatSendFailed"));
+        setLive2dState("idle");
       } finally {
         setLoading(false);
       }
     },
-    [sessionId, loading, ttsSupported, speak]
+    [sessionId, loading, ttsSupported, speak, t]
   );
 
   const handleVoiceStart = () => setLive2dState("listening");
@@ -105,8 +111,9 @@ export function FreeChat() {
 
         <div className="chat-container" ref={chatRef}>
           {messages.map((msg, i) => (
-            <ChatBubble key={i} message={msg} />
+            <ChatBubble key={i} message={msg} assistantLabel={t("mao")} />
           ))}
+          {error && <div className="chat-error">{error}</div>}
           {loading && (
             <div className="chat-bubble examiner">
               <div className="bubble-avatar">🤖</div>

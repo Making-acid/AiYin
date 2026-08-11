@@ -1,6 +1,8 @@
 import sys
 import types
 import unittest
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
 from unittest.mock import patch
 
 
@@ -22,8 +24,7 @@ from app.services import exam_service, session_manager  # noqa: E402
 
 class ExamFlowTests(unittest.TestCase):
     def setUp(self):
-        session_manager._sessions.clear()
-        session_manager._timestamps.clear()
+        session_manager.clear_all()
 
     def test_transitions_do_not_create_candidate_answers(self):
         with patch.object(exam_service.random, "choice", side_effect=lambda items: items[0]):
@@ -80,6 +81,30 @@ class ExamFlowTests(unittest.TestCase):
         session_id = exam_service.create_session("ielts", "exam")
         with self.assertRaises(exam_service.ExamError):
             exam_service.advance_session(session_id)
+
+    def test_concurrent_answers_are_serialized_per_session(self):
+        session_id = exam_service.create_session("ielts", "exam")
+        start = Barrier(3)
+
+        def submit(answer: str) -> dict:
+            start.wait()
+            return exam_service.get_next_question(session_id, answer)
+
+        with patch.object(exam_service.random, "choice", side_effect=lambda items: items[0]):
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                futures = [pool.submit(submit, answer) for answer in ("first", "second")]
+                start.wait()
+                results = [future.result(timeout=2) for future in futures]
+
+        self.assertEqual(sorted(result["question_index"] for result in results), [1, 2])
+        self.assertEqual(self._candidate_messages(session_id), 2)
+        examiner_questions = [
+            message["content"]
+            for message in session_manager.get(session_id)["conversation"]
+            if message["role"] == "examiner"
+        ]
+        self.assertEqual(len(examiner_questions), 2)
+        self.assertNotEqual(examiner_questions[0], examiner_questions[1])
 
     @staticmethod
     def _candidate_messages(session_id: str) -> int:

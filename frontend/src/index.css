@@ -206,6 +206,17 @@ body {
   max-height: calc(100vh - 280px);
 }
 
+.chat-error {
+  align-self: center;
+  max-width: 80%;
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 28%, transparent);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  text-align: center;
+}
+
 /* ===== Chat Bubble ===== */
 .chat-bubble {
   display: flex;
