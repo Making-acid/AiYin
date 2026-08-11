@@ -1,14 +1,14 @@
 ; -*- mode: pascal -*-
-; IELTS Speaking v0.4.0 -- Windows Installer
+; IELTS Speaking v0.5.0 -- Windows Installer
 ; Build: ISCC.exe setup.iss
-; Requires: dist\IELTS Speaking v0.4.0\ prepared by PyInstaller
+; Requires: dist\IELTS Speaking v0.5.0\ prepared by PyInstaller
 
 #define MyAppName "IELTS Speaking"
-#define MyAppVersion "0.4.0"
+#define MyAppVersion "0.5.0"
 #define MyAppPublisher "IELTS AI"
 #define MyAppURL "https://github.com/Making-acid/ielts-speaking-ai"
-#define MyAppExeName "IELTS Speaking v0.4.0.exe"
-#define MySourceDir "backend\dist\IELTS Speaking v0.4.0"
+#define MyAppExeName "IELTS Speaking v0.5.0.exe"
+#define MySourceDir "backend\dist\IELTS Speaking v0.5.0"
 #define MyOutputDir "..\release"
 
 [Setup]
@@ -23,7 +23,7 @@ DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputDir={#MyOutputDir}
-OutputBaseFilename=IELTS-Speaking-v0.4.0-Setup
+OutputBaseFilename=IELTS-Speaking-v0.5.0-Setup
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern

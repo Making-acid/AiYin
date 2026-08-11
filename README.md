@@ -32,7 +32,7 @@ npm run dev
 
 ---
 
-## 项目结构 (v0.4)
+## 项目结构 (v0.5)
 
 ```
 IELTS/
@@ -148,10 +148,10 @@ Copy-Item -Recurse frontend\dist backend\static
 
 # 3. PyInstaller 打包
 cd backend
-pyinstaller --onedir --name "IELTS Speaking v0.4" --add-data "static;static" run.py
+pyinstaller --onedir --name "IELTS Speaking v0.5.0" --add-data "static;static" run.py
 
 # 4. 复制数据
-Copy-Item -Recurse data "dist\IELTS Speaking v0.4\data"
+Copy-Item -Recurse data "dist\IELTS Speaking v0.5.0\data"
 ```
 
 打包安装包：准备好 EXE 文件夹后运行 `ISCC.exe setup.iss`。

@@ -49,7 +49,7 @@ if getattr(sys, "frozen", False):
     except PermissionError:
         pass  # fall back to console-only logging
 
-app = FastAPI(title="IELTS Speaking Practice", version="0.4.0", lifespan=lifespan)
+app = FastAPI(title="IELTS Speaking Practice", version="0.5.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
