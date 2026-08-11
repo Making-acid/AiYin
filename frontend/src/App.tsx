@@ -6,6 +6,7 @@ import { Exam } from "./pages/Exam";
 import { FreeChat } from "./pages/FreeChat";
 import { Report } from "./pages/Report";
 import { Settings } from "./pages/Settings";
+import { Legal } from "./pages/Legal";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
             <Route path="/free-chat" element={<FreeChat />} />
             <Route path="/report/:sessionId" element={<Report />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/legal" element={<Legal />} />
           </Routes>
         </TrainingLanguageProvider>
       </AppProvider>

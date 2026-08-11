@@ -1,0 +1,177 @@
+import { useNavigate } from "react-router-dom";
+import { useLanguage } from "../i18n";
+
+type LegalCopy = {
+  title: string;
+  updated: string;
+  intro: string;
+  sections: Array<{ title: string; paragraphs: string[]; bullets?: string[] }>;
+  privacyTitle: string;
+  privacyIntro: string;
+  flows: Array<{ feature: string; detail: string }>;
+  controlsTitle: string;
+  controls: string[];
+  acknowledgement: string;
+};
+
+const COPY: Record<"zh" | "en", LegalCopy> = {
+  en: {
+    title: "Legal, Disclaimer & Privacy",
+    updated: "Effective 11 August 2026 · v0.5.0",
+    intro: "Please read this before using the microphone, AI conversation, or estimated scoring features.",
+    sections: [
+      {
+        title: "Independent practice tool",
+        paragraphs: [
+          "This application is an independent, AI-assisted educational practice tool. It is not an examination, booking, tutoring, or score-verification service and does not issue an official result or qualification.",
+          "It is not affiliated with, authorised by, sponsored by, or endorsed by the British Council, IDP Education, Cambridge University Press & Assessment, or any IELTS test centre. IELTS, the IELTS logos, and 雅思 are registered trade marks of their respective owners.",
+        ],
+      },
+      {
+        title: "AI results are estimates",
+        paragraphs: [
+          "Automated scores, transcripts, corrections, sample answers, and feedback may be incomplete, inconsistent, biased, or incorrect. Pronunciation may be inferred partly from a transcript and cannot reproduce an in-person assessment.",
+          "Do not present a result as an official IELTS score or rely on it for admissions, immigration or visas, employment, professional registration, appeals, or another high-stakes decision.",
+        ],
+      },
+      {
+        title: "Your responsibilities",
+        paragraphs: ["Check important information against official sources and comply with the terms of every AI, browser, model, and content provider you choose."],
+        bullets: [
+          "Do not enter identity documents, candidate numbers, payment details, or information you are not authorised to disclose.",
+          "Obtain permission before recording another person.",
+          "Do not use the app to impersonate an examiner, issue credentials, deceive an institution, or infringe intellectual-property rights.",
+        ],
+      },
+      {
+        title: "Warranty and liability",
+        paragraphs: [
+          "The software is provided as is and as available, without a promise of accuracy, uninterrupted operation, fitness for a particular purpose, or a particular exam outcome. Liability is limited to the maximum extent permitted by applicable law; rights and liabilities that cannot lawfully be excluded remain unaffected.",
+        ],
+      },
+    ],
+    privacyTitle: "How data is handled",
+    privacyIntro: "Running the local application does not by itself send your local data to the project author. Features you choose can send data to other services as described below.",
+    flows: [
+      { feature: "AI conversation and scoring", detail: "Required text and session context are sent through the local backend to the AI endpoint configured in Settings. That provider's terms, privacy policy, fees, and retention rules apply." },
+      { feature: "Browser speech recognition", detail: "Audio may be processed by the browser or operating-system vendor and may leave the device, depending on its implementation." },
+      { feature: "Local Whisper", detail: "Audio is sent to the app's local backend, converted in a temporary file, transcribed locally, and then deleted. Downloading a model contacts the model host." },
+      { feature: "Exam audio buffer", detail: "The current build keeps captured exam audio only in page memory. It is not included in AI requests or reports and is discarded when the page or session is cleared. Browser recognition may still process the same speech." },
+      { feature: "Local settings", detail: "Preferences remain in browser local storage; AI and Whisper configuration remain in the application's local user-data folder until cleared." },
+    ],
+    controlsTitle: "Your choices",
+    controls: [
+      "Deny microphone access or use typed input where available.",
+      "Use local Whisper instead of browser recognition.",
+      "Choose a locally hosted compatible AI endpoint, such as Ollama.",
+      "Clear browser site data and local application configuration.",
+    ],
+    acknowledgement: "By installing or using the application, you acknowledge these limitations and data flows. If you do not agree, do not use it.",
+  },
+  zh: {
+    title: "法律说明、免责声明与隐私",
+    updated: "2026 年 8 月 11 日生效 · v0.5.0",
+    intro: "使用麦克风、AI 对话或预估评分功能前，请先阅读以下内容。",
+    sections: [
+      {
+        title: "独立的练习工具",
+        paragraphs: [
+          "本应用是独立开发的 AI 辅助教育练习工具，不提供考试、报名预约、人工辅导或成绩核验服务，也不会签发官方成绩或资质。",
+          "本应用与 British Council、IDP Education、Cambridge University Press & Assessment 及任何 IELTS 考点均无隶属、授权、赞助或认可关系。IELTS、IELTS 标识及“雅思”是其各自权利人的注册商标。",
+        ],
+      },
+      {
+        title: "AI 结果仅为估算",
+        paragraphs: [
+          "自动生成的分数、转写、纠错、示例答案和反馈可能不完整、不一致、带有偏差或存在错误。发音可能部分依据转写文本推断，不能复现真人面对面评估。",
+          "请勿将结果表述为官方 IELTS 成绩，也不要用于院校录取、移民或签证、求职、职业注册、申诉及其他高风险决定。",
+        ],
+      },
+      {
+        title: "用户责任",
+        paragraphs: ["重要信息应通过官方来源核实，并请遵守所选 AI、浏览器、模型和内容服务商的条款。"],
+        bullets: [
+          "不要输入身份证件、考生号、支付信息或无权披露的内容。",
+          "录制他人声音前应取得必要许可。",
+          "不得利用本应用冒充考官、签发资质、欺骗机构或侵犯知识产权。",
+        ],
+      },
+      {
+        title: "保证与责任限制",
+        paragraphs: [
+          "本软件按现状和可用状态提供，不承诺准确、持续可用、适合特定用途或带来特定考试结果。责任在适用法律允许的最大范围内受到限制；依法不得排除的权利或责任不受影响。",
+        ],
+      },
+    ],
+    privacyTitle: "数据如何处理",
+    privacyIntro: "仅运行本地应用不会把本地数据发送给项目作者；你主动使用的功能可能按下述方式把数据交给其他服务。",
+    flows: [
+      { feature: "AI 对话与评分", detail: "必要文本和会话上下文经本地后端发送至“设置”中配置的 AI 接口；适用该服务商自己的条款、隐私政策、收费及保留规则。" },
+      { feature: "浏览器语音识别", detail: "视具体实现，音频可能由浏览器或操作系统厂商处理并离开本机。" },
+      { feature: "本地 Whisper", detail: "音频发送至应用的本地后端，以临时文件转换、在本机转写并在处理后删除；下载模型时会连接模型托管方。" },
+      { feature: "考试录音缓冲", detail: "当前版本仅在页面内存中暂存考试录音，不会把音频加入 AI 请求或报告，页面或会话清除后即丢弃；浏览器识别仍可能处理同一段语音。" },
+      { feature: "本地设置", detail: "偏好保留在浏览器本地存储中；AI 与 Whisper 配置保留在应用的本地用户数据目录，直至用户清除。" },
+    ],
+    controlsTitle: "你的选择",
+    controls: [
+      "拒绝麦克风权限，或在支持时使用键盘输入。",
+      "以本地 Whisper 替代浏览器语音识别。",
+      "选择 Ollama 等本地兼容 AI 接口。",
+      "清除浏览器站点数据及应用本地配置。",
+    ],
+    acknowledgement: "安装或使用本应用即表示你知悉上述限制和数据流。如不同意，请勿使用。",
+  },
+};
+
+export function Legal() {
+  const navigate = useNavigate();
+  const { lang, t } = useLanguage();
+  const copy = COPY[lang];
+
+  return (
+    <div className="page legal-page">
+      <button className="back-btn" onClick={() => navigate(-1)}>{t("back")}</button>
+      <main className="legal-container">
+        <header className="legal-header">
+          <p className="legal-kicker">IELTS Speaking Practice</p>
+          <h1>{copy.title}</h1>
+          <p className="legal-updated">{copy.updated}</p>
+          <p>{copy.intro}</p>
+        </header>
+
+        {copy.sections.map((section) => (
+          <section className="legal-section" key={section.title}>
+            <h2>{section.title}</h2>
+            {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            {section.bullets && <ul>{section.bullets.map((item) => <li key={item}>{item}</li>)}</ul>}
+          </section>
+        ))}
+
+        <section className="legal-section">
+          <h2>{copy.privacyTitle}</h2>
+          <p>{copy.privacyIntro}</p>
+          <div className="legal-flow-list">
+            {copy.flows.map((flow) => (
+              <div className="legal-flow" key={flow.feature}>
+                <h3>{flow.feature}</h3>
+                <p>{flow.detail}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="legal-section">
+          <h2>{copy.controlsTitle}</h2>
+          <ul>{copy.controls.map((item) => <li key={item}>{item}</li>)}</ul>
+        </section>
+
+        <aside className="legal-acknowledgement">{copy.acknowledgement}</aside>
+        <p className="legal-links">
+          <a href="https://ielts.org/legal" target="_blank" rel="noopener noreferrer">IELTS legal & policies</a>
+          <span aria-hidden="true">·</span>
+          <a href="https://www.live2d.com/en/learn/sample/model-terms/" target="_blank" rel="noopener noreferrer">Live2D sample terms</a>
+        </p>
+      </main>
+    </div>
+  );
+}

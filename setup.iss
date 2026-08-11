@@ -43,6 +43,10 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "{#MySourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "DISCLAIMER.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "PRIVACY.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "NOTICE.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
@@ -55,41 +59,89 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 [Code]
 var
   DisclaimerPage: TWizardPage;
+  DisclaimerMemo: TNewMemo;
   AgreeRadio: TNewRadioButton;
   DisagreeRadio: TNewRadioButton;
 
-procedure InitializeWizard;
-var
-  S: string;
+function DisclaimerText: string;
 begin
-  S := 'This software uses AI to estimate IELTS speaking band scores.' + #13#10 + #13#10;
-  S := S + 'These scores are NOT official IELTS results. They are not endorsed by,' + #13#10;
-  S := S + 'affiliated with, or recognised by IELTS, British Council, IDP, or Cambridge' + #13#10;
-  S := S + 'Assessment English.' + #13#10 + #13#10;
-  S := S + 'AI-generated scores are for practice and self-assessment purposes ONLY.' + #13#10;
-  S := S + 'Do not rely on them for university admissions, visa applications,' + #13#10;
-  S := S + 'or other high-stakes decisions.';
+  if ActiveLanguage = 'chinesesimplified' then
+  begin
+    Result := '重要：本软件是独立开发的 AI 辅助口语练习工具，不提供官方考试、报名、成绩或资质。' + #13#10 + #13#10;
+    Result := Result + '本软件与 British Council、IDP Education、Cambridge University Press & Assessment 及任何 IELTS 考点均无隶属、授权、赞助或认可关系。IELTS、IELTS 标识及“雅思”是其各自权利人的注册商标。' + #13#10 + #13#10;
+    Result := Result + 'AI 生成的分数、转写和反馈可能不完整、不一致或错误，发音评分不能替代真人评估。请勿将结果作为官方 IELTS 成绩，也不要用于院校录取、移民或签证、求职、职业注册或其他高风险决定。' + #13#10 + #13#10;
+    Result := Result + '为生成回复，必要的文本和会话上下文会发送至你在设置中选择的 AI 服务商。浏览器语音识别也可能把音频交给浏览器或操作系统厂商处理。本地 Whisper 在本机后端转写并删除临时音频文件，但下载模型需要联网。' + #13#10 + #13#10;
+    Result := Result + '不要输入身份证件、考生号、支付信息、机密信息或无权披露的内容；录制他人前请取得许可。第三方服务分别适用其自身条款、隐私政策、收费和数据保留规则。' + #13#10 + #13#10;
+    Result := Result + '本软件按“现状”和“可用状态”提供。在适用法律允许的最大范围内，作者及贡献者不对因使用或依赖本软件及第三方服务而产生的损失负责；依法不得排除的权利或责任不受影响。' + #13#10 + #13#10;
+    Result := Result + '继续安装或使用即表示你已阅读并接受随附的 DISCLAIMER.md、PRIVACY.md、NOTICE.md 和 LICENSE。';
+  end
+  else
+  begin
+    Result := 'IMPORTANT: This is an independent, AI-assisted speaking practice tool. It does not provide an official examination, registration, result, or qualification.' + #13#10 + #13#10;
+    Result := Result + 'It is not affiliated with, authorised by, sponsored by, or endorsed by the British Council, IDP Education, Cambridge University Press & Assessment, or any IELTS test centre. IELTS, the IELTS logos, and 雅思 are registered trade marks of their respective owners.' + #13#10 + #13#10;
+    Result := Result + 'AI-generated scores, transcripts, and feedback may be incomplete, inconsistent, or incorrect. Pronunciation estimates cannot replace an in-person assessment. Do not present a result as an official IELTS score or use it for admissions, immigration or visas, employment, professional registration, or another high-stakes decision.' + #13#10 + #13#10;
+    Result := Result + 'Text and session context needed for a response are sent to the AI provider configured by you. Browser speech recognition may send audio to the browser or operating-system vendor. Local Whisper transcribes through the local backend and deletes temporary audio, but model downloads require a network connection.' + #13#10 + #13#10;
+    Result := Result + 'Do not enter identity documents, candidate numbers, payment details, confidential information, or data you are not authorised to disclose. Obtain permission before recording another person. Third-party services have their own terms, privacy policies, fees, and retention practices.' + #13#10 + #13#10;
+    Result := Result + 'The software is provided as is and as available. Liability is limited to the maximum extent permitted by applicable law; rights and liabilities that cannot lawfully be excluded remain unaffected.' + #13#10 + #13#10;
+    Result := Result + 'By continuing, you confirm that you have read and accept the bundled DISCLAIMER.md, PRIVACY.md, NOTICE.md, and LICENSE.';
+  end;
+end;
 
+function DisclaimerTitle: string;
+begin
+  if ActiveLanguage = 'chinesesimplified' then
+    Result := '练习工具条款与隐私说明'
+  else
+    Result := 'Practice Tool Terms and Privacy Notice';
+end;
+
+function DisclaimerSubtitle: string;
+begin
+  if ActiveLanguage = 'chinesesimplified' then
+    Result := '请阅读以下重要限制和数据处理说明。'
+  else
+    Result := 'Review the important limitations and data handling information below.';
+end;
+
+procedure InitializeWizard;
+begin
   DisclaimerPage := CreateCustomPage(
     wpLicense,
-    'Disclaimer - AI Score Notice',
-    S
+    DisclaimerTitle,
+    DisclaimerSubtitle
   );
+
+  DisclaimerMemo := TNewMemo.Create(DisclaimerPage);
+  DisclaimerMemo.Parent := DisclaimerPage.Surface;
+  DisclaimerMemo.Left := 0;
+  DisclaimerMemo.Top := 0;
+  DisclaimerMemo.Width := DisclaimerPage.SurfaceWidth;
+  DisclaimerMemo.Height := DisclaimerPage.SurfaceHeight - ScaleY(72);
+  DisclaimerMemo.ReadOnly := True;
+  DisclaimerMemo.ScrollBars := ssVertical;
+  DisclaimerMemo.WordWrap := True;
+  DisclaimerMemo.Text := DisclaimerText;
 
   AgreeRadio := TNewRadioButton.Create(DisclaimerPage);
   AgreeRadio.Parent := DisclaimerPage.Surface;
-  AgreeRadio.Top := ScaleY(12);
+  AgreeRadio.Top := DisclaimerMemo.Top + DisclaimerMemo.Height + ScaleY(10);
   AgreeRadio.Left := ScaleX(0);
   AgreeRadio.Width := DisclaimerPage.SurfaceWidth;
-  AgreeRadio.Caption := 'I agree to the above terms';
+  if ActiveLanguage = 'chinesesimplified' then
+    AgreeRadio.Caption := '我已阅读并同意上述条款'
+  else
+    AgreeRadio.Caption := 'I have read and agree to the terms above';
   AgreeRadio.Checked := False;
 
   DisagreeRadio := TNewRadioButton.Create(DisclaimerPage);
   DisagreeRadio.Parent := DisclaimerPage.Surface;
-  DisagreeRadio.Top := ScaleY(40);
+  DisagreeRadio.Top := AgreeRadio.Top + ScaleY(26);
   DisagreeRadio.Left := ScaleX(0);
   DisagreeRadio.Width := DisclaimerPage.SurfaceWidth;
-  DisagreeRadio.Caption := 'I do not agree (installation will stop)';
+  if ActiveLanguage = 'chinesesimplified' then
+    DisagreeRadio.Caption := '我不同意（安装将停止）'
+  else
+    DisagreeRadio.Caption := 'I do not agree (installation will stop)';
   DisagreeRadio.Checked := True;
 end;
 
@@ -103,8 +155,10 @@ begin
       Exit;
     if not AgreeRadio.Checked then
     begin
-      MsgBox('You must agree to the AI score disclaimer before continuing.' + #13#10 +
-        'Please select "I agree" and click Next.', mbError, MB_OK);
+      if ActiveLanguage = 'chinesesimplified' then
+        MsgBox('继续安装前必须同意练习工具条款与隐私说明。', mbError, MB_OK)
+      else
+        MsgBox('You must agree to the practice-tool terms and privacy notice before continuing.', mbError, MB_OK);
       Result := False;
     end;
   end;

@@ -62,6 +62,9 @@ export function Home() {
       <button className="settings-link" onClick={() => navigate("/settings")}>
         ⚙ {t("settings")}
       </button>
+      <button className="legal-link" onClick={() => navigate("/legal")}>
+        {t("legalLink")}
+      </button>
 
       {showTutorial && <TutorialModal onClose={() => setShowTutorial(false)} />}
     </div>

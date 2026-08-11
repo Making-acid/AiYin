@@ -197,8 +197,8 @@ Copy-Item -Recurse data "dist\IELTS Speaking v0.5.0\data"
 
 ## 许可证
 
-本项目采用 [MIT License](./LICENSE)。
+项目代码采用 [MIT License](./LICENSE)。题目、角色模型、商标及其他第三方材料不当然包含在 MIT 授权范围内。
 
 本软件使用了 Live2D Cubism SDK、faster-whisper、OpenAI SDK 等第三方组件，各组件版权及许可证详见 [NOTICE.md](./NOTICE.md)。
 
-AI 生成的评分和反馈仅供练习参考，不构成官方雅思成绩。详见 [DISCLAIMER.md](./DISCLAIMER.md)。
+AI 生成的评分和反馈仅供练习参考，不构成官方 IELTS 成绩。本项目与 British Council、IDP Education、Cambridge University Press & Assessment 或任何 IELTS 考点无官方关联。使用前请阅读 [免责声明与使用条款](./DISCLAIMER.md) 及 [隐私说明](./PRIVACY.md)。

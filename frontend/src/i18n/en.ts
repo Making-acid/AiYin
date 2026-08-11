@@ -118,6 +118,8 @@ const en: Record<string, string> = {
   // Help
   helpTitle: "Help",
   helpOpenPdf: "Open User Guide (PDF)",
+  helpDesc: "User guidance, legal limitations, and data handling.",
+  legalLink: "Legal, disclaimer & privacy",
 
   // Misc
   whisperDownloadConfirm: "Download model {modelId}? This model is about {size}. Download may take several minutes.",

@@ -86,6 +86,8 @@ const template: Record<string, string> = {
   tutorialTip: "Tip", tutorialTipDesc: "Use Chrome or Edge for best experience.",
   tutorialDismiss: "Got it!",
   helpTitle: "Help", helpOpenPdf: "Open User Guide (PDF)",
+  helpDesc: "User guidance, legal limitations, and data handling.",
+  legalLink: "Legal, disclaimer & privacy",
 };
 
 export default template;

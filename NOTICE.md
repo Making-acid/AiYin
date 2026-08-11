@@ -53,8 +53,19 @@ The following Live2D sample models are included for character display:
 - **Niziiro Mao** — Live2D sample model, free for use per Live2D terms
   https://www.live2d.com/en/learn/sample/niziiro-mao/
 
-These models are the copyright of Live2D Inc. and are redistributed under the
-terms of the Live2D Free Material License.
+These models are the copyright of Live2D Inc. and are used subject to the
+Live2D Free Material License Agreement and the Terms of Use for Live2D Cubism
+Sample Data. The project code's MIT License does not license these models.
+
+Required attribution:
+
+> This content uses sample data owned and copyrighted by Live2D Inc. The sample
+> data are utilized in accordance with terms and conditions set by Live2D Inc.
+> This content itself is created at the author's sole discretion.
+
+Before distributing a build, the distributor is responsible for confirming the
+applicable Cubism SDK publication/release licence and sample-data terms for its
+organisation size, distribution method, territory, and use case.
 
 ---
 
@@ -78,12 +89,26 @@ Copyright (c) 2023 SYSTRAN
 ## Question Bank
 
 The IELTS speaking question bank data in `backend/data/exams/ielts/questions/`
-is adapted from the **New Oriental (新东方) IELTS Speaking Question Bank
-2026 May–August (Version 2)**, under fair use for educational and research
-purposes. The original PDF is archived in `backend/data/exams/ielts/source/`.
+includes material adapted from the **New Oriental (新东方) IELTS Speaking
+Question Bank 2026 May–August (Version 2)**.
 
 Copyright of the original question collection belongs to New Oriental
-Education & Technology Group Inc.
+Education & Technology Group Inc. These question materials and the archived
+source document are not covered by the project's MIT License. Attribution does
+not itself grant permission to redistribute them. Anyone publishing or
+redistributing a build must obtain any permission required for that use, or
+replace the material with original or appropriately licensed content.
+
+---
+
+## Trade Marks and No Affiliation
+
+IELTS, the IELTS logos, and 雅思 are registered trade marks of their respective
+owners. IELTS is jointly owned by the British Council, IDP IELTS, and Cambridge
+University Press & Assessment. This independent practice project is not
+affiliated with, authorised by, sponsored by, or endorsed by those organisations
+or by any IELTS test centre. Trade-mark references identify the examination
+format being practised; they do not indicate official status.
 
 ---
 
@@ -116,6 +141,6 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 ---
 
-*This file was generated on 2026-08-04. If you believe any attribution is
+*This file was updated on 2026-08-11. If you believe any attribution is
 missing or incorrect, please open an issue at
 https://github.com/Making-acid/ielts-speaking-ai.*

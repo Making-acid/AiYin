@@ -117,6 +117,8 @@ const zh: Record<string, string> = {
   // Help
   helpTitle: "帮助",
   helpOpenPdf: "打开用户指南 (PDF)",
+  helpDesc: "查看使用指南、法律限制与数据处理方式。",
+  legalLink: "法律说明、免责声明与隐私",
 
   // Misc
   whisperDownloadConfirm: "下载模型 {modelId}？该模型大小约 {size}。下载可能需要几分钟时间。",

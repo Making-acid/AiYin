@@ -161,7 +161,7 @@ Free Chat mode has no scoring and no time limits. It is designed for casual Engl
 
 \subsection{Browser ASR (Default)}
 
-Uses Chrome/Edge built-in Web Speech API. No extra configuration needed. Low latency, works out of the box. However, accuracy depends on the browser, and continuous recording may stop after $\sim$60 seconds.
+Uses the Chrome/Edge Web Speech API. No extra application configuration is needed. Accuracy and availability depend on the browser, and continuous recording may stop after $\sim$60 seconds. Depending on the browser or operating-system implementation, microphone audio may be processed by the vendor and may leave your device.
 
 \subsection{Whisper Local ASR}
 
@@ -177,6 +177,8 @@ Uses faster-whisper for local speech recognition. Higher accuracy and supports l
 \end{enumerate}
 
 Whisper runs on CPU. Supported models range from tiny (75\,MB) to large-v3 (2.9\,GB) -- 9 models total.
+
+Recorded audio is sent to the application's local backend, converted to a temporary file, transcribed locally, and deleted after processing. Downloading a model requires a network connection to the model host.
 
 \section{Appearance and Language}
 
@@ -244,6 +246,42 @@ Then refresh the page.
 \subsection{How to add new exam types or languages?}
 
 See the ``Adding a new exam'' and ``Adding a new language'' sections in README.md.
+
+\newpage
+
+\section{Legal, Disclaimer and Privacy}
+
+\subsection{Independent Practice Tool}
+
+This application is an independent, AI-assisted educational practice tool. It does not provide an official examination, booking, score-verification service, Test Report Form, or qualification. It is not affiliated with, authorised by, sponsored by, or endorsed by the British Council, IDP Education, Cambridge University Press \& Assessment, or any IELTS test centre.
+
+IELTS, the IELTS logos, and \textit{雅思} are registered trade marks of their respective owners. References identify the examination format being practised; they do not indicate official status.
+
+\subsection{AI Result Limitations}
+
+Automated scores, transcripts, corrections, sample answers, and feedback may be incomplete, inconsistent, biased, or incorrect. Pronunciation may be inferred partly from a transcript and cannot reproduce an in-person assessment. Do not present a result as an official IELTS score or rely on it for admissions, immigration or visas, employment, professional registration, appeals, or another high-stakes decision.
+
+\subsection{Data Destinations}
+
+\begin{tabularx}{\textwidth}{lX}
+  \hline
+  Feature & Processing and destination \\
+  \hline
+  AI conversation and scoring & Required text and session context are sent through the local backend to the AI endpoint configured in Settings. That provider's terms, privacy policy, fees, and retention rules apply. \\
+  Browser speech recognition & Audio may be processed by the browser or operating-system vendor and may leave the device. \\
+  Local Whisper & Audio is transcribed by the local backend using a temporary file that is deleted after processing. Model downloads contact the model host. \\
+  Exam audio buffer & The current build keeps captured exam audio only in page memory; it is not included in AI requests or reports and is discarded when the page or session is cleared. \\
+  Local preferences & Preferences remain in browser local storage. AI and Whisper configuration remain in the application's local user-data folder until cleared. \\
+  \hline
+\end{tabularx}
+
+\subsection{Safe Use}
+
+Do not enter identity documents, candidate numbers, payment details, confidential information, or data you are not authorised to disclose. Obtain permission before recording another person. Check important information against official sources and review the policies of every provider you choose.
+
+The software is provided ``as is'' and ``as available''. Liability is limited to the maximum extent permitted by applicable law; rights and liabilities that cannot lawfully be excluded remain unaffected.
+
+The complete bilingual terms are available in \texttt{DISCLAIMER.md} and \texttt{PRIVACY.md}, and inside the application under \textbf{Legal, disclaimer \& privacy}. Third-party terms and attributions appear in \texttt{NOTICE.md}.
 
 \section{Technical Information}
 

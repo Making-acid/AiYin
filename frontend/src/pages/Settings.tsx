@@ -181,7 +181,7 @@ export function Settings() {
 
         <div className="settings-section">
           <h3>{t("helpTitle")}</h3>
-          <p className="settings-desc">{t("helpOpenPdf")}</p>
+          <p className="settings-desc">{t("helpDesc")}</p>
           <div className="form-actions">
             <a
               href="/help/user-guide.pdf"
@@ -192,6 +192,9 @@ export function Settings() {
             >
               {t("helpOpenPdf")}
             </a>
+            <button className="btn-secondary" onClick={() => navigate("/legal") }>
+              {t("legalLink")}
+            </button>
           </div>
         </div>
 
