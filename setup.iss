@@ -1,15 +1,16 @@
 ; -*- mode: pascal -*-
-; IELTS Speaking v0.5.0 -- Windows Installer
+; IELTS Speaking v0.6.0 -- Windows Installer
 ; Build: ISCC.exe setup.iss
-; Requires: dist\IELTS Speaking v0.5.0\ prepared by PyInstaller
+; Requires: ..\IELTS-Speaking-v0.6.0-Release\Portable\IELTS Speaking v0.6.0\
 
 #define MyAppName "IELTS Speaking"
-#define MyAppVersion "0.5.0"
+#define MyAppVersion "0.6.0"
 #define MyAppPublisher "IELTS AI"
 #define MyAppURL "https://github.com/Making-acid/ielts-speaking-ai"
-#define MyAppExeName "IELTS Speaking v0.5.0.exe"
-#define MySourceDir "backend\dist\IELTS Speaking v0.5.0"
-#define MyOutputDir "..\release"
+#define MyAppExeName "IELTS Speaking v0.6.0.exe"
+#define MyReleaseRoot "..\IELTS-Speaking-v0.6.0-Release"
+#define MySourceDir MyReleaseRoot + "\Portable\IELTS Speaking v0.6.0"
+#define MyOutputDir MyReleaseRoot + "\Installer"
 
 [Setup]
 AppId={{7B8E9A1D-4F3C-4A2E-B5D6-8C7A9E1F2D3B}}
@@ -22,8 +23,9 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
+UsePreviousAppDir=yes
 OutputDir={#MyOutputDir}
-OutputBaseFilename=IELTS-Speaking-v0.5.0-Setup
+OutputBaseFilename=IELTS-Speaking-v0.6.0-Setup
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
@@ -33,6 +35,13 @@ UninstallDisplayName={#MyAppName} v{#MyAppVersion}
 ChangesEnvironment=no
 LicenseFile=LICENSE
 CloseApplications=yes
+CloseApplicationsFilter=*.exe,*.dll
+
+[InstallDelete]
+; Versioned launchers from previous releases are superseded during an upgrade.
+Type: files; Name: "{app}\IELTS Speaking v0.3.0.exe"
+Type: files; Name: "{app}\IELTS Speaking v0.4.0.exe"
+Type: files; Name: "{app}\IELTS Speaking v0.5.0.exe"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -47,6 +56,7 @@ Source: "DISCLAIMER.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "PRIVACY.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "NOTICE.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"

@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 backend/venv/
+backend/venv-whisperx/
 __pycache__/
 *.pyc
 
@@ -10,6 +11,7 @@ backend/static/
 backend/build/
 backend/dist/
 backend/*.spec
+!backend/IELTS Speaking v0.6.0.spec
 installer/
 release/
 
@@ -19,6 +21,10 @@ release/
 
 # Runtime config (contains API keys)
 backend/data/config.json
+backend/config.json
+backend/whisper_config.json
+backend/tts_config.json
+backend/data/tts_config.json
 
 # Whisper AI models (large files, downloaded separately)
 backend/models/whisper/*/model.bin
@@ -27,6 +33,7 @@ backend/models/whisper/*/tokenizer.json
 backend/models/whisper/*/vocabulary.*
 backend/models/whisper/*/preprocessor_config.json
 backend/data/whisper_config.json
+backend/memory/
 
 # Downloaded packages
 backend/*.whl

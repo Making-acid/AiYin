@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchConfig, fetchProviders, saveConfig, type AppConfig, type ProviderPreset } from "../api/config";
+import { fetchConfig, fetchProviders, saveConfig, clearLocalMemory, type AppConfig, type ProviderPreset } from "../api/config";
 import { useLive2DBehavior, useLanguage } from "../i18n";
 import { useTrainingLanguage } from "../i18n/trainingLang";
 import { AsrSettings } from "../asr";
+import { fetchTtsConfig, saveTtsConfig, type TtsConfig, type TtsProvider } from "../api/tts";
+import { clearTtsConfigCache, useCharacterSpeech } from "../hooks/useCharacterSpeech";
 
 export function Settings() {
   const navigate = useNavigate();
@@ -20,6 +22,16 @@ export function Settings() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [ttsConfig, setTtsConfig] = useState<TtsConfig | null>(null);
+  const [ttsProvider, setTtsProvider] = useState<TtsProvider>("browser");
+  const [azureKey, setAzureKey] = useState("");
+  const [azureRegion, setAzureRegion] = useState("");
+  const [haruVoice, setHaruVoice] = useState("en-GB-SoniaNeural");
+  const [maoVoice, setMaoVoice] = useState("en-US-AnaNeural");
+  const [ttsSaving, setTtsSaving] = useState(false);
+  const [ttsMessage, setTtsMessage] = useState("");
+  const haruPreview = useCharacterSpeech("haru", trainingLang);
+  const maoPreview = useCharacterSpeech("mao", trainingLang);
 
   useEffect(() => {
     loadData();
@@ -27,12 +39,17 @@ export function Settings() {
 
   const loadData = async () => {
     try {
-      const [cfg, pr] = await Promise.all([fetchConfig(), fetchProviders()]);
+      const [cfg, pr, speech] = await Promise.all([fetchConfig(), fetchProviders(), fetchTtsConfig()]);
       setConfig(cfg);
       setProviders(pr);
       setProvider(cfg.provider || "deepseek-v4-pro");
       setBaseUrl(cfg.base_url);
       setModel(cfg.model);
+      setTtsConfig(speech);
+      setTtsProvider(speech.provider);
+      setAzureRegion(speech.azure_region);
+      setHaruVoice(speech.haru_voice);
+      setMaoVoice(speech.mao_voice);
     } catch {
       setMessage(t("loadFailed"));
     } finally {
@@ -71,6 +88,55 @@ export function Settings() {
       setMessage(t("saveFailed"));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSaveTts = async () => {
+    setTtsSaving(true);
+    setTtsMessage("");
+    try {
+      const result = await saveTtsConfig({
+        provider: ttsProvider,
+        azure_key: azureKey.trim() || undefined,
+        azure_region: azureRegion.trim(),
+        haru_voice: haruVoice.trim(),
+        mao_voice: maoVoice.trim(),
+      });
+      clearTtsConfigCache();
+      setTtsConfig(result);
+      setAzureKey("");
+      setTtsMessage(t("ttsSaved"));
+      return true;
+    } catch {
+      setTtsMessage(t("ttsSaveFailed"));
+      return false;
+    } finally {
+      setTtsSaving(false);
+    }
+  };
+
+  const previewVoice = async (character: "haru" | "mao") => {
+    setTtsMessage("");
+    try {
+      if (!await handleSaveTts()) return;
+      const preview = character === "haru" ? haruPreview : maoPreview;
+      await preview.speak(
+        character === "haru"
+          ? "Good morning. My name is Haru. Can you tell me your full name, please?"
+          : "Hey! I'm Mao. Let's have a relaxed English conversation together!",
+      );
+    } catch {
+      setTtsMessage(t("ttsPreviewFailed"));
+    }
+  };
+
+  const handleClearMemory = async () => {
+    if (!window.confirm(t("clearMemoryConfirm"))) return;
+    try {
+      await clearLocalMemory();
+      setMessage(t("memoryCleared"));
+    } catch {
+      setMessage(t("memoryClearFailed"));
     }
   };
 
@@ -196,6 +262,72 @@ export function Settings() {
               {t("legalLink")}
             </button>
           </div>
+        </div>
+
+        <div className="settings-section">
+          <h3>{t("ttsSection")}</h3>
+          <p className="settings-desc">{t("ttsDesc")}</p>
+          <button className="btn-secondary" onClick={() => navigate("/help/azure-speech")}>
+            {t("ttsAzureHelp")}
+          </button>
+          <div className="form-group">
+            <label>{t("ttsProvider")}</label>
+            <select value={ttsProvider} onChange={(event) => setTtsProvider(event.target.value as TtsProvider)}>
+              <option value="browser">{t("ttsBrowser")}</option>
+              <option value="azure">{t("ttsAzure")}</option>
+            </select>
+          </div>
+          {ttsProvider === "azure" && (
+            <>
+              <div className="tutorial-tip">
+                <strong>{t("ttsAzureBillingTitle")}</strong>
+                <p>{t("ttsAzureBillingDesc")}</p>
+                <a href="https://azure.microsoft.com/pricing/details/speech/" target="_blank" rel="noopener noreferrer">
+                  {t("ttsAzurePricingLink")}
+                </a>
+              </div>
+              <p className="settings-desc">{t("ttsAzurePrivacy")}</p>
+              <div className="form-group">
+                <label>{t("ttsAzureKey")}</label>
+                <input
+                  type="password"
+                  value={azureKey}
+                  onChange={(event) => setAzureKey(event.target.value)}
+                  placeholder={ttsConfig?.azure_configured ? t("leaveBlank") : t("ttsAzureKeyHint")}
+                />
+              </div>
+              <div className="form-group">
+                <label>{t("ttsAzureRegion")}</label>
+                <input value={azureRegion} onChange={(event) => setAzureRegion(event.target.value)} placeholder="eastus" />
+              </div>
+              <div className="form-group">
+                <label>{t("ttsHaruVoice")}</label>
+                <input value={haruVoice} onChange={(event) => setHaruVoice(event.target.value)} />
+              </div>
+              <div className="form-group">
+                <label>{t("ttsMaoVoice")}</label>
+                <input value={maoVoice} onChange={(event) => setMaoVoice(event.target.value)} />
+              </div>
+            </>
+          )}
+          <div className="form-actions">
+            <button className="btn-primary" onClick={handleSaveTts} disabled={ttsSaving}>
+              {ttsSaving ? t("loading") : t("save")}
+            </button>
+            <button className="btn-secondary" onClick={() => void previewVoice("haru")} disabled={ttsSaving}>
+              {t("ttsPreviewHaru")}
+            </button>
+            <button className="btn-secondary" onClick={() => void previewVoice("mao")} disabled={ttsSaving}>
+              {t("ttsPreviewMao")}
+            </button>
+          </div>
+          {ttsMessage && <p className="settings-message">{ttsMessage}</p>}
+        </div>
+
+        <div className="settings-section">
+          <h3>{t("localMemory")}</h3>
+          <p className="settings-desc">{t("localMemoryDesc")}</p>
+          <button className="btn-danger" onClick={handleClearMemory}>{t("clearLocalMemory")}</button>
         </div>
 
         <AsrSettings />

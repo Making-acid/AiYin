@@ -5,6 +5,7 @@ import logging
 from app.services.llm_service import chat, LLMError
 from app.services.data_loader import ExamDataLoader, DataError
 from app.services import session_manager
+from app.services import memory_store
 
 
 logger = logging.getLogger("exam")
@@ -24,15 +25,17 @@ def _get_loader(exam_id: str) -> ExamDataLoader:
         raise ExamError("Failed to load exam data. Please check your installation.")
 
 
-def create_session(exam_id: str, mode: str) -> str:
-    session_id = str(uuid.uuid4())
+def create_session(exam_id: str, mode: str, session_id: str = None) -> str:
+    session_id = session_id or str(uuid.uuid4())
     session_manager.create(session_id, {
         "exam_id": exam_id,
         "mode": mode,
-        "current_part": "part1",
+        "current_part": "identity" if mode == "exam" else "free_chat",
         "question_index": 0,
         "conversation": [],
         "part2_topic": None,
+        "part1_topics": [],
+        "part3_questions": [],
         "finished": False,
     })
     return session_id
@@ -63,6 +66,16 @@ def _get_examiner_intro_locked(session_id: str) -> str:
         raise ExamError("Failed to load examiner introduction. Please try again.")
 
 
+def restore_chat_session(session_id: str) -> dict:
+    record = memory_store.get_chat_session(session_id)
+    if not record:
+        raise ExamError("Saved conversation not found.")
+    create_session(record.get("exam_id", "ielts"), "free_chat", session_id=session_id)
+    session = session_manager.get(session_id)
+    session["conversation"] = record.get("messages", [])
+    return record
+
+
 def get_next_question(session_id: str, user_answer: str) -> dict:
     with session_manager.session_lock(session_id):
         return _get_next_question_locked(session_id, user_answer)
@@ -78,7 +91,13 @@ def _get_next_question_locked(session_id: str, user_answer: str) -> dict:
     if session["mode"] == "exam" and session["current_part"] in {"part2_prep", "part3_transition"}:
         raise ExamError("The exam is waiting for a transition, not an answer.")
 
-    session["conversation"].append({"role": "user", "content": user_answer})
+    session["conversation"].append({
+        "role": "user",
+        "content": user_answer,
+        "stage": session["current_part"],
+    })
+    if session["mode"] == "free_chat":
+        memory_store.save_chat_session(session)
 
     try:
         if session["mode"] == "exam":
@@ -135,6 +154,9 @@ def _handle_exam_flow(session: dict) -> dict:
     meta = loader.get_meta()
     part_config = meta["parts"]
 
+    if part == "identity":
+        return _handle_identity(session, loader)
+
     if part == "part1":
         return _handle_part1(session, idx, loader, part_config)
 
@@ -157,20 +179,56 @@ def _handle_exam_flow(session: dict) -> dict:
     return {"next_question": "", "is_finished": True, "current_part": "finished", "question_index": 0}
 
 
-def _handle_part1(session: dict, idx: int, loader: ExamDataLoader, part_config: dict) -> dict:
-    count = part_config.get("part1", {}).get("question_count", 3)
+def _handle_identity(session: dict, loader: ExamDataLoader) -> dict:
+    session["current_part"] = "part1"
+    session["question_index"] = 0
+    session["candidate_name"] = next(
+        (message["content"] for message in reversed(session["conversation"]) if message["role"] == "user"),
+        "",
+    )
+    text = loader.get_dialogs().get(
+        "part1_intro",
+        "Thank you. In this first part, I'd like to ask you some questions about yourself.",
+    )
+    session["conversation"].append({"role": "examiner", "content": text, "stage": "identity"})
+    return _handle_part1(session, 0, loader, loader.get_meta()["parts"], prefix=text)
+
+
+def _select_part1_topics(session: dict, topics: list[dict], count: int) -> list[dict]:
+    if session.get("part1_topics"):
+        return session["part1_topics"]
+    if not topics:
+        selected = [{"topic": "Personal information", "questions": ["Do you work or are you a student?"]}]
+    else:
+        anchor = next(
+            (topic for topic in topics if topic.get("topic") in {"Study & Work", "Work & Study"}),
+            topics[0],
+        )
+        remaining = [topic for topic in topics if topic is not anchor]
+        extra_count = min(max(0, count - 1), len(remaining))
+        selected = [anchor, *random.sample(remaining, k=extra_count)]
+    session["part1_topics"] = selected
+    return selected
+
+
+def _handle_part1(session: dict, idx: int, loader: ExamDataLoader, part_config: dict, prefix: str = "") -> dict:
+    config = part_config.get("part1", {})
+    topic_count = config.get("topic_count", 2)
+    questions_per_topic = config.get("questions_per_topic", 3)
     data = loader.get_questions("part1")
     topics = data.get("topics", [])
-    if "part1_topic" not in session:
-        session["part1_topic"] = random.choice(topics) if topics else {"questions": ["Tell me about yourself."]}
-    topic = session["part1_topic"]
-    questions = topic.get("questions", [])
+    selected = _select_part1_topics(session, topics, topic_count)
+    questions = []
+    for topic in selected:
+        available = topic.get("questions", [])
+        questions.extend(available[:questions_per_topic])
 
-    if idx < count and idx < len(questions):
+    if idx < len(questions):
         question = questions[idx]
         session["question_index"] = idx + 1
-        session["conversation"].append({"role": "examiner", "content": question})
-        return {"next_question": question, "is_finished": False, "current_part": "part1", "question_index": idx + 1}
+        session["conversation"].append({"role": "examiner", "content": question, "stage": "part1"})
+        spoken = f"{prefix} {question}".strip()
+        return {"next_question": spoken, "is_finished": False, "current_part": "part1", "question_index": idx + 1}
     else:
         session["current_part"] = "part2_prep"
         session["question_index"] = 0
@@ -234,26 +292,24 @@ def _handle_part2(session: dict, idx: int, part_config: dict, loader: ExamDataLo
 
 def _handle_part3_start(session: dict, loader: ExamDataLoader) -> dict:
     session["current_part"] = "part3"
-    data = loader.get_questions("part3")
-    topics = data.get("topics", [])
-    topic = random.choice(topics) if topics else {"questions": ["What is your opinion on this?"]}
-    session["part3_topic_data"] = topic
-    questions = topic.get("questions", [])
-    question = questions[0] if questions else "What is your opinion on this?"
+    question = _generate_part3_question(session, loader, latest_answer="")
     session["question_index"] = 1
-    session["conversation"].append({"role": "examiner", "content": question})
+    session["part3_questions"].append(question)
+    session["conversation"].append({"role": "examiner", "content": question, "stage": "part3"})
     return {"next_question": question, "is_finished": False, "current_part": "part3", "question_index": 1}
 
 
 def _handle_part3(session: dict, idx: int, loader: ExamDataLoader, part_config: dict) -> dict:
-    count = part_config.get("part3", {}).get("question_count", 3)
-    topic_data = session.get("part3_topic_data", {})
-    questions = topic_data.get("questions", [])
-
-    if idx < count and idx < len(questions):
-        question = questions[idx]
+    count = part_config.get("part3", {}).get("question_count", 5)
+    if idx < count:
+        latest_answer = next(
+            (message["content"] for message in reversed(session["conversation"]) if message["role"] == "user"),
+            "",
+        )
+        question = _generate_part3_question(session, loader, latest_answer)
         session["question_index"] = idx + 1
-        session["conversation"].append({"role": "examiner", "content": question})
+        session["part3_questions"].append(question)
+        session["conversation"].append({"role": "examiner", "content": question, "stage": "part3"})
         return {"next_question": question, "is_finished": False, "current_part": "part3", "question_index": idx + 1}
     else:
         dialogs = loader.get_dialogs()
@@ -261,6 +317,45 @@ def _handle_part3(session: dict, idx: int, loader: ExamDataLoader, part_config: 
         session["conversation"].append({"role": "examiner", "content": closing})
         session["finished"] = True
         return {"next_question": closing, "is_finished": True, "current_part": "finished", "question_index": idx}
+
+
+def _generate_part3_question(session: dict, loader: ExamDataLoader, latest_answer: str) -> str:
+    asked = session.get("part3_questions", [])
+    try:
+        prompt = loader.render_part3_prompt(session.get("part2_topic") or {}, asked, latest_answer)
+        question = chat([{"role": "system", "content": prompt}]).strip().strip('"')
+        if not question or len(question) > 300:
+            raise ExamError("The examiner did not produce a usable Part 3 question.")
+        prohibited = (
+            "band ", "score", "your grammar", "your vocabulary", "your pronunciation",
+            "good answer", "well done", "that's interesting", "that is interesting", "thank you",
+        )
+        if (
+            question in asked
+            or question.count("?") > 1
+            or "\n" in question
+            or any(term in question.lower() for term in prohibited)
+        ):
+            raise ExamError("The examiner produced an invalid or repeated Part 3 question.")
+        if not question.endswith("?"):
+            question = question.rstrip(".! ") + "?"
+        return question
+    except (LLMError, ExamError, DataError) as exc:
+        logger.warning("Dynamic Part 3 question failed; using question bank: %s", exc)
+        return _fallback_part3_question(session, loader)
+
+
+def _fallback_part3_question(session: dict, loader: ExamDataLoader) -> str:
+    del loader  # The fallback is deliberately independent of potentially noisy source data.
+    questions = [
+        "Why do you think this subject is important to people today?",
+        "How have people's attitudes towards this subject changed over time?",
+        "Do younger and older people tend to see this issue differently?",
+        "What effects can this issue have on society as a whole?",
+        "How do you think this issue might develop in the future?",
+    ]
+    asked = set(session.get("part3_questions", []))
+    return next((question for question in questions if question not in asked), questions[-1])
 
 
 # ---- Free chat flow ----
@@ -278,6 +373,7 @@ def _handle_free_chat_flow(session: dict, user_answer: str) -> dict:
 
     reply = chat(messages)
     session["conversation"].append({"role": "assistant", "content": reply})
+    memory_store.save_chat_session(session)
     return {"next_question": reply, "is_finished": False, "current_part": "free_chat", "question_index": 0}
 
 
@@ -289,5 +385,6 @@ def end_chat_session(session_id: str) -> dict:
         if session["mode"] != "free_chat":
             raise ExamError("This endpoint is only available for free chat sessions.")
         session["finished"] = True
+        memory_store.save_chat_session(session)
         session_manager.delete(session_id)
         return {"session_id": session_id, "finished": True}

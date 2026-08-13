@@ -1,8 +1,9 @@
 {
-  "intro": "Good morning/afternoon. My name is Alex, and I'll be your IELTS examiner today. Could you tell me your full name, please? ... Thank you. Now, let's begin with Part 1. I'm going to ask you some questions about yourself.",
-  "part2_intro": "Now let's move on to Part 2. I'm going to give you a topic. You have one minute to prepare, then you will speak for one to two minutes. Please look at the topic on your screen.",
-  "part3_intro": "Thank you. Now let's move on to Part 3, where we'll discuss some more general questions related to the topic.",
+  "intro": "Good morning/afternoon. My name is Alex. Can you tell me your full name, please?",
+  "part1_intro": "Thank you. In this first part, I'd like to ask you some questions about yourself.",
+  "part2_intro": "Now I'm going to give you a topic and I'd like you to talk about it for one to two minutes. Before you talk, you will have one minute to think about what you're going to say. You can make some notes if you wish. Please look at the topic on your screen.",
+  "part3_intro": "We've been talking about this topic, and I'd like to discuss with you one or two more general questions related to it.",
   "closing": "Thank you. That is the end of the speaking test.",
-  "part2_begin": "You may begin speaking now.",
+  "part2_begin": "All right. Remember, you have one to two minutes for this, so don't worry if I stop you. Please begin speaking now.",
   "free_chat_intro": "Hi there! I'm your English practice partner. Feel free to talk about anything you'd like. What's on your mind today?"
 }

@@ -33,3 +33,7 @@ export async function saveConfig(config: {
   const { data } = await api.post("/config", config);
   return data;
 }
+
+export async function clearLocalMemory(): Promise<void> {
+  await api.delete("/config/local-memory");
+}

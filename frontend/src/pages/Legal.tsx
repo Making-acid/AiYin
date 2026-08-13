@@ -17,7 +17,7 @@ type LegalCopy = {
 const COPY: Record<"zh" | "en", LegalCopy> = {
   en: {
     title: "Legal, Disclaimer & Privacy",
-    updated: "Effective 11 August 2026 · v0.5.0",
+    updated: "Effective 14 August 2026 · v0.6.0",
     intro: "Please read this before using the microphone, AI conversation, or estimated scoring features.",
     sections: [
       {
@@ -55,8 +55,10 @@ const COPY: Record<"zh" | "en", LegalCopy> = {
     flows: [
       { feature: "AI conversation and scoring", detail: "Required text and session context are sent through the local backend to the AI endpoint configured in Settings. That provider's terms, privacy policy, fees, and retention rules apply." },
       { feature: "Browser speech recognition", detail: "Audio may be processed by the browser or operating-system vendor and may leave the device, depending on its implementation." },
-      { feature: "Local Whisper", detail: "Audio is sent to the app's local backend, converted in a temporary file, transcribed locally, and then deleted. Downloading a model contacts the model host." },
-      { feature: "Exam audio buffer", detail: "The current build keeps captured exam audio only in page memory. It is not included in AI requests or reports and is discarded when the page or session is cleared. Browser recognition may still process the same speech." },
+      { feature: "Character speech", detail: "Browser mode uses a browser or operating-system voice. If Azure Speech is enabled, character reply text is sent to Microsoft for synthesis. The Azure key remains in the local backend and the page receives a short-lived token; Microsoft's terms, privacy, retention, and billing rules apply." },
+      { feature: "Azure Speech charges", detail: "Azure uses your own account. Free F0 currently includes 500,000 neural TTS characters per month and 20 real-time transactions per 60 seconds. Standard S0 is metered by synthesized characters; rates vary by region, currency, and agreement. Language-mismatched requests can still be billable even when speech is not produced. Check current official pricing and set an Azure budget alert before enabling it." },
+      { feature: "Local Whisper and optional enhanced analysis", detail: "Audio is sent to the app's local backend, converted in a temporary file, and transcribed or time-aligned locally before that temporary file is deleted. Enhanced analysis provides timing evidence such as speaking rate and pauses; it does not independently determine pronunciation quality. Model downloads contact the applicable model host." },
+      { feature: "Exam recording and scoring analysis", detail: "During the live test, audio remains in page memory and does not affect Part 3 or exam transitions. After the test, enabled local analysis sends recordings only to the local backend for Whisper transcription and optional WhisperX alignment. Raw audio is not sent to the scoring provider, but the resulting transcript and aggregate timing evidence can be included in the scoring request. Temporary audio is deleted after local processing." },
       { feature: "Local settings", detail: "Preferences remain in browser local storage; AI and Whisper configuration remain in the application's local user-data folder until cleared." },
     ],
     controlsTitle: "Your choices",
@@ -70,7 +72,7 @@ const COPY: Record<"zh" | "en", LegalCopy> = {
   },
   zh: {
     title: "法律说明、免责声明与隐私",
-    updated: "2026 年 8 月 11 日生效 · v0.5.0",
+    updated: "2026 年 8 月 14 日生效 · v0.6.0",
     intro: "使用麦克风、AI 对话或预估评分功能前，请先阅读以下内容。",
     sections: [
       {
@@ -108,8 +110,10 @@ const COPY: Record<"zh" | "en", LegalCopy> = {
     flows: [
       { feature: "AI 对话与评分", detail: "必要文本和会话上下文经本地后端发送至“设置”中配置的 AI 接口；适用该服务商自己的条款、隐私政策、收费及保留规则。" },
       { feature: "浏览器语音识别", detail: "视具体实现，音频可能由浏览器或操作系统厂商处理并离开本机。" },
-      { feature: "本地 Whisper", detail: "音频发送至应用的本地后端，以临时文件转换、在本机转写并在处理后删除；下载模型时会连接模型托管方。" },
-      { feature: "考试录音缓冲", detail: "当前版本仅在页面内存中暂存考试录音，不会把音频加入 AI 请求或报告，页面或会话清除后即丢弃；浏览器识别仍可能处理同一段语音。" },
+      { feature: "角色语音", detail: "浏览器模式使用浏览器或操作系统音色。若启用 Azure Speech，角色回复文本会发送给 Microsoft 合成语音；Azure 密钥留在本地后端，页面只获取短期令牌，并适用 Microsoft 的条款、隐私、保留及计费规则。" },
+      { feature: "Azure Speech 费用", detail: "Azure 使用你自己的账户。当前免费 F0 每月含 50 万个神经 TTS 字符，实时合成限制为每 60 秒 20 次；标准 S0 按合成字符计量，费率随区域、币种和协议变化。语言不匹配的请求即使未生成语音也可能收费。启用前请核对官方最新价格并设置 Azure 预算提醒。" },
+      { feature: "本地 Whisper 与可选增强分析", detail: "音频发送至应用的本地后端，以临时文件转换并在本机转写或进行时间对齐，处理后删除临时文件。增强分析用于提供语速、停顿等时间证据，并不独立判断发音质量；下载模型时会连接相应模型托管方。" },
+      { feature: "考试录音与评分分析", detail: "考试进行期间，录音仅暂存在页面内存中，不影响 Part 3 或考试状态转换。考试结束后，启用的本地分析会把录音仅交给本地后端，由 Whisper 转写并可选经 WhisperX 对齐。原始音频不会发送给评分服务商，但所得转写文本及汇总时间指标可加入评分请求；本地处理后删除临时音频。" },
       { feature: "本地设置", detail: "偏好保留在浏览器本地存储中；AI 与 Whisper 配置保留在应用的本地用户数据目录，直至用户清除。" },
     ],
     controlsTitle: "你的选择",

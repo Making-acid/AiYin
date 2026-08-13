@@ -26,6 +26,7 @@ def update_config(request: WhisperConfigRequest):
             enabled=request.enabled,
             model=request.model,
             language=request.language,
+            exam_enhancement=request.exam_enhancement,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

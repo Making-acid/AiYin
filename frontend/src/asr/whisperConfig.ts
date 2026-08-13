@@ -14,6 +14,18 @@ interface WhisperConfig {
   enabled: boolean;
   model: string;
   model_name: string;
+  is_downloaded: boolean;
+  exam_enhancement: "auto" | "on" | "off";
+  whisperx: {
+    installed: boolean;
+    available: boolean;
+    active: boolean;
+    fallback: boolean;
+    reason: "ready" | "not_installed" | "python_unsupported" | "integration_pending";
+    python_version: string;
+    minimum_python: string;
+    supported_python: string;
+  };
 }
 
 export function useWhisperConfig(mode: AsrMode) {
@@ -82,5 +94,19 @@ export function useWhisperConfig(mode: AsrMode) {
     }
   };
 
-  return { config: effectiveConfig, models, loading, downloading, toggleEnabled, switchModel, refresh: load };
+  const updateEnhancementMode = async (mode: "auto" | "on" | "off") => {
+    if (!config) return false;
+    const previous = config;
+    setConfig({ ...config, exam_enhancement: mode });
+    try {
+      const response = await api.post<WhisperConfig>("/whisper/config", { exam_enhancement: mode });
+      setConfig(response.data);
+      return true;
+    } catch {
+      setConfig(previous);
+      return false;
+    }
+  };
+
+  return { config: effectiveConfig, models, loading, downloading, toggleEnabled, switchModel, updateEnhancementMode, refresh: load };
 }

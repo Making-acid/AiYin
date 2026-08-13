@@ -57,6 +57,11 @@ These models are the copyright of Live2D Inc. and are used subject to the
 Live2D Free Material License Agreement and the Terms of Use for Live2D Cubism
 Sample Data. The project code's MIT License does not license these models.
 
+The promotional image `frontend/public/media/mao-speaking-v0.6.png` was
+AI-generated from the Niziiro Mao sample character as a release illustration.
+It is derivative artwork and remains subject to the applicable Live2D sample
+data terms; it is not covered by the project code's MIT License.
+
 Required attribution:
 
 > This content uses sample data owned and copyrighted by Live2D Inc. The sample
@@ -141,6 +146,6 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 ---
 
-*This file was updated on 2026-08-11. If you believe any attribution is
+*This file was updated on 2026-08-14. If you believe any attribution is
 missing or incorrect, please open an issue at
 https://github.com/Making-acid/ielts-speaking-ai.*

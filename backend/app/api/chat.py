@@ -1,12 +1,36 @@
 import logging
 from fastapi import APIRouter, HTTPException
 from app.models.schemas import ChatStartRequest, ChatSendRequest, ChatEndRequest
-from app.services.exam_service import create_session, get_examiner_intro, get_next_question, end_chat_session, ExamError
+from app.services.exam_service import create_session, get_examiner_intro, get_next_question, end_chat_session, restore_chat_session, ExamError
+from app.services import memory_store, session_manager
 from app.services.data_loader import DataError, InvalidExamError, validate_exam_id
 
 
 logger = logging.getLogger("api.chat")
 router = APIRouter(prefix="/chat", tags=["chat"])
+
+
+@router.get("/sessions")
+def list_saved_chats():
+    return {"sessions": memory_store.list_chat_sessions()}
+
+
+@router.get("/sessions/{session_id}")
+def load_saved_chat(session_id: str):
+    try:
+        record = restore_chat_session(session_id)
+        return record
+    except ExamError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.delete("/sessions/{session_id}")
+def delete_saved_chat(session_id: str):
+    removed = memory_store.delete_chat_session(session_id)
+    session_manager.delete(session_id)
+    if not removed:
+        raise HTTPException(status_code=404, detail="Saved conversation not found.")
+    return {"session_id": session_id, "deleted": True}
 
 
 @router.post("/start")
@@ -15,6 +39,9 @@ def start_chat(request: ChatStartRequest):
         validate_exam_id(request.exam_id)
         session_id = create_session(request.exam_id, request.mode)
         intro = get_examiner_intro(session_id)
+        session = session_manager.get(session_id)
+        session["conversation"].append({"role": "assistant", "content": intro})
+        memory_store.save_chat_session(session)
         return {
             "session_id": session_id,
             "reply": intro,

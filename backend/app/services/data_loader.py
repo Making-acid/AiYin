@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import sys
 import json
 import logging
 from pathlib import Path
 from functools import lru_cache
+from app.core.paths import get_resource_dir
 
 
 logger = logging.getLogger("data_loader")
@@ -19,9 +19,7 @@ class InvalidExamError(DataError):
 
 
 def _get_data_dir() -> Path:
-    if getattr(sys, "frozen", False):
-        return Path(sys.executable).parent / "data"
-    return Path(__file__).parent.parent.parent / "data"
+    return get_resource_dir("data")
 
 
 DATA_DIR = _get_data_dir()
@@ -112,6 +110,24 @@ class ExamDataLoader:
         rubric = self.get_rubric()
         rubric_text = json.dumps(rubric, indent=2, ensure_ascii=False)
         return template.replace("{{RUBRICS}}", rubric_text)
+
+    def render_part3_prompt(
+        self,
+        part2_topic: dict,
+        asked_questions: list[str],
+        latest_answer: str,
+    ) -> str:
+        template = self.get_prompt("part3_examiner")
+        prompt_lines = part2_topic.get("prompt_lines", []) if part2_topic else []
+        replacements = {
+            "{{PART2_TOPIC}}": part2_topic.get("topic", "General discussion") if part2_topic else "General discussion",
+            "{{PART2_PROMPTS}}": "\n".join(f"- {line}" for line in prompt_lines) or "- None",
+            "{{ASKED_QUESTIONS}}": "\n".join(f"- {question}" for question in asked_questions) or "- None",
+            "{{LATEST_ANSWER}}": latest_answer or "No answer is available yet.",
+        }
+        for key, value in replacements.items():
+            template = template.replace(key, value)
+        return template
 
     def get_dialogs(self) -> dict:
         path = self.exam_path / "dialogs.json"

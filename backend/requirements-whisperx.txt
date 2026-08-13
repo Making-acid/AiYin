@@ -1,0 +1,7 @@
+# Optional post-exam word-alignment component.
+# WhisperX currently supports Python 3.10-3.13 and brings its own PyTorch stack.
+# Install this file only when exam enhanced analysis is required.
+whisperx>=3.7.0,<4.0.0
+
+# WhisperX English alignment also needs NLTK's punkt_tab data. Install once:
+# python -m nltk.downloader -d venv-whisperx/nltk_data punkt_tab

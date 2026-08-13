@@ -1,4 +1,5 @@
 import api from "./client";
+import type { ExamMemorySummary } from "../types";
 
 export interface ExamCueCard {
   topic: string;
@@ -46,7 +47,41 @@ export async function advanceExam(sessionId: string) {
   return data as ExamStepResponse;
 }
 
+export interface ExamRecording {
+  audio: Blob;
+  stage: "part1" | "part2" | "part3";
+  answerIndex: number;
+}
+
+export async function analyzeExamAudio(
+  sessionId: string,
+  recordings: ExamRecording[],
+  language: string,
+) {
+  const body = new FormData();
+  recordings.forEach((recording, index) => {
+    body.append("files", recording.audio, `answer-${index + 1}.webm`);
+  });
+  body.append("stages", JSON.stringify(recordings.map((recording) => recording.stage)));
+  body.append("answer_indices", JSON.stringify(recordings.map((recording) => recording.answerIndex)));
+  body.append("language", language);
+  const { data } = await api.post(`/exam/analysis/${sessionId}`, body, {
+    headers: { "Content-Type": "multipart/form-data" },
+    timeout: 0,
+  });
+  return data;
+}
+
 export async function getReport(sessionId: string) {
   const { data } = await api.get(`/exam/report/${sessionId}`);
   return data;
+}
+
+export async function getExamMemory(): Promise<ExamMemorySummary> {
+  const { data } = await api.get("/exam/memory");
+  return data;
+}
+
+export async function deleteExamMemory(sessionId: string): Promise<void> {
+  await api.delete(`/exam/memory/${sessionId}`);
 }

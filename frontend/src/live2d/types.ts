@@ -25,7 +25,8 @@ export interface Live2DCharacterDefinition {
 export interface CharacterViewProps {
   state?: Live2DVisualState;
   event?: StateEvent | null;
-  mouthOpen?: boolean;
+  /** Normalized 0..1 mouth opening supplied by the active speech provider. */
+  mouthValue?: number;
   behavior?: Live2DBehavior;
   className?: string;
 }

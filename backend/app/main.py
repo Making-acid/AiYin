@@ -10,8 +10,9 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.api import chat, exam, config
+from app.api import chat, exam, config, tts
 from app.core.config import settings
+from app.core.paths import get_resource_dir
 
 logger = logging.getLogger("main")
 
@@ -49,7 +50,7 @@ if getattr(sys, "frozen", False):
     except PermissionError:
         pass  # fall back to console-only logging
 
-app = FastAPI(title="IELTS Speaking Practice", version="0.5.0", lifespan=lifespan)
+app = FastAPI(title="IELTS Speaking Practice", version="0.6.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -62,6 +63,7 @@ app.add_middleware(
 app.include_router(chat.router)
 app.include_router(exam.router)
 app.include_router(config.router)
+app.include_router(tts.router)
 
 # Whisper is an optional module — skip if not installed
 try:
@@ -77,10 +79,7 @@ def health_check():
     return {"status": "ok"}
 
 
-if getattr(sys, "frozen", False):
-    STATIC_DIR = Path(sys._MEIPASS) / "static"
-else:
-    STATIC_DIR = Path(__file__).parent.parent / "static"
+STATIC_DIR = get_resource_dir("static")
 
 if STATIC_DIR.exists() and (STATIC_DIR / "index.html").exists():
     app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
@@ -94,7 +93,8 @@ def main():
     import uvicorn
 
     if getattr(sys, "frozen", False):
-        threading.Timer(1.5, open_browser).start()
+        if os.environ.get("IELTS_NO_BROWSER") != "1":
+            threading.Timer(1.5, open_browser).start()
         # --windowed mode has no console handles; uvicorn needs them alive
         if sys.stderr is None:
             sys.stderr = open(os.devnull, "w")

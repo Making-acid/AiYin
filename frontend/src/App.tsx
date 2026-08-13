@@ -7,6 +7,8 @@ import { FreeChat } from "./pages/FreeChat";
 import { Report } from "./pages/Report";
 import { Settings } from "./pages/Settings";
 import { Legal } from "./pages/Legal";
+import { Memory } from "./pages/Memory";
+import { AzureSpeechHelp } from "./pages/AzureSpeechHelp";
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
             <Route path="/report/:sessionId" element={<Report />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/legal" element={<Legal />} />
+            <Route path="/memory" element={<Memory />} />
+            <Route path="/help/azure-speech" element={<AzureSpeechHelp />} />
           </Routes>
         </TrainingLanguageProvider>
       </AppProvider>

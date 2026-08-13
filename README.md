@@ -2,6 +2,18 @@
 
 雅思口语智能陪练助手。模拟完整雅思口语考试流程（Part 1 → Part 2 → Part 3 → 评分报告），支持 AI 自由对话。
 
+![Mao 正在进行自由对话](frontend/public/media/mao-speaking-v0.6.png)
+
+> 图中 Mao 为 Live2D Sample Data 衍生的 AI 生成发布插图；角色及衍生素材不包含在本项目代码的 MIT 授权中，详见 [NOTICE.md](./NOTICE.md)。
+
+## v0.6.0 重点
+
+- 考试流程与评分彻底分离：Part 3 由考官现场追问，考试结束后才生成评估。
+- 自由对话支持本地历史记录；考试模式保存本地 memory，便于查看长期表现。
+- 可选 WhisperX 只参与考后时间对齐和流利度证据，绝不介入 Part 3 出题或状态机。
+- 浏览器 TTS 与可选 Azure Speech 并存；Azure viseme 可驱动 Live2D 口型，并提供独立配置帮助。
+- Haru 与 Mao 使用独立角色定义、布局和行为配置，均采用更接近视频通话的半身构图。
+
 ## 快速开始
 
 **Windows 用户**：双击运行根目录下的 `start.bat`，脚本会自动安装依赖、启动后端和前端、打开浏览器。
@@ -28,11 +40,22 @@ npm install
 npm run dev
 ```
 
+### 可选：WhisperX 考后增强分析
+
+WhisperX 只在考试结束后用于词级时间对齐和流利度时间证据，不参与 Part 3 出题或考试状态机。默认依赖仍使用 faster-whisper；如需启用 WhisperX，请使用 Python 3.10–3.13，并额外安装：
+
+```powershell
+pip install -r backend/requirements-whisperx.txt
+python -m nltk.downloader punkt_tab
+```
+
+未安装、版本不兼容或处理失败时，评分会自动回退到 faster-whisper；若本地 Whisper 模型也不可用，则继续使用考试现场的浏览器转写。
+
 首次使用需在页面 **Settings** 中配置 LLM API Key（支持 DeepSeek / OpenAI / Groq / OpenRouter / Ollama）。
 
 ---
 
-## 项目结构 (v0.5)
+## 项目结构 (v0.6)
 
 ```
 IELTS/
@@ -42,7 +65,8 @@ IELTS/
 │       │   ├── client.ts              # Axios 实例
 │       │   ├── config.ts              # LLM 配置 API
 │       │   ├── exam.ts                # 考试 API
-│       │   └── chat.ts                # 聊天 API
+│       │   ├── chat.ts                # 聊天 API
+│       │   └── tts.ts                 # Azure Speech 配置与令牌 API
 │       ├── asr/                       # ASR 独立模块
 │       │   ├── AsrProvider.tsx         # 统一 ASR 上下文（browser/whisper 切换）
 │       │   ├── browserAsr.ts          # 浏览器 Web Speech API
@@ -68,11 +92,13 @@ IELTS/
 │       │       ├── haru/              # Haru 模型、布局和行为配置
 │       │       └── mao/               # Mao 模型、布局和行为配置
 │       ├── hooks/
-│       │   ├── useSpeechSynthesis.ts  # TTS（Web Speech API）
+│       │   ├── useSpeechSynthesis.ts  # 浏览器 TTS
+│       │   ├── useCharacterSpeech.ts  # 浏览器/Azure TTS 与 Live2D 口型
 │       │   └── useDualRecording.ts    # 录音 + 浏览器 ASR 双重采集
 │       └── pages/                     # 页面
 │           ├── Home.tsx / Exam.tsx / FreeChat.tsx
-│           ├── Report.tsx / Settings.tsx
+│           ├── Report.tsx / Settings.tsx / Memory.tsx
+│           └── AzureSpeechHelp.tsx     # Azure 配置、收费与隐私帮助
 │
 ├── backend/                           # Python FastAPI
 │   ├── app/
@@ -81,13 +107,17 @@ IELTS/
 │   │   │   ├── exam.py                # 考试端点
 │   │   │   ├── chat.py                # 聊天端点
 │   │   │   ├── config.py              # 配置端点
-│   │   │   └── whisper.py             # Whisper ASR 端点（可选）
+│   │   │   ├── whisper.py             # Whisper ASR 端点（可选）
+│   │   │   └── tts.py                 # Azure Speech 端点（可选）
 │   │   ├── models/
 │   │   │   └── schemas.py             # Pydantic 请求/响应模型
 │   │   ├── services/                  # 业务逻辑
 │   │   │   ├── llm_service.py         # LLM 客户端
 │   │   │   ├── exam_service.py        # 会话管理 + 考试状态机
 │   │   │   ├── scoring_service.py     # 评分报告生成
+│   │   │   ├── memory_store.py        # 本地聊天历史与考试记忆
+│   │   │   ├── exam_audio_service.py  # 考后音频分析
+│   │   │   ├── tts_service.py         # Azure Speech 本地配置
 │   │   │   ├── data_loader.py         # 题库加载
 │   │   │   ├── config_service.py      # LLM 配置 CRUD
 │   │   │   ├── whisper_service.py     # Whisper 模型 + 转录
@@ -143,15 +173,15 @@ cd frontend
 $env:VITE_API_BASE=""; npm run build
 
 # 2. 复制到 backend/static
-Remove-Item -Recurse -Force backend\static -ErrorAction SilentlyContinue
-Copy-Item -Recurse frontend\dist backend\static
+New-Item -ItemType Directory ..\IELTS-Speaking-v0.6.0-Release -Force
+Copy-Item -Recurse frontend\dist ..\IELTS-Speaking-v0.6.0-Release\StaticStage
 
 # 3. PyInstaller 打包
 cd backend
-pyinstaller --onedir --name "IELTS Speaking v0.5.0" --add-data "static;static" run.py
+pyinstaller --noconfirm --clean --distpath "..\..\IELTS-Speaking-v0.6.0-Release\Portable" --workpath "..\..\IELTS-Speaking-v0.6.0-Release\BuildCache" "IELTS Speaking v0.6.0.spec"
 
-# 4. 复制数据
-Copy-Item -Recurse data "dist\IELTS Speaking v0.5.0\data"
+# 4. 数据与资源
+数据与前端静态资源已由 `IELTS Speaking v0.6.0.spec` 一并收集，无需手工复制。便携版与安装包输出到项目外的 `IELTS-Speaking-v0.6.0-Release`，不进入源码仓库。
 ```
 
 打包安装包：准备好 EXE 文件夹后运行 `ISCC.exe setup.iss`。
@@ -173,11 +203,21 @@ Copy-Item -Recurse data "dist\IELTS Speaking v0.5.0\data"
 | `GET` | `/exam/report/{id}` | 获取评分报告 |
 | `POST` | `/chat/start` | 开始自由聊天 |
 | `POST` | `/chat/send` | 发送聊天消息 |
+| `GET` | `/chat/sessions` | 本地自由对话历史 |
+| `GET` | `/chat/sessions/{id}` | 恢复自由对话 |
+| `DELETE` | `/chat/sessions/{id}` | 删除自由对话 |
+| `GET` | `/exam/memory` | 考试记忆与长期表现汇总 |
+| `GET` | `/exam/memory/{id}` | 单次考试记忆 |
+| `DELETE` | `/exam/memory/{id}` | 删除单次考试记忆 |
+| `DELETE` | `/config/local-memory` | 清空全部本地记忆 |
 | `GET` | `/whisper/config` | Whisper 配置 |
 | `POST` | `/whisper/config` | 更新 Whisper 配置 |
 | `GET` | `/whisper/models` | 模型列表 |
 | `POST` | `/whisper/models/download` | 下载模型 |
 | `POST` | `/whisper/transcribe` | 音频转录 |
+| `GET` | `/tts/config` | 获取 Azure Speech 配置状态 |
+| `POST` | `/tts/config` | 保存 Azure Speech 配置 |
+| `POST` | `/tts/token` | 获取短期 Azure Speech 授权令牌 |
 
 ---
 
@@ -188,8 +228,8 @@ Copy-Item -Recurse data "dist\IELTS Speaking v0.5.0\data"
 | 前端 | React 19 / Vite 8 / TypeScript / React Router 7 / PixiJS 6 |
 | 后端 | FastAPI / Uvicorn / OpenAI SDK |
 | LLM | DeepSeek V4 / OpenAI / Groq / OpenRouter / Ollama |
-| ASR | Web Speech API / faster-whisper (9 模型) |
-| TTS | Web Speech API (Edge 自然语音) |
+| ASR | Web Speech API / faster-whisper（9 模型）/ 可选 WhisperX 考后增强 |
+| TTS | Web Speech API / 可选 Azure Speech（神经语音与 Live2D viseme 口型） |
 | 打包 | PyInstaller / Inno Setup |
 | 运维 | Docker + Docker Compose |
 

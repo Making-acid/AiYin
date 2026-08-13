@@ -6,6 +6,7 @@ from typing import Optional
 from app.services.llm_service import chat_simple, LLMError
 from app.services.data_loader import ExamDataLoader, DataError
 from app.services import session_manager
+from app.services import memory_store
 
 
 logger = logging.getLogger("scoring")
@@ -38,6 +39,19 @@ def _get_loader(exam_id: str) -> ExamDataLoader:
 
 
 def generate_score_report(session_id: str) -> Optional[dict]:
+    saved = memory_store.get_exam_memory(session_id)
+    if saved:
+        return {
+            "session_id": saved["session_id"],
+            "report": saved["report"],
+            "conversation": saved["conversation"],
+            "audio_analysis": saved.get("audio_analysis") or {
+                "status": "not_provided",
+                "engine": None,
+                "metrics": None,
+            },
+        }
+
     with session_manager.session_lock(session_id):
         current_session = session_manager.get(session_id)
         if not current_session:
@@ -49,13 +63,40 @@ def generate_score_report(session_id: str) -> Optional[dict]:
     try:
         loader = _get_loader(session["exam_id"])
 
-        transcript = "\n".join([
-            f"{'Examiner' if m['role'] == 'examiner' else 'Candidate'}: {m['content']}"
-            for m in session["conversation"]
-        ])
+        assessable_conversation = [
+            message for message in session["conversation"]
+            if message.get("stage") != "identity"
+        ]
+        audio_analysis = session.get("audio_analysis") or {}
+        audio_responses = {
+            int(response.get("answer_index", index)): response
+            for index, response in enumerate(audio_analysis.get("responses", []))
+        }
+        candidate_index = 0
+        transcript_lines = []
+        for message in assessable_conversation:
+            content = message["content"]
+            source = "live browser transcript"
+            if message["role"] == "user":
+                audio_response = audio_responses.get(candidate_index)
+                candidate_index += 1
+                if audio_response and audio_response.get("text", "").strip():
+                    content = audio_response["text"].strip()
+                    source = "post-test local Whisper transcript"
+            speaker = "Examiner" if message["role"] == "examiner" else "Candidate"
+            transcript_lines.append(f"{speaker} ({source}): {content}" if speaker == "Candidate" else f"{speaker}: {content}")
+        transcript = "\n".join(transcript_lines)
 
         scoring_prompt = loader.render_scoring_prompt()
-        prompt = f"{scoring_prompt}\n\nHere is the conversation transcript:\n\n{transcript}"
+        metrics = audio_analysis.get("metrics")
+        timing_context = ""
+        if metrics:
+            timing_context = (
+                "\n\nPost-test local audio timing evidence (use only as supporting evidence for "
+                "Fluency and Coherence; it does not directly measure pronunciation):\n"
+                f"{json.dumps(metrics, ensure_ascii=False)}"
+            )
+        prompt = f"{scoring_prompt}\n\nHere is the conversation transcript:\n\n{transcript}{timing_context}"
         result_text = chat_simple(prompt, "")
 
         try:
@@ -80,11 +121,24 @@ def generate_score_report(session_id: str) -> Optional[dict]:
                     ],
                 }
 
-        return {
+        response = {
             "session_id": session_id,
             "report": result,
-            "conversation": session["conversation"],
+            "conversation": assessable_conversation,
+            "audio_analysis": {
+                "status": audio_analysis.get("status", "not_provided"),
+                "engine": audio_analysis.get("engine"),
+                "metrics": metrics,
+            },
         }
+        memory_store.save_exam_memory(
+            session_id,
+            session["exam_id"],
+            result,
+            assessable_conversation,
+            response["audio_analysis"],
+        )
+        return response
     except LLMError as e:
         if e.recoverable:
             raise ScoringProviderError(f"Could not generate the score report: {e}")

@@ -83,6 +83,15 @@ export function Report() {
           ))}
         </div>
 
+        <div className={`report-analysis-note ${report.audio_analysis?.status === "complete" ? "used" : "fallback"}`}>
+          <strong>{t("scoringEvidence")}</strong>
+          <p>
+            {report.audio_analysis?.status === "complete"
+              ? t(report.audio_analysis.engine === "whisperx" ? "scoringUsedWhisperX" : "scoringUsedWhisper")
+              : t("scoringUsedBrowserFallback")}
+          </p>
+        </div>
+
         <div className="report-summary">
           <h3>{t("summary")}</h3>
           <p>{score.summary}</p>

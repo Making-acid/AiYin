@@ -1,9 +1,9 @@
-import sys
 import json
 import logging
 from pathlib import Path
 from threading import Lock
 from app.core.user_data import get_writable_dir, migrate_if_needed
+from app.core.paths import get_resource_dir
 
 
 logger = logging.getLogger("config")
@@ -14,9 +14,7 @@ class ConfigError(Exception):
 
 
 def _get_readonly_data_dir() -> Path:
-    if getattr(sys, "frozen", False):
-        return Path(sys.executable).parent / "data"
-    return Path(__file__).parent.parent.parent / "data"
+    return get_resource_dir("data")
 
 
 RO_DATA_DIR = _get_readonly_data_dir()

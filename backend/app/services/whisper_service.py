@@ -1,4 +1,5 @@
 import io
+import importlib.util
 import json
 import logging
 import os
@@ -51,19 +52,49 @@ WHISPER_MODELS = {
     "large-v3": {"name": "Whisper Large V3", "size": "~2.9GB", "english_only": False},
 }
 
+EXAM_ENHANCEMENT_MODES = {"auto", "on", "off"}
+WHISPERX_PIPELINE_IMPLEMENTED = True
+
+
+def _whisperx_capability() -> dict:
+    """Report capability without importing the heavyweight torch stack."""
+    python_compatible = (3, 10) <= sys.version_info[:2] < (3, 14)
+    try:
+        installed = importlib.util.find_spec("whisperx") is not None
+    except (ImportError, ValueError):
+        installed = False
+
+    if not python_compatible:
+        reason = "python_unsupported"
+    elif not installed:
+        reason = "not_installed"
+    elif not WHISPERX_PIPELINE_IMPLEMENTED:
+        reason = "integration_pending"
+    else:
+        reason = "ready"
+
+    return {
+        "installed": installed,
+        "available": installed and python_compatible and WHISPERX_PIPELINE_IMPLEMENTED,
+        "reason": reason,
+        "python_version": ".".join(str(part) for part in sys.version_info[:3]),
+        "minimum_python": "3.10",
+        "supported_python": "3.10–3.13",
+    }
+
 
 def _get_config() -> dict:
     try:
         if CONFIG_PATH.exists():
             with open(CONFIG_PATH, encoding="utf-8") as f:
                 return json.load(f)
-        return {"model": "small", "enabled": False, "language": "en"}
+        return {"model": "small", "enabled": False, "language": "en", "exam_enhancement": "auto"}
     except json.JSONDecodeError as e:
         logger.error("Whisper config file is corrupted: %s", e)
-        return {"model": "small", "enabled": False, "language": "en"}
+        return {"model": "small", "enabled": False, "language": "en", "exam_enhancement": "auto"}
     except OSError as e:
         logger.error("Cannot read whisper config: %s", e)
-        return {"model": "small", "enabled": False, "language": "en"}
+        return {"model": "small", "enabled": False, "language": "en", "exam_enhancement": "auto"}
 
 
 def _save_config(config: dict):
@@ -79,21 +110,40 @@ def _save_config(config: dict):
 def get_whisper_config() -> dict:
     config = _get_config()
     current = config.get("model", "small")
+    enhancement_mode = config.get("exam_enhancement", "auto")
+    if enhancement_mode not in EXAM_ENHANCEMENT_MODES:
+        enhancement_mode = "auto"
+    capability = _whisperx_capability()
     return {
         "enabled": config.get("enabled", True),
         "model": current,
         "model_name": WHISPER_MODELS.get(current, {}).get("name", current),
         "is_downloaded": is_model_downloaded(current),
         "language": config.get("language", "en"),
+        "exam_enhancement": enhancement_mode,
+        "whisperx": {
+            **capability,
+            "active": enhancement_mode != "off" and capability["available"],
+            "fallback": enhancement_mode != "off" and not capability["available"],
+        },
     }
 
 
-def update_whisper_config(enabled: bool = None, model: str = None, language: str = None) -> dict:
+def update_whisper_config(
+    enabled: bool = None,
+    model: str = None,
+    language: str = None,
+    exam_enhancement: str = None,
+) -> dict:
     config = _get_config()
     if enabled is not None:
         config["enabled"] = enabled
     if language is not None:
         config["language"] = language
+    if exam_enhancement is not None:
+        if exam_enhancement not in EXAM_ENHANCEMENT_MODES:
+            raise ValueError(f"Unknown exam enhancement mode: {exam_enhancement}")
+        config["exam_enhancement"] = exam_enhancement
     if model is not None:
         if model not in WHISPER_MODELS:
             raise ValueError(f"Unknown model: {model}")
@@ -231,13 +281,97 @@ def _convert_to_wav(audio_bytes: bytes, output_path: str):
     input_container.close()
 
 
-def transcribe(audio_bytes: bytes, language: str = None) -> str:
+def _transcribe_wav(wav_path: str, language: str = None, word_timestamps: bool = False) -> dict:
+    config = _get_config()
+    transcribe_lang = language or config.get("language", "en")
+    model = _get_model()
+    segments_iter, info = model.transcribe(
+        wav_path,
+        language=transcribe_lang,
+        beam_size=5,
+        word_timestamps=word_timestamps,
+    )
+    segments = []
+    words = []
+    for segment in segments_iter:
+        item = {
+            "start": float(segment.start),
+            "end": float(segment.end),
+            "text": segment.text.strip(),
+        }
+        segments.append(item)
+        if word_timestamps:
+            for word in segment.words or []:
+                if word.start is None or word.end is None:
+                    continue
+                words.append({
+                    "start": float(word.start),
+                    "end": float(word.end),
+                    "word": word.word.strip(),
+                    "score": float(word.probability) if word.probability is not None else None,
+                })
+    text = " ".join(segment["text"] for segment in segments if segment["text"])
+    return {
+        "text": text,
+        "segments": segments,
+        "words": words,
+        "language": info.language,
+    }
+
+
+def align_with_whisperx(wav_path: str, transcription: dict, language: str = "en") -> dict:
+    """Optionally refine word timings; never used by the live exam state machine."""
+    capability = _whisperx_capability()
+    if not capability["available"]:
+        raise RuntimeError(f"WhisperX is unavailable: {capability['reason']}")
+
+    import whisperx
+    import numpy as np
+
+    device = "cpu"
+    # The file is already 16 kHz mono PCM. Reading it through PyAV avoids
+    # WhisperX's ffmpeg executable dependency on Windows desktop builds.
+    container = _get_av().open(wav_path)
+    samples = []
+    try:
+        for frame in container.decode(audio=0):
+            array = frame.to_ndarray()
+            samples.append(array.reshape(-1))
+    finally:
+        container.close()
+    if not samples:
+        raise RuntimeError("WhisperX alignment received an empty WAV file.")
+    audio = np.concatenate(samples).astype(np.float32) / 32768.0
+    align_model, metadata = whisperx.load_align_model(language_code=language, device=device)
+    aligned = whisperx.align(
+        transcription["segments"],
+        align_model,
+        metadata,
+        audio,
+        device,
+        return_char_alignments=False,
+    )
+    words = []
+    for segment in aligned.get("segments", []):
+        for word in segment.get("words", []):
+            if word.get("start") is None or word.get("end") is None:
+                continue
+            words.append({
+                "start": float(word["start"]),
+                "end": float(word["end"]),
+                "word": str(word.get("word", "")).strip(),
+                "score": word.get("score"),
+            })
+    return {"segments": aligned.get("segments", []), "words": words}
+
+
+def analyze_for_scoring(audio_bytes: bytes, language: str = None) -> dict:
+    """Transcribe one completed-exam response and optionally refine its timings."""
     if not audio_bytes:
-        return ""
+        return {"text": "", "segments": [], "words": [], "alignment": "none"}
 
     config = _get_config()
     model_id = config.get("model", "small")
-    transcribe_lang = language or config.get("language", "en")
     if not is_model_downloaded(model_id):
         raise RuntimeError(
             f"Model '{model_id}' is not downloaded. "
@@ -249,15 +383,47 @@ def transcribe(audio_bytes: bytes, language: str = None) -> str:
         tmp_wav.close()
         _convert_to_wav(audio_bytes, tmp_wav.name)
 
-        model = _get_model()
-        segments, info = model.transcribe(tmp_wav.name, language=transcribe_lang, beam_size=5)
-
-        text = " ".join(seg.text.strip() for seg in segments)
-        logger.info("Transcribed %d chars, detected language: %s", len(text), info.language)
-        return text
+        result = _transcribe_wav(tmp_wav.name, language, word_timestamps=True)
+        result["alignment"] = "faster_whisper"
+        enhancement_mode = config.get("exam_enhancement", "auto")
+        if enhancement_mode != "off" and result["segments"]:
+            try:
+                aligned = align_with_whisperx(tmp_wav.name, result, result["language"])
+                result.update(aligned)
+                result["alignment"] = "whisperx"
+            except Exception as exc:
+                logger.warning("WhisperX alignment skipped; using faster-whisper timings: %s", exc)
+        logger.info("Post-exam transcription produced %d chars", len(result["text"]))
+        return result
     except Exception as e:
         logger.error("Transcription failed: %s", e)
         raise RuntimeError(str(e))
+    finally:
+        try:
+            os.unlink(tmp_wav.name)
+        except OSError:
+            pass
+
+
+def transcribe(audio_bytes: bytes, language: str = None) -> str:
+    """Standard local transcription used by the optional free-chat ASR path."""
+    if not audio_bytes:
+        return ""
+    config = _get_config()
+    model_id = config.get("model", "small")
+    if not is_model_downloaded(model_id):
+        raise RuntimeError(
+            f"Model '{model_id}' is not downloaded. "
+            "Please go to Settings → Whisper ASR → download a model."
+        )
+    tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+    try:
+        tmp_wav.close()
+        _convert_to_wav(audio_bytes, tmp_wav.name)
+        return _transcribe_wav(tmp_wav.name, language, word_timestamps=False)["text"]
+    except Exception as exc:
+        logger.error("Transcription failed: %s", exc)
+        raise RuntimeError(str(exc))
     finally:
         try:
             os.unlink(tmp_wav.name)

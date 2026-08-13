@@ -8,7 +8,7 @@ Directory structure:
   ├── meta.json          # Exam config (parts, scoring, timing)
   ├── dialogs.json       # Examiner scripted transitions
   ├── prompts/
-  │   ├── examiner.txt   # AI examiner system prompt
+  │   ├── part3_examiner.txt # Live Part 3 question-generation prompt
   │   ├── scoring.txt    # Scoring prompt template (use {{RUBRICS}})
   │   └── free_chat.txt  # Free chat mode prompt (optional)
   ├── questions/

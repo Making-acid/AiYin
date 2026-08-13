@@ -3,7 +3,19 @@ import { useLanguage } from "../i18n";
 
 function AsrModeSettings({ mode, label }: { mode: "exam" | "free_chat"; label: string }) {
   const { t } = useLanguage();
-  const { config: whisperCfg, models, downloading, toggleEnabled, switchModel } = useWhisperConfig(mode);
+  const { config: whisperCfg, models, downloading, toggleEnabled, switchModel, updateEnhancementMode } = useWhisperConfig(mode);
+
+  const enhancementStatus = !whisperCfg
+    ? t("examEnhancementUnavailable")
+    : whisperCfg.whisperx.available
+      ? t("examEnhancementReady")
+      : whisperCfg.whisperx.reason === "python_unsupported"
+        ? t("examEnhancementPythonUnsupported")
+            .replace("{current}", whisperCfg.whisperx.python_version)
+            .replace("{supported}", whisperCfg.whisperx.supported_python)
+        : whisperCfg.whisperx.reason === "integration_pending"
+          ? t("examEnhancementIntegrationPending")
+          : t("examEnhancementNotInstalled");
 
   return (
     <div className="settings-section">
@@ -43,6 +55,28 @@ function AsrModeSettings({ mode, label }: { mode: "exam" | "free_chat"; label: s
               </div>
             ))}
           </div>
+        </div>
+      )}
+      {mode === "exam" && (
+        <div className="exam-enhancement-settings">
+          <h4>{t("examEnhancementTitle")}</h4>
+          <p className="settings-desc">{t("examEnhancementDesc")}</p>
+          <div className="form-group">
+            <label>{t("examEnhancementMode")}</label>
+            <select
+              value={whisperCfg?.exam_enhancement ?? "auto"}
+              disabled={!whisperCfg}
+              onChange={(event) => void updateEnhancementMode(event.target.value as "auto" | "on" | "off")}
+            >
+              <option value="auto">{t("examEnhancementAuto")}</option>
+              <option value="on">{t("examEnhancementOn")}</option>
+              <option value="off">{t("examEnhancementOff")}</option>
+            </select>
+          </div>
+          <p className={`enhancement-status ${whisperCfg?.whisperx.available ? "ready" : "fallback"}`}>
+            {enhancementStatus}
+          </p>
+          <p className="settings-desc">{t("examEnhancementPrivacy")}</p>
         </div>
       )}
     </div>

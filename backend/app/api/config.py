@@ -2,10 +2,22 @@ import logging
 from fastapi import APIRouter, HTTPException
 from app.models.schemas import ConfigUpdateRequest
 from app.services import config_service
+from app.services import memory_store, session_manager
 
 
 logger = logging.getLogger("api.config")
 router = APIRouter(prefix="/config", tags=["config"])
+
+
+@router.delete("/local-memory")
+def clear_local_memory():
+    try:
+        result = memory_store.clear_all_memory()
+        session_manager.clear_all()
+        return {"deleted": result}
+    except OSError as e:
+        logger.error("Failed to clear local memory: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to clear local memory.")
 
 
 @router.get("/providers")

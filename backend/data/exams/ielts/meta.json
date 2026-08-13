@@ -3,9 +3,9 @@
   "name": "IELTS Speaking",
   "language": "en",
   "parts": {
-    "part1": { "question_count": 3, "description": "Introduction & Interview" },
+    "part1": { "topic_count": 2, "questions_per_topic": 3, "description": "Introduction & Interview" },
     "part2": { "prep_seconds": 60, "speak_seconds": 120, "follow_up_count": 1, "description": "Individual Long Turn" },
-    "part3": { "question_count": 3, "description": "Two-way Discussion" }
+    "part3": { "question_count": 5, "dynamic_questions": true, "description": "Two-way Discussion" }
   },
   "scoring": {
     "criteria": ["fluency_coherence", "lexical_resource", "grammatical_range_accuracy", "pronunciation"],

@@ -53,6 +53,17 @@ class WhisperConfigRequest(BaseModel):
     enabled: Optional[bool] = None
     model: Optional[str] = None
     language: Optional[str] = None
+    exam_enhancement: Optional[str] = None
+
+
+# ---- Text to speech ----
+
+class TtsConfigRequest(BaseModel):
+    provider: Optional[str] = None
+    azure_key: Optional[str] = None
+    azure_region: Optional[str] = None
+    haru_voice: Optional[str] = None
+    mao_voice: Optional[str] = None
 
 
 # ---- Response types (documentation) ----

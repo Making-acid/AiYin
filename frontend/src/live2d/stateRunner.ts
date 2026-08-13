@@ -72,7 +72,7 @@ export class StateRunner {
     this.sm.setState(next);
   }
 
-  tick(dt: number, mouthOpen: boolean, lockGaze: boolean): void {
+  tick(dt: number, mouthValue: number, lockGaze: boolean): void {
     this.sm.update(dt);
 
     const state = this.sm.state as Live2DState;
@@ -81,7 +81,7 @@ export class StateRunner {
 
     this.enforceParameterFace();
     if (lockGaze) this.updateGaze(presentation);
-    this.updateMouth(state === "SPEAKING" && mouthOpen, dt);
+    this.updateMouth(state === "SPEAKING" ? mouthValue : 0, dt);
   }
 
   destroy(): void {
@@ -245,14 +245,14 @@ export class StateRunner {
     } catch { /* optional parameter */ }
   }
 
-  private updateMouth(open: boolean, dt: number): void {
+  private updateMouth(value: number, dt: number): void {
     try {
       const model = this.model.current;
       if (!model || model.destroyed) return;
       const core = model.internalModel?.coreModel;
       if (!core) return;
-      const target = open ? 0.62 : 0;
-      const blend = 1 - Math.exp(-Math.max(0, dt) * (open ? 15 : 20));
+      const target = Math.max(0, Math.min(1, value));
+      const blend = 1 - Math.exp(-Math.max(0, dt) * (target > this.mouthValue ? 18 : 22));
       this.mouthValue += (target - this.mouthValue) * blend;
       const parameterIds = core.getParameterIds?.() || [];
       if (parameterIds.includes("ParamMouthOpenY")) {

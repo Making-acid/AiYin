@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { advanceExam, startExam, submitAnswer, type ExamStepResponse } from "../api/exam";
+import { analyzeExamAudio, advanceExam, startExam, submitAnswer, type ExamRecording, type ExamStepResponse } from "../api/exam";
 import { Timer } from "../components/Timer";
 import { HaruCharacter } from "../live2d";
 import { useLive2DBehavior, useLanguage } from "../i18n";
 import { useTrainingLanguage } from "../i18n/trainingLang";
-import { useSpeechSynthesis } from "../hooks/useSpeechSynthesis";
+import { useCharacterSpeech } from "../hooks/useCharacterSpeech";
 import { useDualRecording, type DualRecordingResult } from "../hooks/useDualRecording";
-import { AsrProvider } from "../asr";
+import { useWhisperConfig } from "../asr";
 
 type Phase = "intro" | "part1" | "part2_prep" | "part2_speaking" | "part3" | "finished";
 
@@ -27,12 +27,15 @@ function formatTime(seconds: number) {
 export function Exam() {
   const navigate = useNavigate();
   const { trainingLang } = useTrainingLanguage();
-  const { speak, stop: stopSpeech, isSupported: ttsSupported, mouthOpen } = useSpeechSynthesis("standard", trainingLang);
+  const { speak, stop: stopSpeech, isSupported: ttsSupported, mouthValue } = useCharacterSpeech("haru", trainingLang);
   const [behavior] = useLive2DBehavior();
   const { t } = useLanguage();
   const dual = useDualRecording();
   const stopDualRecording = dual.stop;
-  const audioBlobsRef = useRef<Blob[]>([]);
+  const { config: whisperConfig } = useWhisperConfig("exam");
+  const recordingsRef = useRef<ExamRecording[]>([]);
+  const recordingStageRef = useRef<Phase>("intro");
+  const assessableAnswerIndexRef = useRef(0);
   const timersRef = useRef<ReturnType<typeof setInterval>[]>([]);
   const sessionIdRef = useRef("");
   const loadingRef = useRef(false);
@@ -50,6 +53,7 @@ export function Exam() {
   const [recordingActive, setRecordingActive] = useState(false);
   const [recordingTimeLeft, setRecordingTimeLeft] = useState(0);
   const [prepSeconds, setPrepSeconds] = useState(60);
+  const [analyzingAudio, setAnalyzingAudio] = useState(false);
 
   useEffect(() => { sessionIdRef.current = sessionId; }, [sessionId]);
   useEffect(() => { loadingRef.current = loading; }, [loading]);
@@ -111,7 +115,14 @@ export function Exam() {
     (result: DualRecordingResult) => {
       setRecordingActive(false);
       setLive2dState("idle");
-      if (result.audio.size > 100) audioBlobsRef.current.push(result.audio);
+      const recordedPhase = recordingStageRef.current;
+      const stage = recordedPhase === "part2_speaking" ? "part2" : recordedPhase;
+      if (stage === "part1" || stage === "part2" || stage === "part3") {
+        const answerIndex = assessableAnswerIndexRef.current++;
+        if (result.audio.size > 100) {
+          recordingsRef.current.push({ audio: result.audio, stage, answerIndex });
+        }
+      }
       if (result.text.trim()) sendAnswer(result.text.trim());
     },
     [sendAnswer]
@@ -125,11 +136,12 @@ export function Exam() {
   }, [dual, handleDualResult]);
 
   // Countdown timer: interval decrements the display, timeout auto-stops recording
-  const startRecordingTimer = useCallback((seconds: number) => {
+  const startRecordingTimer = useCallback((seconds: number, recordingPhase: Phase) => {
     clearTimers();
     setRecordingTimeLeft(seconds);
     setRecordingActive(true);
     setLive2dState("listening");
+    recordingStageRef.current = recordingPhase;
     dual.start();
 
     // UI countdown
@@ -167,7 +179,7 @@ export function Exam() {
     const part = result.current_part;
     if (part === "part1") {
       setPhase("part1");
-      handleExaminerSpeak(result.next_question, () => startRecordingTimer(45));
+      handleExaminerSpeak(result.next_question, () => startRecordingTimer(45, "part1"));
     } else if (part === "part2_prep") {
       const duration = result.cue_card?.prep_seconds ?? 60;
       setPhase("part2_prep");
@@ -181,13 +193,13 @@ export function Exam() {
     } else if (part === "part2") {
       const duration = result.question_index === 0 ? speakSecondsRef.current : 45;
       setPhase("part2_speaking");
-      handleExaminerSpeak(result.next_question, () => startRecordingTimer(duration));
+      handleExaminerSpeak(result.next_question, () => startRecordingTimer(duration, "part2_speaking"));
     } else if (part === "part3_transition") {
       setPhase("part3");
       handleExaminerSpeak(result.next_question, () => { void advanceToNextPrompt(); });
     } else if (part === "part3") {
       setPhase("part3");
-      handleExaminerSpeak(result.next_question, () => startRecordingTimer(60));
+      handleExaminerSpeak(result.next_question, () => startRecordingTimer(60, "part3"));
     }
   }, [advanceToNextPrompt, handleExaminerSpeak, startRecordingTimer]);
 
@@ -199,8 +211,8 @@ export function Exam() {
     try {
       const data = await startExam();
       setSessionId(data.session_id);
-      setPhase("part1");
-      handleExaminerSpeak(data.examiner_message, () => startRecordingTimer(45));
+      setPhase("intro");
+      handleExaminerSpeak(data.examiner_message, () => startRecordingTimer(20, "intro"));
     } catch (err) {
       console.error("Failed to start exam:", err);
     }
@@ -228,6 +240,7 @@ export function Exam() {
       dual.stop().then(handleDualResult);
     } else {
       setLive2dState("listening");
+      recordingStageRef.current = phase;
       dual.start();
       setRecordingActive(true);
     }
@@ -240,9 +253,19 @@ export function Exam() {
     }
   }, [dual.error]);
 
-  const handleViewReport = () => {
+  const handleViewReport = async () => {
     clearTimers();
     stopSpeech();
+    if (whisperConfig?.enabled && recordingsRef.current.length > 0) {
+      setAnalyzingAudio(true);
+      try {
+        await analyzeExamAudio(sessionId, recordingsRef.current, trainingLang);
+      } catch (error) {
+        console.warn("Post-exam audio analysis unavailable; using live transcript.", error);
+      } finally {
+        setAnalyzingAudio(false);
+      }
+    }
     navigate(`/report/${sessionId}`);
   };
 
@@ -252,11 +275,10 @@ export function Exam() {
   };
 
   return (
-    <AsrProvider mode="exam">
     <div className="page exam-fullscreen">
       <HaruCharacter
         state={loading && live2dState === "idle" ? "thinking" : live2dState}
-        mouthOpen={mouthOpen}
+        mouthValue={mouthValue}
         behavior={behavior}
       />
 
@@ -288,7 +310,9 @@ export function Exam() {
 
       <div className="exam-bottombar">
         {isFinished ? (
-          <button className="btn-primary" onClick={handleViewReport}>{t("viewReport")}</button>
+          <button className="btn-primary" onClick={() => void handleViewReport()} disabled={analyzingAudio}>
+            {analyzingAudio ? t("analyzingExamAudio") : t("viewReport")}
+          </button>
         ) : (
           <>
             <button
@@ -309,6 +333,5 @@ export function Exam() {
         )}
       </div>
     </div>
-    </AsrProvider>
   );
 }

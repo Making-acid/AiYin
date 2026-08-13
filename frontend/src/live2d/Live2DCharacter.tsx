@@ -31,7 +31,7 @@ export function Live2DCharacter({
   character,
   state: visualState = "idle",
   event,
-  mouthOpen = false,
+  mouthValue = 0,
   behavior = "look_forward",
   className = "",
 }: Live2DCharacterProps) {
@@ -44,12 +44,12 @@ export function Live2DCharacter({
   const initTokenRef = useRef(0);
   const resourceTokenRef = useRef(0);
   const behaviorRef = useRef(behavior);
-  const mouthOpenRef = useRef(mouthOpen);
+  const mouthValueRef = useRef(mouthValue);
   const visualStateRef = useRef(visualState);
   const [error, setError] = useState<string | null>(null);
 
   behaviorRef.current = behavior;
-  mouthOpenRef.current = mouthOpen;
+  mouthValueRef.current = mouthValue;
   visualStateRef.current = visualState;
 
   useEffect(() => {
@@ -142,7 +142,7 @@ export function Live2DCharacter({
 
         runner.tick(
           app.ticker.deltaMS / 1000,
-          mouthOpenRef.current,
+          mouthValueRef.current,
           behaviorRef.current === "look_forward",
         );
       }, undefined, PIXI.UPDATE_PRIORITY.LOW);

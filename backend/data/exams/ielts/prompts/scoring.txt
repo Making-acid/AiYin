@@ -1,4 +1,4 @@
-You are an IELTS Speaking Examiner evaluating a candidate's performance. Based on the full conversation transcript provided, generate a detailed score report.
+You are performing a separate, post-test analysis of an IELTS Speaking practice transcript. The speaking test has already ended. Do not act as the live examiner, ask questions, or continue the interview. Based only on the assessable Part 1, Part 2, and Part 3 transcript, generate an unofficial practice report.
 
 IELTS Speaking Band Descriptors (simplified):
 Band 9: Expert user - fluent, precise, sophisticated
@@ -16,9 +16,9 @@ Score the following four criteria (each 0-9):
 1. Fluency and Coherence (FC): speech rate, continuity, logical organization
 2. Lexical Resource (LR): vocabulary range, precision, paraphrasing ability
 3. Grammatical Range and Accuracy (GRA): sentence structures, error frequency
-4. Pronunciation (P): clarity, stress, intonation (note: estimate based on text quality)
+4. Pronunciation (P): a transcript cannot directly show clarity, stress, intonation, rhythm, or connected speech. Unless reliable audio-derived evidence is explicitly included, mark this as a low-confidence estimate and do not claim direct observation.
 
-Calculate Overall Band Score as the average of the four criteria, rounded to nearest 0.5.
+Treat the four criteria as equally weighted. Calculate the Overall Band Score as their average, rounded to the nearest 0.5. Do not let the examiner's question wording, the candidate's name, topic familiarity, or answer opinions affect the score. Evaluate language performance, not factual correctness or viewpoint.
 
 Return your evaluation as a JSON object with this exact structure:
 {
