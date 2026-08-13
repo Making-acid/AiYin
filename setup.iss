@@ -32,8 +32,10 @@ WizardStyle=modern
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=admin
 UninstallDisplayName={#MyAppName} v{#MyAppVersion}
+UninstallDisplayIcon={app}\{#MyAppExeName}
 ChangesEnvironment=no
 LicenseFile=LICENSE
+SetupIconFile=frontend\public\icons\app-icon.ico
 CloseApplications=yes
 CloseApplicationsFilter=*.exe,*.dll
 

@@ -57,10 +57,11 @@ These models are the copyright of Live2D Inc. and are used subject to the
 Live2D Free Material License Agreement and the Terms of Use for Live2D Cubism
 Sample Data. The project code's MIT License does not license these models.
 
-The promotional image `frontend/public/media/mao-speaking-v0.6.png` was
-AI-generated from the Niziiro Mao sample character as a release illustration.
-It is derivative artwork and remains subject to the applicable Live2D sample
-data terms; it is not covered by the project code's MIT License.
+The promotional image `frontend/public/media/mao-speaking-v0.6.png` and the
+application icon assets in `frontend/public/icons/` were AI-generated from the
+Niziiro Mao sample character. They are derivative artwork and remain subject
+to the applicable Live2D sample data terms; they are not covered by the
+project code's MIT License.
 
 Required attribution:
 
