@@ -1,23 +1,14 @@
 import { useLanguage } from "../i18n";
 import { useWhisperConfig } from "../asr";
 
-// Version the guide so existing users see important capability/privacy changes once.
-const TUTORIAL_KEY = "tutorialSeenV3";
-
-export function hasSeenTutorial(): boolean {
-  return localStorage.getItem(TUTORIAL_KEY) === "1";
-}
-
-export function markTutorialSeen(): void {
-  localStorage.setItem(TUTORIAL_KEY, "1");
-}
+export const TUTORIAL_VERSION = "3";
 
 interface Props {
   onClose: () => void;
 }
 
 export function TutorialModal({ onClose }: Props) {
-  const { t } = useLanguage();
+  const { t, markTutorialSeen } = useLanguage();
   const { config, loading, updateEnhancementMode } = useWhisperConfig("exam");
 
   const enhancementStatus = !config
@@ -33,7 +24,7 @@ export function TutorialModal({ onClose }: Props) {
           : t("examEnhancementNotInstalled");
 
   const handleClose = () => {
-    markTutorialSeen();
+    markTutorialSeen(TUTORIAL_VERSION);
     onClose();
   };
 

@@ -3,7 +3,7 @@ import { useLanguage } from "../i18n";
 
 function AsrModeSettings({ mode, label }: { mode: "exam" | "free_chat"; label: string }) {
   const { t } = useLanguage();
-  const { config: whisperCfg, models, downloading, toggleEnabled, switchModel, updateEnhancementMode } = useWhisperConfig(mode);
+  const { config: whisperCfg, models, downloading, operationError, toggleEnabled, switchModel, updateEnhancementMode } = useWhisperConfig(mode);
 
   const enhancementStatus = !whisperCfg
     ? t("examEnhancementUnavailable")
@@ -20,6 +20,9 @@ function AsrModeSettings({ mode, label }: { mode: "exam" | "free_chat"; label: s
   return (
     <div className="settings-section">
       <h3>{label}</h3>
+      <p className="settings-desc">
+        {t(mode === "exam" ? "whisperUsageExam" : "whisperUsageFreeChat")}
+      </p>
       <div className="form-group">
         <label>{t("whisperEnable")}</label>
         <select
@@ -35,27 +38,39 @@ function AsrModeSettings({ mode, label }: { mode: "exam" | "free_chat"; label: s
           <label>{t("whisperModel")} ({whisperCfg.model_name})</label>
           <div className="model-list">
             {models.map((m) => (
-              <div key={m.id} className={`model-item ${m.id === whisperCfg.model ? "active" : ""} ${m.downloaded ? "downloaded" : ""}`}>
+              <div key={m.id} className={`model-item ${m.id === whisperCfg.model && m.downloaded ? "active" : ""} ${m.downloaded ? "downloaded" : ""}`}>
                 <div className="model-info">
                   <span className="model-name">{m.name}</span>
                   <span className="model-size">{m.size}</span>
                 </div>
                 <button
-                  className={`btn-small ${m.id === whisperCfg.model ? "btn-active" : m.downloaded ? "btn-switch" : "btn-download"}`}
+                  className={`btn-small ${m.id === whisperCfg.model && m.downloaded ? "btn-active" : m.downloaded ? "btn-switch" : "btn-download"}`}
                   onClick={() => {
                     const msg = m.downloaded ? "" : t("whisperDownloadConfirm")
                       .replace("{modelId}", m.name)
                       .replace("{size}", m.size);
-                    switchModel(m.id, msg);
+                    void switchModel(m.id, msg);
                   }}
-                  disabled={downloading === m.id}
+                  disabled={Boolean(downloading)}
                 >
-                  {downloading === m.id ? "..." : m.id === whisperCfg.model ? t("whisperActive") : m.downloaded ? t("whisperSwitch") : t("whisperDownload")}
+                  {downloading === m.id
+                    ? t("whisperDownloading")
+                    : m.id === whisperCfg.model && m.downloaded
+                      ? t("whisperActive")
+                      : m.downloaded
+                        ? t("whisperSwitch")
+                        : t("whisperDownload")}
                 </button>
               </div>
             ))}
           </div>
         </div>
+      )}
+      {downloading && <p className="enhancement-status fallback">{t("whisperDownloadWait")}</p>}
+      {operationError && (
+        <p className="settings-message error">
+          {t("whisperOperationFailed").replace("{error}", operationError)}
+        </p>
       )}
       {mode === "exam" && (
         <div className="exam-enhancement-settings">

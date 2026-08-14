@@ -11,7 +11,7 @@ export function Settings() {
   const navigate = useNavigate();
   const { t, lang, setLanguage } = useLanguage();
   const [behavior, updateBehavior] = useLive2DBehavior();
-  const { trainingLang, setTrainingLang, supported } = useTrainingLanguage();
+  const { trainingLang } = useTrainingLanguage();
 
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [providers, setProviders] = useState<Record<string, ProviderPreset>>({});
@@ -223,24 +223,6 @@ export function Settings() {
             <select value={lang} onChange={(e) => setLanguage(e.target.value as "zh" | "en")}>
               <option value="zh">{t("langZh")}</option>
               <option value="en">{t("langEn")}</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="settings-section">
-          <h3>{t("trainingLangSection")}</h3>
-          <p className="settings-desc">{t("trainingLangDesc")}</p>
-          <div className="form-group">
-            <label>{t("trainingLanguage")}</label>
-            <select
-              value={trainingLang}
-              onChange={(e) => setTrainingLang(e.target.value as typeof trainingLang)}
-            >
-              {supported.map((s) => (
-                <option key={s.code} value={s.code}>
-                  {s.label}
-                </option>
-              ))}
             </select>
           </div>
         </div>

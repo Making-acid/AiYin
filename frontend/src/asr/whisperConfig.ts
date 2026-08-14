@@ -12,6 +12,7 @@ interface WhisperModel {
 
 interface WhisperConfig {
   enabled: boolean;
+  mode: AsrMode;
   model: string;
   model_name: string;
   is_downloaded: boolean;
@@ -28,48 +29,49 @@ interface WhisperConfig {
   };
 }
 
-export function useWhisperConfig(mode: AsrMode) {
-  const storageKey = `asr_${mode}_enabled`;
-  const defaultEnabled = mode === "exam";
+function errorDetail(error: unknown): string {
+  const detail = (error as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
+  return typeof detail === "string" && detail.trim() ? detail : "Unknown error";
+}
 
+export function useWhisperConfig(mode: AsrMode) {
   const [config, setConfig] = useState<WhisperConfig | null>(null);
   const [models, setModels] = useState<WhisperModel[]>([]);
-  const [localEnabled, setLocalEnabled] = useState(() => {
-    const stored = localStorage.getItem(storageKey);
-    if (stored !== null) return stored === "true";
-    return defaultEnabled;
-  });
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState("");
-
-  const effectiveConfig = config ? { ...config, enabled: localEnabled } : null;
+  const [operationError, setOperationError] = useState("");
 
   const load = useCallback(async () => {
     try {
       const [cfgRes, modRes] = await Promise.all([
-        api.get<WhisperConfig>("/whisper/config"),
+        api.get<WhisperConfig>("/whisper/config", { params: { mode } }),
         api.get<WhisperModel[]>("/whisper/models"),
       ]);
       setConfig(cfgRes.data);
       setModels(modRes.data);
-    } catch {
-      // whisper not available
+      setOperationError("");
+    } catch (error) {
+      setOperationError(errorDetail(error));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [mode]);
 
   useEffect(() => { load(); }, [load]);
 
   const toggleEnabled = async (enabled: boolean) => {
-    const previous = localEnabled;
-    setLocalEnabled(enabled);
-    localStorage.setItem(storageKey, String(enabled));
+    if (!config) return false;
+    const previous = config;
+    setConfig({ ...config, enabled });
+    setOperationError("");
     try {
-      await api.post("/whisper/config", { enabled });
-    } catch {
-      setLocalEnabled(previous);
-      localStorage.setItem(storageKey, String(previous));
+      const response = await api.post<WhisperConfig>("/whisper/config", { mode, enabled });
+      setConfig(response.data);
+      return true;
+    } catch (error) {
+      setConfig(previous);
+      setOperationError(errorDetail(error));
+      return false;
     }
   };
 
@@ -79,34 +81,38 @@ export function useWhisperConfig(mode: AsrMode) {
     if (!model.downloaded && confirmMessage && !window.confirm(confirmMessage)) return false;
 
     setDownloading(modelId);
+    setOperationError("");
     try {
       if (!model.downloaded) {
         await api.post("/whisper/models/download", { model_id: modelId }, { timeout: 0 });
       }
-      const switchRes = await api.post<WhisperConfig>("/whisper/config", { model: modelId });
+      const switchRes = await api.post<WhisperConfig>("/whisper/config", { mode, model: modelId });
       setConfig(switchRes.data);
       if (!model.downloaded) await load();
       return true;
-    } catch {
+    } catch (error) {
+      setOperationError(errorDetail(error));
       return false;
     } finally {
       setDownloading("");
     }
   };
 
-  const updateEnhancementMode = async (mode: "auto" | "on" | "off") => {
+  const updateEnhancementMode = async (enhancementMode: "auto" | "on" | "off") => {
     if (!config) return false;
     const previous = config;
-    setConfig({ ...config, exam_enhancement: mode });
+    setConfig({ ...config, exam_enhancement: enhancementMode });
+    setOperationError("");
     try {
-      const response = await api.post<WhisperConfig>("/whisper/config", { exam_enhancement: mode });
+      const response = await api.post<WhisperConfig>("/whisper/config", { mode: "exam", exam_enhancement: enhancementMode });
       setConfig(response.data);
       return true;
-    } catch {
+    } catch (error) {
       setConfig(previous);
+      setOperationError(errorDetail(error));
       return false;
     }
   };
 
-  return { config: effectiveConfig, models, loading, downloading, toggleEnabled, switchModel, updateEnhancementMode, refresh: load };
+  return { config, models, loading, downloading, operationError, toggleEnabled, switchModel, updateEnhancementMode, refresh: load };
 }

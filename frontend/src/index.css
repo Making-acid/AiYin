@@ -1003,6 +1003,18 @@ body {
   opacity: 0.7;
 }
 
+.exam-restart-btn {
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.45);
+  color: rgba(255,255,255,0.9);
+  padding: 7px 11px;
+  cursor: pointer;
+}
+
+.exam-restart-btn:hover:not(:disabled) { background: rgba(79, 70, 229, 0.75); }
+.exam-restart-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
 .exam-topbar .exam-timers {
   display: flex;
   align-items: center;

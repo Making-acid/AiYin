@@ -11,9 +11,11 @@ MAX_AUDIO_BYTES = 25 * 1024 * 1024
 
 
 @router.get("/config")
-def get_config():
+def get_config(mode: str = "exam"):
     try:
-        return whisper_service.get_whisper_config()
+        return whisper_service.get_whisper_config(mode=mode)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error("Failed to get whisper config: %s", e)
         raise HTTPException(status_code=500, detail="Failed to load Whisper configuration.")
@@ -23,6 +25,7 @@ def get_config():
 def update_config(request: WhisperConfigRequest):
     try:
         return whisper_service.update_whisper_config(
+            mode=request.mode,
             enabled=request.enabled,
             model=request.model,
             language=request.language,

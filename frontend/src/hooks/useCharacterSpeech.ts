@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchAzureSpeechToken, fetchTtsConfig, type TtsConfig } from "../api/tts";
 import { useSpeechSynthesis } from "./useSpeechSynthesis";
+import { toSpeechText } from "../utils/speechText";
 
 export type CharacterVoice = "haru" | "mao";
 
@@ -151,17 +152,22 @@ export function useCharacterSpeech(character: CharacterVoice, lang: string) {
 
   const speak = useCallback(async (text: string, onStart?: () => void, onEnd?: () => void) => {
     stop();
+    const spokenText = toSpeechText(text);
+    if (!spokenText) {
+      setTimeout(() => onEnd?.(), 0);
+      return;
+    }
     try {
       const config = await loadConfig();
       if (config.provider === "azure" && config.azure_configured) {
-        await playAzure(text, config, onStart, onEnd);
+        await playAzure(spokenText, config, onStart, onEnd);
         return;
       }
     } catch (error) {
       console.warn("Azure Speech unavailable; using browser speech.", error);
       clearAzurePlayback();
     }
-    browserSpeak(text, onStart, onEnd);
+    browserSpeak(spokenText, onStart, onEnd);
   }, [browserSpeak, clearAzurePlayback, playAzure, stop]);
 
   return {

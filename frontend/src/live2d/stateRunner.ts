@@ -33,6 +33,7 @@ export class StateRunner {
   private accentNextSec = Number.POSITIVE_INFINITY;
   private activeFace: FaceIntent;
   private mouthValue = 0;
+  private preserveBodyTransition = false;
 
   constructor(model: ModelRef, config: CharacterBehaviorConfig) {
     this.model = model;
@@ -65,11 +66,23 @@ export class StateRunner {
 
   setVisualState(state: Live2DVisualState): void {
     const next = VISUAL_TO_INTERNAL[state];
-    if (next === "IDLE" && this.sm.state === "LISTENING") {
-      this.sm.send("STOP_LISTENING");
-      return;
+    const currentPresentation = this.config.states[this.sm.state as Live2DState];
+    const nextPresentation = this.config.states[next];
+    const preserveBody = Boolean(
+      currentPresentation?.baseMotion
+      && currentPresentation.baseMotion === nextPresentation?.baseMotion
+      && !nextPresentation?.entryMotion,
+    );
+    this.preserveBodyTransition = preserveBody;
+    try {
+      if (next === "IDLE" && this.sm.state === "LISTENING") {
+        this.sm.send("STOP_LISTENING");
+        return;
+      }
+      this.sm.setState(next);
+    } finally {
+      this.preserveBodyTransition = false;
     }
-    this.sm.setState(next);
   }
 
   tick(dt: number, mouthValue: number, lockGaze: boolean): void {
@@ -93,9 +106,9 @@ export class StateRunner {
 
   private onEnter(_state: Live2DState, presentation: CharacterStatePresentation): void {
     this.clearFaceTimer();
-    this.stopBodyChannel();
+    if (!this.preserveBodyTransition) this.stopBodyChannel();
 
-    if (presentation.baseMotion) this.playMotion(presentation.baseMotion);
+    if (presentation.baseMotion && !this.preserveBodyTransition) this.playMotion(presentation.baseMotion);
     if (presentation.entryMotion) this.playMotion(presentation.entryMotion, true);
     this.setFace(presentation.face);
 
@@ -110,7 +123,7 @@ export class StateRunner {
 
   private onExit(): void {
     this.clearFaceTimer();
-    this.stopBodyChannel();
+    if (!this.preserveBodyTransition) this.stopBodyChannel();
   }
 
   private tickAccents(policy: AccentPolicy): void {

@@ -2,21 +2,24 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchConfig } from "../api/config";
 import { useLanguage } from "../i18n";
-import { TutorialModal, hasSeenTutorial } from "../components/TutorialModal";
+import { TutorialModal, TUTORIAL_VERSION } from "../components/TutorialModal";
 import { homeFaq } from "../content/homeFaq";
 
 export function Home() {
   const navigate = useNavigate();
-  const { lang, t } = useLanguage();
+  const { lang, preferencesReady, tutorialSeenVersion, t } = useLanguage();
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
     checkConfig();
-    if (!hasSeenTutorial()) {
+  }, []);
+
+  useEffect(() => {
+    if (preferencesReady && tutorialSeenVersion !== TUTORIAL_VERSION) {
       setShowTutorial(true);
     }
-  }, []);
+  }, [preferencesReady, tutorialSeenVersion]);
 
   const checkConfig = async () => {
     try {

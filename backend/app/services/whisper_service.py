@@ -53,7 +53,36 @@ WHISPER_MODELS = {
 }
 
 EXAM_ENHANCEMENT_MODES = {"auto", "on", "off"}
+ASR_MODES = {"exam", "free_chat"}
 WHISPERX_PIPELINE_IMPLEMENTED = True
+
+
+def _default_config() -> dict:
+    return {
+        "model": "small",
+        "exam_enabled": True,
+        "free_chat_enabled": False,
+        "language": "en",
+        "exam_enhancement": "auto",
+    }
+
+
+def _normalize_config(config: dict) -> dict:
+    result = _default_config()
+    result.update(config)
+    legacy_enabled = config.get("enabled")
+    if "exam_enabled" not in config and legacy_enabled is not None:
+        result["exam_enabled"] = bool(legacy_enabled)
+    if "free_chat_enabled" not in config:
+        result["free_chat_enabled"] = False
+    result.pop("enabled", None)
+    return result
+
+
+def _validate_mode(mode: str) -> str:
+    if mode not in ASR_MODES:
+        raise ValueError(f"Unknown ASR mode: {mode}")
+    return mode
 
 
 def _whisperx_capability() -> dict:
@@ -87,14 +116,14 @@ def _get_config() -> dict:
     try:
         if CONFIG_PATH.exists():
             with open(CONFIG_PATH, encoding="utf-8") as f:
-                return json.load(f)
-        return {"model": "small", "enabled": False, "language": "en", "exam_enhancement": "auto"}
+                return _normalize_config(json.load(f))
+        return _default_config()
     except json.JSONDecodeError as e:
         logger.error("Whisper config file is corrupted: %s", e)
-        return {"model": "small", "enabled": False, "language": "en", "exam_enhancement": "auto"}
+        return _default_config()
     except OSError as e:
         logger.error("Cannot read whisper config: %s", e)
-        return {"model": "small", "enabled": False, "language": "en", "exam_enhancement": "auto"}
+        return _default_config()
 
 
 def _save_config(config: dict):
@@ -107,7 +136,8 @@ def _save_config(config: dict):
         raise RuntimeError("Cannot save Whisper configuration. Please check file permissions.")
 
 
-def get_whisper_config() -> dict:
+def get_whisper_config(mode: str = "exam") -> dict:
+    mode = _validate_mode(mode)
     config = _get_config()
     current = config.get("model", "small")
     enhancement_mode = config.get("exam_enhancement", "auto")
@@ -115,7 +145,8 @@ def get_whisper_config() -> dict:
         enhancement_mode = "auto"
     capability = _whisperx_capability()
     return {
-        "enabled": config.get("enabled", True),
+        "enabled": bool(config.get(f"{mode}_enabled", mode == "exam")),
+        "mode": mode,
         "model": current,
         "model_name": WHISPER_MODELS.get(current, {}).get("name", current),
         "is_downloaded": is_model_downloaded(current),
@@ -130,14 +161,16 @@ def get_whisper_config() -> dict:
 
 
 def update_whisper_config(
+    mode: str = "exam",
     enabled: bool = None,
     model: str = None,
     language: str = None,
     exam_enhancement: str = None,
 ) -> dict:
+    mode = _validate_mode(mode)
     config = _get_config()
     if enabled is not None:
-        config["enabled"] = enabled
+        config[f"{mode}_enabled"] = enabled
     if language is not None:
         config["language"] = language
     if exam_enhancement is not None:
@@ -155,7 +188,7 @@ def update_whisper_config(
             _model = None
             _current_model_name = None
     _save_config(config)
-    return get_whisper_config()
+    return get_whisper_config(mode=mode)
 
 
 def list_models() -> list:

@@ -55,6 +55,8 @@ export function Exam() {
   const [recordingTimeLeft, setRecordingTimeLeft] = useState(0);
   const [prepSeconds, setPrepSeconds] = useState(60);
   const [analyzingAudio, setAnalyzingAudio] = useState(false);
+  const [processingRecording, setProcessingRecording] = useState(false);
+  const [retryAvailable, setRetryAvailable] = useState(false);
 
   useEffect(() => { sessionIdRef.current = sessionId; }, [sessionId]);
   useEffect(() => { loadingRef.current = loading; }, [loading]);
@@ -116,6 +118,14 @@ export function Exam() {
     (result: DualRecordingResult) => {
       setRecordingActive(false);
       setLive2dState("idle");
+      setProcessingRecording(false);
+      const answer = result.text.trim();
+      if (!answer) {
+        setRetryAvailable(true);
+        setSendError(t("examNoSpeechRetry"));
+        return;
+      }
+      setRetryAvailable(false);
       const recordedPhase = recordingStageRef.current;
       const stage = recordedPhase === "part2_speaking" ? "part2" : recordedPhase;
       if (stage === "part1" || stage === "part2" || stage === "part3") {
@@ -124,21 +134,29 @@ export function Exam() {
           recordingsRef.current.push({ audio: result.audio, stage, answerIndex });
         }
       }
-      if (result.text.trim()) sendAnswer(result.text.trim());
+      sendAnswer(answer);
     },
-    [sendAnswer]
+    [sendAnswer, t]
   );
 
   // Auto-stop: timer expires → stop recording, save audio, submit
   const autoStopAndSend = useCallback(() => {
     setLive2dState("idle");
-    stopDualRecording().then(handleDualResult);
+    setProcessingRecording(true);
+    void stopDualRecording().then(handleDualResult).catch(() => {
+      setProcessingRecording(false);
+      setRetryAvailable(true);
+      setSendError(t("examNoSpeechRetry"));
+    });
     setRecordingTimeLeft(0);
-  }, [stopDualRecording, handleDualResult]);
+  }, [stopDualRecording, handleDualResult, t]);
 
   // Countdown timer: interval decrements the display, timeout auto-stops recording
   const startRecordingTimer = useCallback(async (seconds: number, recordingPhase: Phase) => {
     clearTimers();
+    setSendError("");
+    setRetryAvailable(false);
+    setProcessingRecording(false);
     recordingStageRef.current = recordingPhase;
     const started = await startDualRecording();
     if (!started) {
@@ -163,6 +181,14 @@ export function Exam() {
     const autoStop = setTimeout(() => autoStopAndSend(), seconds * 1000);
     timersRef.current.push(autoStop);
   }, [clearTimers, startDualRecording, autoStopAndSend]);
+
+  const recordingDurationForPhase = useCallback((currentPhase: Phase) => {
+    if (currentPhase === "intro") return 20;
+    if (currentPhase === "part1") return 45;
+    if (currentPhase === "part2_speaking") return speakSecondsRef.current;
+    if (currentPhase === "part3") return 60;
+    return 45;
+  }, []);
 
   const handleTransition = useCallback((result: ExamStepResponse) => {
     setIsFinished(result.is_finished);
@@ -214,6 +240,9 @@ export function Exam() {
   }, [handleTransition]);
 
   const initExam = useCallback(async () => {
+    setSendError("");
+    setRetryAvailable(false);
+    setProcessingRecording(false);
     try {
       const data = await startExam();
       setSessionId(data.session_id);
@@ -223,6 +252,25 @@ export function Exam() {
       console.error("Failed to start exam:", err);
     }
   }, [handleExaminerSpeak, startRecordingTimer]);
+
+  const restartExam = useCallback(async () => {
+    clearTimers();
+    stopSpeech();
+    setProcessingRecording(false);
+    setRetryAvailable(false);
+    setRecordingActive(false);
+    setRecordingTimeLeft(0);
+    setLoading(false);
+    loadingRef.current = false;
+    recordingsRef.current = [];
+    assessableAnswerIndexRef.current = 0;
+    sessionIdRef.current = "";
+    setSessionId("");
+    setIsFinished(false);
+    setCueCard(null);
+    try { await stopDualRecording(); } catch { /* no active recording */ }
+    await initExam();
+  }, [clearTimers, initExam, stopDualRecording, stopSpeech]);
 
   useEffect(() => {
     if (!initRef.current) {
@@ -242,12 +290,16 @@ export function Exam() {
   // Toggle mic button
   const handleMicToggle = () => {
     if (dual.isRecording) {
+      clearTimers();
       setLive2dState("idle");
-      stopDualRecording().then(handleDualResult);
+      setProcessingRecording(true);
+      void stopDualRecording().then(handleDualResult).catch(() => {
+        setProcessingRecording(false);
+        setRetryAvailable(true);
+        setSendError(t("examNoSpeechRetry"));
+      });
     } else {
-      setLive2dState("listening");
-      recordingStageRef.current = phase;
-      void startDualRecording().then((started) => setRecordingActive(started));
+      void startRecordingTimer(recordingDurationForPhase(phase), phase);
     }
   };
 
@@ -292,6 +344,9 @@ export function Exam() {
           {t("back")}
         </button>
         <span className="exam-phase-label">{partLabels[phase]}</span>
+        <button className="exam-restart-btn" onClick={() => void restartExam()} disabled={processingRecording || analyzingAudio}>
+          {t("restartExam")}
+        </button>
         <div className="exam-timers">
           {phase === "part2_prep" && <Timer seconds={prepSeconds} running={true} />}
           {recordingActive && phase !== "part2_prep" && (
@@ -310,6 +365,7 @@ export function Exam() {
       )}
 
       {loading && <div className="exam-thinking">{t("thinking")}</div>}
+      {processingRecording && <div className="exam-thinking">{t("processingRecording")}</div>}
       {dual.error && <div className="exam-thinking error">{t(dual.error)}</div>}
       {sendError && <div className="exam-thinking error">{sendError}</div>}
 
@@ -325,14 +381,15 @@ export function Exam() {
               onClick={handleMicToggle}
               disabled={
                 loading ||
+                processingRecording ||
                 phase === "part2_prep" ||
                 (live2dState === "speaking" && !dual.isRecording)
               }
             >
-              {dual.isRecording ? t("stop") : t("speak")}
+              {dual.isRecording ? t("stop") : retryAvailable ? t("retryRecording") : t("speak")}
             </button>
             {recordingActive && (
-              <button className="btn-primary" onClick={handleMicToggle}>{t("stopAndSend")}</button>
+              <button className="btn-primary" onClick={handleMicToggle} disabled={processingRecording}>{t("stopAndSend")}</button>
             )}
           </>
         )}

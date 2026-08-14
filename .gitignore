@@ -27,6 +27,7 @@ backend/data/config.json
 backend/config.json
 backend/whisper_config.json
 backend/tts_config.json
+backend/preferences.json
 backend/data/tts_config.json
 
 # Whisper AI models (large files, downloaded separately)

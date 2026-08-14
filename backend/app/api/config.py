@@ -1,12 +1,32 @@
 import logging
 from fastapi import APIRouter, HTTPException
-from app.models.schemas import ConfigUpdateRequest
+from app.models.schemas import ConfigUpdateRequest, PreferencesUpdateRequest
 from app.services import config_service
-from app.services import memory_store, session_manager
+from app.services import memory_store, preferences_service, session_manager
 
 
 logger = logging.getLogger("api.config")
 router = APIRouter(prefix="/config", tags=["config"])
+
+
+@router.get("/preferences")
+def get_preferences():
+    return preferences_service.get_preferences()
+
+
+@router.post("/preferences")
+def save_preferences(request: PreferencesUpdateRequest):
+    try:
+        return preferences_service.update_preferences(
+            ui_language=request.ui_language,
+            live2d_behavior=request.live2d_behavior,
+            tutorial_seen_version=request.tutorial_seen_version,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except OSError as e:
+        logger.error("Failed to save preferences: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to save preferences.")
 
 
 @router.delete("/local-memory")

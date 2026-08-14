@@ -27,11 +27,13 @@ class WhisperConfigTests(unittest.TestCase):
                     },
                 ),
             ):
-                config = whisper_service.get_whisper_config()
+                config = whisper_service.get_whisper_config(mode="exam")
 
         self.assertEqual(config["exam_enhancement"], "auto")
         self.assertFalse(config["whisperx"]["active"])
         self.assertTrue(config["whisperx"]["fallback"])
+        self.assertTrue(config["enabled"])
+        self.assertEqual(config["mode"], "exam")
 
     def test_enhancement_mode_is_persisted(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -64,6 +66,38 @@ class WhisperConfigTests(unittest.TestCase):
             with patch.object(whisper_service, "CONFIG_PATH", Path(tmp) / "whisper_config.json"):
                 with self.assertRaises(ValueError):
                     whisper_service.update_whisper_config(exam_enhancement="sometimes")
+
+    def test_exam_and_free_chat_enabled_states_are_independent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config_path = Path(tmp) / "whisper_config.json"
+            with (
+                patch.object(whisper_service, "CONFIG_PATH", config_path),
+                patch.object(whisper_service, "is_model_downloaded", return_value=False),
+            ):
+                whisper_service.update_whisper_config(mode="exam", enabled=False)
+                whisper_service.update_whisper_config(mode="free_chat", enabled=True)
+                exam = whisper_service.get_whisper_config(mode="exam")
+                free_chat = whisper_service.get_whisper_config(mode="free_chat")
+                saved = json.loads(config_path.read_text(encoding="utf-8"))
+
+        self.assertFalse(exam["enabled"])
+        self.assertTrue(free_chat["enabled"])
+        self.assertFalse(saved["exam_enabled"])
+        self.assertTrue(saved["free_chat_enabled"])
+
+    def test_legacy_enabled_value_migrates_to_exam_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config_path = Path(tmp) / "whisper_config.json"
+            config_path.write_text('{"model":"small","enabled":false}', encoding="utf-8")
+            with (
+                patch.object(whisper_service, "CONFIG_PATH", config_path),
+                patch.object(whisper_service, "is_model_downloaded", return_value=False),
+            ):
+                exam = whisper_service.get_whisper_config(mode="exam")
+                free_chat = whisper_service.get_whisper_config(mode="free_chat")
+
+        self.assertFalse(exam["enabled"])
+        self.assertFalse(free_chat["enabled"])
 
 
 if __name__ == "__main__":

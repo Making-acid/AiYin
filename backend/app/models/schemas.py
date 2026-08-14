@@ -11,6 +11,12 @@ class ConfigUpdateRequest(BaseModel):
     model: str = ""
 
 
+class PreferencesUpdateRequest(BaseModel):
+    ui_language: Optional[str] = None
+    live2d_behavior: Optional[str] = None
+    tutorial_seen_version: Optional[str] = None
+
+
 # ---- Exam ----
 
 class ExamStartRequest(BaseModel):
@@ -50,6 +56,7 @@ class DownloadModelRequest(BaseModel):
 
 
 class WhisperConfigRequest(BaseModel):
+    mode: str = "exam"
     enabled: Optional[bool] = None
     model: Optional[str] = None
     language: Optional[str] = None
