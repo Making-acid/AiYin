@@ -9,10 +9,10 @@ from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from app.api import chat, exam, config, tts
 from app.core.config import settings
 from app.core.paths import get_resource_dir
+from app.core.spa_static import SPAStaticFiles
 
 logger = logging.getLogger("main")
 
@@ -82,7 +82,7 @@ def health_check():
 STATIC_DIR = get_resource_dir("static")
 
 if STATIC_DIR.exists() and (STATIC_DIR / "index.html").exists():
-    app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
+    app.mount("/", SPAStaticFiles(directory=str(STATIC_DIR), html=True), name="static")
 
 
 def open_browser():

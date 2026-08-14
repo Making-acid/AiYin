@@ -7,47 +7,12 @@ export default defineConfig({
     host: true,
     port: 5173,
     proxy: {
-      "/api": {
-        target: "http://localhost:8000",
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""),
-      },
-      "/whisper": {
-        target: "http://localhost:8000",
-        changeOrigin: true,
-      },
-      "/config": {
-        target: "http://localhost:8000",
-        changeOrigin: true,
-      },
-      "/exam/exams": {
-        target: "http://localhost:8000",
-        changeOrigin: true,
-      },
-      "/exam/start": {
-        target: "http://localhost:8000",
-        changeOrigin: true,
-      },
-      "/exam/answer": {
-        target: "http://localhost:8000",
-        changeOrigin: true,
-      },
-      "/exam/report": {
-        target: "http://localhost:8000",
-        changeOrigin: true,
-      },
-      "/chat/start": {
-        target: "http://localhost:8000",
-        changeOrigin: true,
-      },
-      "/chat/send": {
-        target: "http://localhost:8000",
-        changeOrigin: true,
-      },
-      "/health": {
-        target: "http://localhost:8000",
-        changeOrigin: true,
-      },
+      ...Object.fromEntries(
+        ["/exam", "/chat", "/config", "/whisper", "/tts", "/health"].map((path) => [
+          path,
+          { target: "http://127.0.0.1:8000", changeOrigin: true },
+        ]),
+      ),
     },
   },
 });

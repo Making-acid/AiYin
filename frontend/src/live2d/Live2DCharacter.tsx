@@ -93,9 +93,10 @@ export function Live2DCharacter({
       const { Live2DModel } = await import("pixi-live2d-display/cubism4");
       const PIXI = (window as any).PIXI;
 
+      const renderResolution = Math.min(Math.max(window.devicePixelRatio || 1, 1), 2);
       app = new PIXI.Application({
         view: canvas, width: w, height: h, backgroundAlpha: 0,
-        antialias: true, resolution: window.devicePixelRatio || 1, autoDensity: true,
+        antialias: true, resolution: renderResolution, autoDensity: true,
       });
       // Pointer tracking is handled locally below. Disabling the library's
       // global interaction hook keeps each character canvas self-contained.

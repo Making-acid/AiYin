@@ -31,6 +31,7 @@ export function Exam() {
   const [behavior] = useLive2DBehavior();
   const { t } = useLanguage();
   const dual = useDualRecording();
+  const startDualRecording = dual.start;
   const stopDualRecording = dual.stop;
   const { config: whisperConfig } = useWhisperConfig("exam");
   const recordingsRef = useRef<ExamRecording[]>([]);
@@ -131,18 +132,23 @@ export function Exam() {
   // Auto-stop: timer expires → stop recording, save audio, submit
   const autoStopAndSend = useCallback(() => {
     setLive2dState("idle");
-    dual.stop().then(handleDualResult);
+    stopDualRecording().then(handleDualResult);
     setRecordingTimeLeft(0);
-  }, [dual, handleDualResult]);
+  }, [stopDualRecording, handleDualResult]);
 
   // Countdown timer: interval decrements the display, timeout auto-stops recording
-  const startRecordingTimer = useCallback((seconds: number, recordingPhase: Phase) => {
+  const startRecordingTimer = useCallback(async (seconds: number, recordingPhase: Phase) => {
     clearTimers();
+    recordingStageRef.current = recordingPhase;
+    const started = await startDualRecording();
+    if (!started) {
+      setRecordingActive(false);
+      setLive2dState("idle");
+      return;
+    }
     setRecordingTimeLeft(seconds);
     setRecordingActive(true);
     setLive2dState("listening");
-    recordingStageRef.current = recordingPhase;
-    dual.start();
 
     // UI countdown
     let remaining = seconds;
@@ -156,7 +162,7 @@ export function Exam() {
     // Auto-stop
     const autoStop = setTimeout(() => autoStopAndSend(), seconds * 1000);
     timersRef.current.push(autoStop);
-  }, [clearTimers, dual, autoStopAndSend]);
+  }, [clearTimers, startDualRecording, autoStopAndSend]);
 
   const handleTransition = useCallback((result: ExamStepResponse) => {
     setIsFinished(result.is_finished);
@@ -179,7 +185,7 @@ export function Exam() {
     const part = result.current_part;
     if (part === "part1") {
       setPhase("part1");
-      handleExaminerSpeak(result.next_question, () => startRecordingTimer(45, "part1"));
+      handleExaminerSpeak(result.next_question, () => { void startRecordingTimer(45, "part1"); });
     } else if (part === "part2_prep") {
       const duration = result.cue_card?.prep_seconds ?? 60;
       setPhase("part2_prep");
@@ -193,13 +199,13 @@ export function Exam() {
     } else if (part === "part2") {
       const duration = result.question_index === 0 ? speakSecondsRef.current : 45;
       setPhase("part2_speaking");
-      handleExaminerSpeak(result.next_question, () => startRecordingTimer(duration, "part2_speaking"));
+      handleExaminerSpeak(result.next_question, () => { void startRecordingTimer(duration, "part2_speaking"); });
     } else if (part === "part3_transition") {
       setPhase("part3");
       handleExaminerSpeak(result.next_question, () => { void advanceToNextPrompt(); });
     } else if (part === "part3") {
       setPhase("part3");
-      handleExaminerSpeak(result.next_question, () => startRecordingTimer(60, "part3"));
+      handleExaminerSpeak(result.next_question, () => { void startRecordingTimer(60, "part3"); });
     }
   }, [advanceToNextPrompt, handleExaminerSpeak, startRecordingTimer]);
 
@@ -212,7 +218,7 @@ export function Exam() {
       const data = await startExam();
       setSessionId(data.session_id);
       setPhase("intro");
-      handleExaminerSpeak(data.examiner_message, () => startRecordingTimer(20, "intro"));
+      handleExaminerSpeak(data.examiner_message, () => { void startRecordingTimer(20, "intro"); });
     } catch (err) {
       console.error("Failed to start exam:", err);
     }
@@ -237,12 +243,11 @@ export function Exam() {
   const handleMicToggle = () => {
     if (dual.isRecording) {
       setLive2dState("idle");
-      dual.stop().then(handleDualResult);
+      stopDualRecording().then(handleDualResult);
     } else {
       setLive2dState("listening");
       recordingStageRef.current = phase;
-      dual.start();
-      setRecordingActive(true);
+      void startDualRecording().then((started) => setRecordingActive(started));
     }
   };
 
