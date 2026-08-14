@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { DocumentNavigation } from "../components/DocumentNavigation";
 import { useLanguage } from "../i18n";
 
 type LegalCopy = {
@@ -128,13 +128,12 @@ const COPY: Record<"zh" | "en", LegalCopy> = {
 };
 
 export function Legal() {
-  const navigate = useNavigate();
-  const { lang, t } = useLanguage();
+  const { lang } = useLanguage();
   const copy = COPY[lang];
 
   return (
     <div className="page legal-page">
-      <button className="back-btn" onClick={() => navigate(-1)}>{t("back")}</button>
+      <DocumentNavigation />
       <main className="legal-container">
         <header className="legal-header">
           <p className="legal-kicker">IELTS Speaking Practice</p>

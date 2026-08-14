@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { DocumentNavigation } from "../components/DocumentNavigation";
 import { useLanguage } from "../i18n";
 
 type GuideSection = {
@@ -78,13 +78,12 @@ const GUIDE: Record<"zh" | "en", { title: string; intro: string; sections: Guide
 };
 
 export function AzureSpeechHelp() {
-  const navigate = useNavigate();
-  const { lang, t } = useLanguage();
+  const { lang } = useLanguage();
   const guide = GUIDE[lang];
 
   return (
     <div className="page legal-page">
-      <button className="back-btn" onClick={() => navigate("/settings")}>{t("back")}</button>
+      <DocumentNavigation fallback="/settings" />
       <main className="legal-container">
         <header className="legal-header">
           <p className="legal-kicker">IELTS Speaking Practice · Azure Speech</p>

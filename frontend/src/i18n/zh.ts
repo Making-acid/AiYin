@@ -2,7 +2,7 @@ const zh: Record<string, string> = {
   // Navigation & general
   title: "IELTS 口语练习",
   examMode: "雅思考试", freeChat: "自由聊天", settings: "设置",
-  back: "← 返回", home: "首页", startExam: "开始考试 →",
+  back: "← 返回", home: "首页", documentNavigation: "文档导航", startExam: "开始考试 →",
   startChat: "开始聊天 →",
   configure: "配置 API Key", notConfigured: "API Key 未配置，请先设置。",
   subtitle: "AI 雅思口语陪练助手", desc: "通过 AI 考官练习英语口语。选择一个模式开始。",

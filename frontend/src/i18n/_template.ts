@@ -4,7 +4,7 @@
 const template: Record<string, string> = {
   title: "IELTS Speaking Practice",
   examMode: "IELTS Exam", freeChat: "Free Chat", settings: "Settings",
-  back: "← Back", home: "Home", startExam: "Start Exam →",
+  back: "← Back", home: "Home", documentNavigation: "Document navigation", startExam: "Start Exam →",
   startChat: "Start Chat →",
   configure: "Configure API Key", notConfigured: "API key not configured.",
   subtitle: "AI-Powered IELTS Speaking Assistant",

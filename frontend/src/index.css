@@ -800,12 +800,40 @@ body {
 /* ===== Legal Page ===== */
 .legal-page {
   max-width: 920px;
-  padding-top: 24px;
+  padding-top: 12px;
   padding-bottom: 64px;
 }
 
+.document-navigation {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.document-navigation button {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 8px 16px;
+  background: var(--bg-card);
+  color: var(--primary);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(30, 41, 59, 0.06);
+}
+
+.document-navigation button:hover {
+  border-color: var(--primary-light);
+  background: #eef2ff;
+}
+
 .legal-container {
-  margin-top: 20px;
+  margin-top: 8px;
 }
 
 .legal-header,
