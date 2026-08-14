@@ -31,7 +31,11 @@ internal sealed class ProcessJob : IDisposable
         try
         {
             Marshal.StructureToPtr(information, pointer, false);
-            if (!SetInformationJobObject(handle, 9, pointer, (uint)size)
+            if (!SetInformationJobObject(
+                    handle,
+                    JobObjectInformationClass.ExtendedLimitInformation,
+                    pointer,
+                    (uint)size)
                 || !AssignProcessToJobObject(handle, process.Handle))
             {
                 handle.Dispose();
@@ -54,7 +58,7 @@ internal sealed class ProcessJob : IDisposable
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool SetInformationJobObject(
         SafeJobHandle job,
-        int informationClass,
+        JobObjectInformationClass informationClass,
         IntPtr information,
         uint informationLength);
 
@@ -71,6 +75,11 @@ internal sealed class ProcessJob : IDisposable
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool CloseHandle(IntPtr handle);
+    }
+
+    private enum JobObjectInformationClass
+    {
+        ExtendedLimitInformation = 9,
     }
 
     [StructLayout(LayoutKind.Sequential)]

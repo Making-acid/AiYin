@@ -178,17 +178,6 @@ internal sealed class BackendHost : IAsyncDisposable
 
     private static LaunchCommand ResolveLaunchCommand()
     {
-        var configuredExecutable = Environment.GetEnvironmentVariable("IELTS_BACKEND_EXECUTABLE");
-        if (!string.IsNullOrWhiteSpace(configuredExecutable))
-        {
-            var fullPath = Path.GetFullPath(configuredExecutable);
-            if (!File.Exists(fullPath))
-            {
-                throw new FileNotFoundException("IELTS_BACKEND_EXECUTABLE does not exist.", fullPath);
-            }
-            return new LaunchCommand(fullPath, Path.GetDirectoryName(fullPath)!, [], null);
-        }
-
         var packagedCandidates = new[]
         {
             Path.Combine(AppContext.BaseDirectory, "backend", "IELTS Speaking Backend.exe"),
@@ -200,6 +189,21 @@ internal sealed class BackendHost : IAsyncDisposable
             {
                 return new LaunchCommand(candidate, Path.GetDirectoryName(candidate)!, [], null);
             }
+        }
+
+        // A complete installation always uses its bundled backend. The override
+        // is intentionally limited to development layouts where no bundled
+        // executable exists, so a user-level environment variable cannot replace
+        // production code.
+        var configuredExecutable = Environment.GetEnvironmentVariable("IELTS_BACKEND_EXECUTABLE");
+        if (!string.IsNullOrWhiteSpace(configuredExecutable))
+        {
+            var fullPath = Path.GetFullPath(configuredExecutable);
+            if (!File.Exists(fullPath))
+            {
+                throw new FileNotFoundException("IELTS_BACKEND_EXECUTABLE does not exist.", fullPath);
+            }
+            return new LaunchCommand(fullPath, Path.GetDirectoryName(fullPath)!, [], null);
         }
 
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

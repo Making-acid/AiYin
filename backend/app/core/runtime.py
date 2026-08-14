@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from contextlib import suppress
 from pathlib import Path
 
 
@@ -22,8 +23,13 @@ def write_port_file(port: int) -> Path | None:
     if not raw_path:
         return None
     path = Path(raw_path)
-    path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(str(port), encoding="ascii")
-    temporary.replace(path)
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temporary.write_text(str(port), encoding="ascii")
+        temporary.replace(path)
+    except OSError as exc:
+        with suppress(OSError):
+            temporary.unlink()
+        raise RuntimeError(f"Unable to publish the backend port file: {path}") from exc
     return path

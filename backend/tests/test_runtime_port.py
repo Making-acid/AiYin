@@ -23,3 +23,15 @@ def test_write_port_file_is_atomic(monkeypatch, tmp_path):
     assert runtime.write_port_file(43123) == path
     assert path.read_text(encoding="ascii") == "43123"
     assert not path.with_suffix(".port.tmp").exists()
+
+
+def test_write_port_file_reports_filesystem_failure(monkeypatch, tmp_path):
+    path = tmp_path / "runtime" / "backend.port"
+    monkeypatch.setenv("IELTS_PORT_FILE", str(path))
+
+    def fail_to_create_directory(*_args, **_kwargs):
+        raise OSError("read-only filesystem")
+
+    monkeypatch.setattr(type(path), "mkdir", fail_to_create_directory)
+    with pytest.raises(RuntimeError, match="Unable to publish the backend port file"):
+        runtime.write_port_file(43123)
