@@ -8,7 +8,10 @@
     :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #1e293b; background: #f8fafc; }
     * { box-sizing: border-box; }
     body { margin: 0; line-height: 1.75; }
-    main { width: min(920px, calc(100% - 32px)); margin: 32px auto 64px; }
+    .guide-nav { position: sticky; top: 0; z-index: 10; display: flex; gap: 10px; padding: 10px max(16px, calc((100% - 920px) / 2)); background: rgba(248, 250, 252, .96); border-bottom: 1px solid #e2e8f0; backdrop-filter: blur(8px); }
+    .guide-nav button { border: 1px solid #cbd5e1; border-radius: 9px; padding: 8px 16px; background: #fff; color: #334155; font: inherit; font-weight: 700; cursor: pointer; }
+    .guide-nav button:hover { background: #eef2ff; border-color: #a5b4fc; }
+    main { width: min(920px, calc(100% - 32px)); margin: 24px auto 64px; }
     header, section { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px; margin-bottom: 18px; }
     header { background: linear-gradient(135deg, #eef2ff, #fff); border-color: #c7d2fe; }
     h1 { color: #3730a3; margin: 0 0 8px; line-height: 1.25; }
@@ -28,6 +31,10 @@
   </style>
 </head>
 <body>
+<nav class="guide-nav" aria-label="文档导航">
+  <button type="button" onclick="if (history.length > 1) history.back(); else location.href='/'">← 返回</button>
+  <button type="button" onclick="location.href='/'">返回首页</button>
+</nav>
 <main>
   <header>
     <h1>IELTS Speaking Beta 1.0 用户指南</h1>

@@ -9,6 +9,19 @@ internal sealed class MainForm : Form
     private readonly BackendHost _backend = new();
     private readonly CancellationTokenSource _lifetime = new();
     private readonly Panel _content = new() { Dock = DockStyle.Fill };
+    private readonly TableLayoutPanel _documentNavigation = new()
+    {
+        Dock = DockStyle.Top,
+        Height = 48,
+        Visible = false,
+        BackColor = Color.White,
+        Padding = new Padding(12, 7, 12, 7),
+        ColumnCount = 4,
+        RowCount = 1,
+    };
+    private readonly Button _documentBack = CreateNavigationButton("← 返回");
+    private readonly Button _documentHome = CreateNavigationButton("首页");
+    private readonly Button _documentClose = CreateNavigationButton("退出");
     private readonly Label _status = new()
     {
         Dock = DockStyle.Fill,
@@ -32,8 +45,20 @@ internal sealed class MainForm : Form
         MinimumSize = new Size(1100, 720);
         AutoScaleMode = AutoScaleMode.Dpi;
         BackColor = Color.FromArgb(247, 249, 252);
+        _documentNavigation.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        _documentNavigation.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        _documentNavigation.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        _documentNavigation.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        _documentNavigation.Controls.Add(_documentBack, 0, 0);
+        _documentNavigation.Controls.Add(_documentHome, 1, 0);
+        _documentNavigation.Controls.Add(new Panel(), 2, 0);
+        _documentNavigation.Controls.Add(_documentClose, 3, 0);
+        _documentBack.Click += (_, _) => NavigateBack();
+        _documentHome.Click += (_, _) => NavigateHome();
+        _documentClose.Click += (_, _) => Close();
         _content.Controls.Add(_status);
         Controls.Add(_content);
+        Controls.Add(_documentNavigation);
         _backend.UnexpectedExit += (_, _) => BeginInvoke(() => _ = RecoverBackendAsync());
         Shown += (_, _) => _ = InitializeApplicationAsync();
     }
@@ -142,14 +167,21 @@ internal sealed class MainForm : Form
 
         core.NavigationStarting += (_, args) =>
         {
-            if (IsLocalAppUri(args.Uri)) return;
+            if (IsLocalAppUri(args.Uri))
+            {
+                UpdateDocumentNavigation(core, args.Uri);
+                return;
+            }
             args.Cancel = true;
             OpenExternalUri(args.Uri);
         };
 
+        core.HistoryChanged += (_, _) => UpdateDocumentNavigation(core, core.Source);
+
         core.WindowCloseRequested += (_, _) => Close();
         core.NavigationCompleted += async (_, args) =>
         {
+            UpdateDocumentNavigation(core, core.Source);
             var diagnosticsPath = Environment.GetEnvironmentVariable("IELTS_WEBVIEW_DIAGNOSTICS_FILE");
             if (!args.IsSuccess || string.IsNullOrWhiteSpace(diagnosticsPath) || _webView is null) return;
             try
@@ -194,6 +226,53 @@ internal sealed class MainForm : Form
             && uri.Scheme == _appUri.Scheme
             && uri.Host == _appUri.Host
             && uri.Port == _appUri.Port;
+    }
+
+    private bool IsDocumentUri(string? value)
+    {
+        if (!IsLocalAppUri(value) || !Uri.TryCreate(value, UriKind.Absolute, out var uri)) return false;
+        var path = uri.AbsolutePath;
+        return path.Equals("/legal", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/help/", StringComparison.OrdinalIgnoreCase)
+            || path.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void UpdateDocumentNavigation(CoreWebView2 core, string? value)
+    {
+        _documentNavigation.Visible = IsDocumentUri(value);
+        _documentBack.Enabled = core.CanGoBack;
+        _documentNavigation.BringToFront();
+    }
+
+    private void NavigateBack()
+    {
+        var core = _webView?.CoreWebView2;
+        if (core?.CanGoBack == true)
+        {
+            core.GoBack();
+            return;
+        }
+        NavigateHome();
+    }
+
+    private void NavigateHome()
+    {
+        if (_appUri is not null) _webView?.CoreWebView2.Navigate(_appUri.AbsoluteUri);
+    }
+
+    private static Button CreateNavigationButton(string text)
+    {
+        return new Button
+        {
+            Text = text,
+            AutoSize = true,
+            MinimumSize = new Size(82, 32),
+            Margin = new Padding(0, 0, 8, 0),
+            FlatStyle = FlatStyle.Flat,
+            BackColor = Color.FromArgb(247, 249, 252),
+            ForeColor = Color.FromArgb(51, 65, 85),
+            Cursor = Cursors.Hand,
+        };
     }
 
     private static void OpenExternalUri(string? value)
