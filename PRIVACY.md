@@ -3,8 +3,8 @@
 Effective date: 14 August 2026
 生效日期：2026 年 8 月 14 日
 
-This notice describes the current v0.6.0 desktop/local-web build. A modified or
-hosted deployment may behave differently. / 本说明适用于当前 v0.6.0 桌面版及本地网页版本；
+This notice describes the current Beta 1.0 desktop/local-web build. A modified or
+hosted deployment may behave differently. / 本说明适用于当前 Beta 1.0 桌面版及本地网页版本；
 经修改或部署到服务器后的版本可能存在不同的数据处理方式。
 
 ## English

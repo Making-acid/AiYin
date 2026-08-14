@@ -14,15 +14,13 @@ def test_release_version_is_consistent_across_runtimes():
     backend_version = re.search(r'FastAPI\(.*?version="([^"]+)"', main_source, re.DOTALL)
     desktop_version = re.search(r"<Version>([^<]+)</Version>", desktop_project)
     installer_version = re.search(r'#define MyAppVersion "([^"]+)"', installer_source)
-    release_directory_version = re.search(
-        r'IELTS-Speaking-WebView2-v([0-9.]+)-Release', release_script
-    )
+    release_script_version = re.search(r'\$releaseVersion = "([^"]+)"', release_script)
 
-    assert backend_version and desktop_version and installer_version and release_directory_version
+    assert backend_version and desktop_version and installer_version and release_script_version
     versions = {
         backend_version.group(1),
         desktop_version.group(1),
         installer_version.group(1),
-        release_directory_version.group(1),
+        release_script_version.group(1),
     }
     assert len(versions) == 1, f"Release version mismatch: {sorted(versions)}"

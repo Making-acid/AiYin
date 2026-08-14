@@ -250,7 +250,7 @@ export function Settings() {
           <p className="settings-desc">{t("helpDesc")}</p>
           <div className="form-actions">
             <a
-              href="/help/user-guide.pdf"
+              href="/help/user-guide.html"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-secondary"

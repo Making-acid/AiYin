@@ -15,6 +15,13 @@ const en: Record<string, string> = {
   // Home page
   examModeDesc: "Simulate a full IELTS Speaking test with Part 1, 2, and 3. Get an estimated band score and detailed feedback.",
   freeChatDesc: "Practice casual English conversation with an AI partner. No pressure, no scoring—just practice.",
+  quickStartTitle: "New here? Start in 3 steps",
+  quickStartStep1: "Open Settings, choose an AI provider, and enter your own API key.",
+  quickStartStep2: "Allow microphone access and try one sentence in Free Chat before an exam.",
+  quickStartStep3: "Use Exam Mode for a full mock test or Free Chat for relaxed practice.",
+  homeFaqTitle: "No technical experience needed: Q&A",
+  homeFaqIntro: "These answers follow the order in which most people use the app. Select a question to expand it.",
+  userGuide: "Open the full user guide",
 
   // Settings
   apiConfig: "LLM API Configuration",
@@ -164,7 +171,7 @@ const en: Record<string, string> = {
 
   // Help
   helpTitle: "Help",
-  helpOpenPdf: "Open User Guide (PDF)",
+  helpOpenPdf: "Open User Guide",
   helpDesc: "User guidance, legal limitations, and data handling.",
   legalLink: "Legal, disclaimer & privacy",
   localMemory: "Local memory", localMemoryDesc: "Free-chat history and completed exam memory are stored only on this device.",

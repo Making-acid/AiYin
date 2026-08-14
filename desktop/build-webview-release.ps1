@@ -5,8 +5,10 @@ param(
 
 $ErrorActionPreference = "Stop"
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$releaseVersion = "1.0.0-beta.1"
+$releaseLabel = "Beta-1.0"
 if ([string]::IsNullOrWhiteSpace($ReleaseRoot)) {
-    $ReleaseRoot = Join-Path (Split-Path $projectRoot -Parent) "IELTS-Speaking-WebView2-v0.6.0-Release"
+    $ReleaseRoot = Join-Path (Split-Path $projectRoot -Parent) "IELTS-Speaking-WebView2-$releaseLabel-Release"
 }
 $ReleaseRoot = [IO.Path]::GetFullPath($ReleaseRoot)
 if ($ReleaseRoot.StartsWith($projectRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
@@ -37,7 +39,15 @@ $pythonCandidates = @(
     (Join-Path $backendRoot "venv\Scripts\python.exe"),
     (Join-Path $backendRoot "venv-whisperx\Scripts\python.exe")
 )
-$python = $pythonCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+$python = $null
+foreach ($candidate in $pythonCandidates) {
+    if (-not (Test-Path -LiteralPath $candidate)) { continue }
+    & $candidate -c "import PyInstaller" 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        $python = $candidate
+        break
+    }
+}
 if (-not $python) { throw "No backend virtual-environment Python was found." }
 
 & $python -m PyInstaller --noconfirm --clean `

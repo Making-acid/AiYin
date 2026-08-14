@@ -17,7 +17,7 @@ type LegalCopy = {
 const COPY: Record<"zh" | "en", LegalCopy> = {
   en: {
     title: "Legal, Disclaimer & Privacy",
-    updated: "Effective 14 August 2026 · v0.6.0",
+    updated: "Effective 14 August 2026 · Beta 1.0",
     intro: "Please read this before using the microphone, AI conversation, or estimated scoring features.",
     sections: [
       {
@@ -72,7 +72,7 @@ const COPY: Record<"zh" | "en", LegalCopy> = {
   },
   zh: {
     title: "法律说明、免责声明与隐私",
-    updated: "2026 年 8 月 14 日生效 · v0.6.0",
+    updated: "2026 年 8 月 14 日生效 · Beta 1.0",
     intro: "使用麦克风、AI 对话或预估评分功能前，请先阅读以下内容。",
     sections: [
       {

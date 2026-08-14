@@ -8,7 +8,14 @@
 
 应用图标以“正在说话的 Mao”为主题，并已应用到网页、Windows EXE、安装器、桌面快捷方式和卸载项。
 
-## v0.6.0 重点
+## 文档导航
+
+- **普通用户**：[中文用户指南](docs/user/README.md)；安装版也可在首页 Q&A 或“设置 → 帮助”中打开离线指南。
+- **开发者与贡献者**：[中文开发者指南](docs/developer/README.md)。
+- **文档总目录**：[用户文档与开发者文档分类](docs/README.md)。
+- **法律与隐私**：[免责声明](DISCLAIMER.md)、[隐私说明](PRIVACY.md)与[第三方声明](NOTICE.md)。
+
+## Beta 1.0 重点
 
 - 考试流程与评分彻底分离：Part 3 由考官现场追问，考试结束后才生成评估。
 - 自由对话支持本地历史记录；考试模式保存本地 memory，便于查看长期表现。
@@ -57,7 +64,7 @@ python -m nltk.downloader punkt_tab
 
 ---
 
-## 项目结构 (v0.6)
+## 项目结构（Beta 1.0）
 
 ```
 IELTS/
@@ -190,7 +197,7 @@ dotnet run --project desktop/IELTSSpeaking.Desktop
 
 脚本会构建前端、冻结独立 Python 后端、发布自包含的 x64 .NET 桌面宿主、下载微软官方
 Evergreen WebView2 引导程序，并调用 Inno Setup。全部产物写入仓库同级目录
-`IELTS-Speaking-WebView2-v0.6.0-Release`，不会进入源码目录。详见
+`IELTS-Speaking-WebView2-Beta-1.0-Release`，不会进入源码目录。详见
 [`desktop/README.md`](desktop/README.md)。
 
 ---

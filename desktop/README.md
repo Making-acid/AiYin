@@ -1,42 +1,35 @@
-# WebView2 desktop host
+# WebView2 桌面宿主开发说明
 
-The desktop host is intentionally limited to native application concerns. The
-React frontend and FastAPI backend remain the source of product behaviour.
+本目录只处理原生桌面职责。React 前端与 FastAPI 后端仍是产品行为的来源。普通用户请阅读[中文用户指南](../docs/user/README.md)。
 
-## Development
+## 开发运行
 
-1. Build the frontend with `npm run build` in `frontend`. The development host
-   automatically points the backend at `frontend/dist`.
-2. Start the host from the repository root:
+先在 `frontend/` 执行 `npm run build`，然后从仓库根目录运行：
 
-   ```powershell
-   dotnet run --project desktop/IELTSSpeaking.Desktop
-   ```
+```powershell
+dotnet run --project desktop/IELTSSpeaking.Desktop
+```
 
-The host discovers `backend/run.py`, starts it on an OS-assigned loopback port,
-waits for `/health`, and then navigates WebView2 to the application. Set
-`IELTS_WEBVIEW_DEVTOOLS=1` to enable developer tools for a development run.
-Set `IELTS_WEBVIEW_DIAGNOSTICS_FILE` to a writable JSON path to capture the
-browser recording capabilities detected after the first successful navigation.
+宿主会寻找 `backend/run.py`，在系统分配的本地回环端口启动后端，等待 `/health` 成功后再打开 WebView2。
 
-For packaged builds, place `IELTS Speaking Backend.exe` and its PyInstaller
-support files beneath a `backend` directory next to the desktop executable.
+- `IELTS_WEBVIEW_DEVTOOLS=1`：开发运行时开启开发者工具。
+- `IELTS_WEBVIEW_DIAGNOSTICS_FILE=<路径>`：把首次导航后的录音能力探测结果写入 JSON。
+- 打包后端应位于桌面 EXE 同级的 `backend/` 目录中。
 
-## Release build
+## 发布构建
 
-Run `desktop/build-webview-release.ps1` from PowerShell. Release binaries,
-intermediate files, the official Evergreen WebView2 bootstrapper, and the Inno
-Setup installer are written to the sibling directory
-`IELTS-Speaking-WebView2-v0.6.0-Release`, never into the repository. Use
-`-SkipInstaller` when only an application staging directory is needed.
+```powershell
+.\desktop\build-webview-release.ps1
+```
 
-## Runtime boundaries
+脚本会把正式发布目录、中间文件、微软 WebView2 Evergreen 引导程序和 Inno Setup 安装包写入仓库外的 `IELTS-Speaking-WebView2-Beta-1.0-Release`。使用 `-SkipInstaller` 可只生成应用目录。
 
-- Only `http://127.0.0.1:<assigned-port>` is allowed inside the application.
-- HTTP(S) links outside the local app are opened by the system browser.
-- Microphone permission is granted only to the local app origin; camera access
-  is denied.
-- WebView2 profile data is stored under `%LOCALAPPDATA%\IELTS Speaking\WebView2`.
-- Closing or restarting the desktop window terminates the complete backend
-  process tree. On Windows, the backend is also placed in a kill-on-close Job
-  Object so an abnormal host termination cannot leave an orphan service.
+## 运行边界
+
+- WebView2 只允许当前 `http://127.0.0.1:<动态端口>` 应用来源。
+- 外部 HTTP(S) 链接交给系统浏览器。
+- 麦克风只授权给本地应用来源，摄像头默认拒绝。
+- WebView2 配置保存在 `%LOCALAPPDATA%\IELTS Speaking\WebView2`。
+- 关闭或重启窗口时回收整个后端进程树；Windows Job Object 负责异常退出兜底。
+
+完整架构、测试和版本要求见[中文开发者指南](../docs/developer/README.md)。

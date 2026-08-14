@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { fetchConfig } from "../api/config";
 import { useLanguage } from "../i18n";
 import { TutorialModal, hasSeenTutorial } from "../components/TutorialModal";
+import { homeFaq } from "../content/homeFaq";
 
 export function Home() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
 
@@ -43,6 +44,18 @@ export function Home() {
         </div>
       )}
 
+      <section className="quick-start" aria-labelledby="quick-start-title">
+        <div className="quick-start-heading">
+          <span aria-hidden="true">👋</span>
+          <h2 id="quick-start-title">{t("quickStartTitle")}</h2>
+        </div>
+        <ol>
+          <li>{t("quickStartStep1")}</li>
+          <li>{t("quickStartStep2")}</li>
+          <li>{t("quickStartStep3")}</li>
+        </ol>
+      </section>
+
       <div className="mode-cards">
         <div className="mode-card" onClick={() => navigate("/exam")}>
           <div className="mode-icon">📝</div>
@@ -58,6 +71,27 @@ export function Home() {
           <span className="mode-action">{t("startChat")}</span>
         </div>
       </div>
+
+      <section className="home-faq" aria-labelledby="home-faq-title">
+        <div className="home-faq-heading">
+          <div>
+            <span className="home-faq-kicker">Q&amp;A</span>
+            <h2 id="home-faq-title">{t("homeFaqTitle")}</h2>
+            <p>{t("homeFaqIntro")}</p>
+          </div>
+          <a className="btn-secondary home-guide-link" href="/help/user-guide.html" target="_blank" rel="noopener noreferrer">
+            {t("userGuide")}
+          </a>
+        </div>
+        <div className="home-faq-list">
+          {homeFaq[lang].map((item, index) => (
+            <details key={item.question} open={index === 0}>
+              <summary>{item.question}</summary>
+              <p>{item.answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
 
       <button className="settings-link" onClick={() => navigate("/settings")}>
         ⚙ {t("settings")}

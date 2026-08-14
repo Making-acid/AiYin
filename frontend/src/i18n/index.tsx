@@ -10,10 +10,15 @@ const STRINGS: Record<Language, Record<string, string>> = { en, zh };
 const LanguageContext = createContext<{
   lang: Language;
   setLang: (l: Language) => void;
-}>({ lang: "en", setLang: () => {} });
+}>({ lang: "zh", setLang: () => {} });
 
 function getLS(key: string, fallback: string) {
   return localStorage.getItem(key) || fallback;
+}
+
+function getInitialLanguage(): Language {
+  const stored = getLS("ui_language", "zh");
+  return stored === "en" || stored === "zh" ? stored : "zh";
 }
 
 const BehaviorContext = createContext<{
@@ -26,7 +31,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     () => getLS("live2d_behavior", "look_forward") as Live2DBehavior
   );
   const [lang, setLang] = useState<Language>(
-    () => getLS("ui_language", "en") as Language
+    getInitialLanguage
   );
 
   useEffect(() => {

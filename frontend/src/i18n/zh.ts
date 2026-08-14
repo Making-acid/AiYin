@@ -14,6 +14,13 @@ const zh: Record<string, string> = {
   // Home page
   examModeDesc: "模拟完整的雅思口语考试，包含 Part 1、2、3。获取预估分数和详细反馈。",
   freeChatDesc: "与 AI 伙伴进行轻松的英语对话。无压力，无评分——纯粹练习。",
+  quickStartTitle: "第一次使用？按这 3 步开始",
+  quickStartStep1: "进入设置，选择 AI 服务商并填写自己的 API Key。",
+  quickStartStep2: "允许麦克风权限；考试前建议先在自由聊天中试说一句。",
+  quickStartStep3: "选择考试模式进行完整模拟，或选择自由聊天轻松练习。",
+  homeFaqTitle: "不会配置也没关系：常见问题 Q&A",
+  homeFaqIntro: "这里按普通用户的实际使用顺序整理。点击问题即可展开答案。",
+  userGuide: "打开完整用户指南",
 
   // Settings
   apiConfig: "LLM API 配置",
@@ -163,7 +170,7 @@ const zh: Record<string, string> = {
 
   // Help
   helpTitle: "帮助",
-  helpOpenPdf: "打开用户指南 (PDF)",
+  helpOpenPdf: "打开中文用户指南",
   helpDesc: "查看使用指南、法律限制与数据处理方式。",
   legalLink: "法律说明、免责声明与隐私",
   localMemory: "本地记忆", localMemoryDesc: "自由对话历史与已完成的考试记忆仅保存在本设备。",

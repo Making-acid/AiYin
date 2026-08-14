@@ -9,7 +9,8 @@
     <ApplicationIcon>..\..\frontend\public\icons\app-icon.ico</ApplicationIcon>
     <AssemblyName>IELTS Speaking</AssemblyName>
     <RootNamespace>IELTSSpeaking.Desktop</RootNamespace>
-    <Version>0.6.0</Version>
+    <Version>1.0.0-beta.1</Version>
+    <Product>IELTS Speaking Beta 1.0</Product>
   </PropertyGroup>
 
   <ItemGroup>

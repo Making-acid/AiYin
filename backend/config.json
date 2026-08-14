@@ -1,6 +1,0 @@
-{
-  "provider": "deepseek-v4-pro",
-  "api_key": "sk-e8549f0cc4c54cf3bb48386d1d92128a",
-  "base_url": "https://api.deepseek.com",
-  "model": "deepseek-v4-pro"
-}
