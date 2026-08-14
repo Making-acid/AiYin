@@ -5,8 +5,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$releaseVersion = "1.0.0-beta.1"
-$releaseLabel = "Beta-1.0"
+$releaseVersion = "1.1.0-beta.1"
+$releaseLabel = "Beta-1.1"
 if ([string]::IsNullOrWhiteSpace($ReleaseRoot)) {
     $ReleaseRoot = Join-Path (Split-Path $projectRoot -Parent) "IELTS-Speaking-WebView2-$releaseLabel-Release"
 }
