@@ -7,10 +7,11 @@
 #define MyAppVersion "0.6.0"
 #define MyAppPublisher "IELTS AI"
 #define MyAppURL "https://github.com/Making-acid/ielts-speaking-ai"
-#define MyAppExeName "IELTS Speaking v0.6.0.exe"
-#define MyReleaseRoot "..\IELTS-Speaking-v0.6.0-Release"
-#define MySourceDir MyReleaseRoot + "\Portable\IELTS Speaking v0.6.0"
+#define MyAppExeName "IELTS Speaking.exe"
+#define MyReleaseRoot "..\IELTS-Speaking-WebView2-v0.6.0-Release"
+#define MySourceDir MyReleaseRoot + "\AppStage"
 #define MyOutputDir MyReleaseRoot + "\Installer"
+#define WebView2Bootstrapper MyReleaseRoot + "\Prerequisites\MicrosoftEdgeWebview2Setup.exe"
 
 [Setup]
 AppId={{7B8E9A1D-4F3C-4A2E-B5D6-8C7A9E1F2D3B}}
@@ -44,6 +45,8 @@ CloseApplicationsFilter=*.exe,*.dll
 Type: files; Name: "{app}\IELTS Speaking v0.3.0.exe"
 Type: files; Name: "{app}\IELTS Speaking v0.4.0.exe"
 Type: files; Name: "{app}\IELTS Speaking v0.5.0.exe"
+Type: files; Name: "{app}\IELTS Speaking v0.6.0.exe"
+Type: filesandordirs; Name: "{app}\_internal"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -59,6 +62,9 @@ Source: "PRIVACY.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "NOTICE.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion
+#if FileExists(WebView2Bootstrapper)
+Source: "{#WebView2Bootstrapper}"; DestDir: "{tmp}"; Flags: deleteafterinstall
+#endif
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
@@ -66,6 +72,9 @@ Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
+#if FileExists(WebView2Bootstrapper)
+Filename: "{tmp}\MicrosoftEdgeWebview2Setup.exe"; Parameters: "/silent /install"; StatusMsg: "Installing Microsoft Edge WebView2 Runtime..."; Flags: waituntilterminated; Check: not IsWebView2RuntimeInstalled
+#endif
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [Code]
@@ -74,6 +83,22 @@ var
   DisclaimerMemo: TNewMemo;
   AgreeRadio: TNewRadioButton;
   DisagreeRadio: TNewRadioButton;
+
+function IsWebView2RuntimeInstalled: Boolean;
+var
+  Version: string;
+  RuntimeKey: string;
+begin
+  RuntimeKey := 'Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}';
+  Result := RegQueryStringValue(HKLM32, RuntimeKey, 'pv', Version) and
+    (Version <> '') and (Version <> '0.0.0.0');
+  if not Result then
+  begin
+    Version := '';
+    Result := RegQueryStringValue(HKCU, RuntimeKey, 'pv', Version) and
+      (Version <> '') and (Version <> '0.0.0.0');
+  end;
+end;
 
 function DisclaimerText: string;
 begin

@@ -7,11 +7,14 @@ __pycache__/
 
 # Build output
 frontend/dist/
+desktop/**/bin/
+desktop/**/obj/
 backend/static/
 backend/build/
 backend/dist/
 backend/*.spec
 !backend/IELTS Speaking v0.6.0.spec
+!backend/IELTS Speaking Backend.spec
 installer/
 release/
 

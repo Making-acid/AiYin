@@ -167,26 +167,31 @@ IELTS/
 
 ---
 
-## 打包 EXE
+## WebView2 桌面版与打包
 
-```bash
-# 1. 构建前端（relative URL）
+Windows 桌面版使用原生 WinForms + Microsoft WebView2 承载现有 React 页面，业务仍由
+FastAPI 后端负责。宿主为后端分配随机回环端口，只向本地应用来源授予麦克风权限，外部
+链接交给系统浏览器；关闭窗口时会同步回收后端进程。
+
+开发运行：
+
+```powershell
 cd frontend
-$env:VITE_API_BASE=""; npm run build
-
-# 2. 复制到 backend/static
-New-Item -ItemType Directory ..\IELTS-Speaking-v0.6.0-Release -Force
-Copy-Item -Recurse frontend\dist ..\IELTS-Speaking-v0.6.0-Release\StaticStage
-
-# 3. PyInstaller 打包
-cd backend
-pyinstaller --noconfirm --clean --distpath "..\..\IELTS-Speaking-v0.6.0-Release\Portable" --workpath "..\..\IELTS-Speaking-v0.6.0-Release\BuildCache" "IELTS Speaking v0.6.0.spec"
-
-# 4. 数据与资源
-数据与前端静态资源已由 `IELTS Speaking v0.6.0.spec` 一并收集，无需手工复制。便携版与安装包输出到项目外的 `IELTS-Speaking-v0.6.0-Release`，不进入源码仓库。
+npm.cmd run build
+cd ..
+dotnet run --project desktop/IELTSSpeaking.Desktop
 ```
 
-打包安装包：准备好 EXE 文件夹后运行 `ISCC.exe setup.iss`。
+生成完整发布目录与覆盖安装包：
+
+```powershell
+./desktop/build-webview-release.ps1
+```
+
+脚本会构建前端、冻结独立 Python 后端、发布自包含的 x64 .NET 桌面宿主、下载微软官方
+Evergreen WebView2 引导程序，并调用 Inno Setup。全部产物写入仓库同级目录
+`IELTS-Speaking-WebView2-v0.6.0-Release`，不会进入源码目录。详见
+[`desktop/README.md`](desktop/README.md)。
 
 ---
 

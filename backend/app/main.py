@@ -5,6 +5,7 @@ import webbrowser
 import threading
 import logging
 import tempfile
+import socket
 from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from fastapi import FastAPI
@@ -12,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import chat, exam, config, tts
 from app.core.config import settings
 from app.core.paths import get_resource_dir
+from app.core.runtime import configured_port, write_port_file
 from app.core.spa_static import SPAStaticFiles
 
 logger = logging.getLogger("main")
@@ -79,34 +81,50 @@ def health_check():
     return {"status": "ok"}
 
 
-STATIC_DIR = get_resource_dir("static")
+STATIC_DIR = Path(os.environ["IELTS_STATIC_DIR"]) if os.environ.get("IELTS_STATIC_DIR") else get_resource_dir("static")
 
 if STATIC_DIR.exists() and (STATIC_DIR / "index.html").exists():
     app.mount("/", SPAStaticFiles(directory=str(STATIC_DIR), html=True), name="static")
 
 
-def open_browser():
-    webbrowser.open("http://localhost:8000")
+def open_browser(port: int):
+    webbrowser.open(f"http://127.0.0.1:{port}")
 
 
 def main():
     import uvicorn
 
+    host = "127.0.0.1"
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_socket.bind((host, configured_port()))
+    server_socket.listen(2048)
+    port = server_socket.getsockname()[1]
+    port_file = write_port_file(port)
+
     if getattr(sys, "frozen", False):
         if os.environ.get("IELTS_NO_BROWSER") != "1":
-            threading.Timer(1.5, open_browser).start()
+            threading.Timer(1.5, open_browser, args=(port,)).start()
         # --windowed mode has no console handles; uvicorn needs them alive
         if sys.stderr is None:
             sys.stderr = open(os.devnull, "w")
         if sys.stdout is None:
             sys.stdout = open(os.devnull, "w")
 
-    uvicorn.run(
-        app, host="127.0.0.1", port=8000,
+    config = uvicorn.Config(
+        app, host=host, port=port,
         log_level="info",
         # Disable coloured logging in frozen mode (stderr may not support it)
         use_colors=False,
     )
+    server = uvicorn.Server(config)
+    try:
+        server.run(sockets=[server_socket])
+    finally:
+        server_socket.close()
+        if port_file is not None:
+            with suppress(OSError):
+                port_file.unlink()
 
 
 if __name__ == "__main__":
