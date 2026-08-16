@@ -1031,6 +1031,34 @@ body {
   opacity: 0.7;
 }
 
+.preference-save-alert {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: min(420px, calc(100vw - 40px));
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fff1f2;
+  color: #9f1239;
+  box-shadow: var(--shadow-lg);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.preference-save-alert button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
 .exam-restart-btn {
   border: 1px solid rgba(255,255,255,0.35);
   border-radius: 8px;

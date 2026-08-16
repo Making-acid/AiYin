@@ -7,7 +7,7 @@ const en: Record<string, string> = {
   configure: "Configure API Key", notConfigured: "API key not configured.",
   subtitle: "AI-Powered IELTS Speaking Assistant",
   desc: "Practice English speaking with an AI examiner. Choose a mode below.",
-  loading: "Loading...",
+  loading: "Loading...", dismiss: "Dismiss",
   tryAgain: "Try Again",
   reportNotFound: "Report not found.",
   trainingLanguage: "Training Language",
@@ -39,8 +39,8 @@ const en: Record<string, string> = {
   ttsAzureBillingDesc: "This app uses your own Azure Speech resource. Microsoft's current Free F0 tier includes 500,000 neural TTS characters per month and limits real-time synthesis to 20 transactions per 60 seconds. Standard S0 is billed by synthesized characters; price varies by region, currency, and account agreement. Requests can still be billable when the selected voice language does not match the text. Set Azure budgets/alerts and verify the current price before enabling it.",
   ttsAzurePricingLink: "View current official Azure Speech pricing",
   ttsAzureKey: "Azure Speech key", ttsAzureKeyHint: "Speech resource key", ttsAzureRegion: "Azure region",
-  ttsHaruVoice: "Haru voice", ttsMaoVoice: "Mao voice", ttsPreviewHaru: "Preview Haru", ttsPreviewMao: "Preview Mao",
-  ttsSaved: "Voice configuration saved.", ttsSaveFailed: "Could not save voice configuration.", ttsPreviewFailed: "Voice preview failed; browser speech will remain available.",
+  ttsHaruVoice: "Haru voice", ttsMaoVoice: "Mao voice", ttsPreviewHaru: "Save & preview Haru", ttsPreviewMao: "Save & preview Mao",
+  ttsSaved: "Voice configuration saved.", ttsLoadFailed: "Voice configuration could not be loaded; default values are shown.", ttsSaveFailed: "Could not save voice configuration.", ttsPreviewFailed: "Voice preview failed; browser speech will remain available.",
   eyeBehavior: "Eye Behavior", followMouse: "Follow Mouse", lookForward: "Look Forward",
   languageSection: "Language", languageDesc: "Switch UI language.",
   langZh: "中文", langEn: "English",
@@ -48,7 +48,7 @@ const en: Record<string, string> = {
   trainingLangDesc: "Set the language used for speaking practice and exams. This controls speech recognition, voice output, and available exams.",
   statusConfigured: "Status: configured",
   hintApiKey: "sk-xxxxxxxxxxxx", leaveBlank: "(leave blank to keep current)",
-  saveFailed: "Failed to save configuration.", loadFailed: "Failed to load configuration.",
+  saveFailed: "Failed to save configuration.", loadFailed: "Failed to load configuration.", preferencesSaveFailed: "Preferences could not be loaded or saved. Please try again.",
 
   // Exam page
   intro: "Introduction", part1: "Part 1: Interview", part2Prep: "Part 2: Preparation",

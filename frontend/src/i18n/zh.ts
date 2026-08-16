@@ -6,7 +6,7 @@ const zh: Record<string, string> = {
   startChat: "开始聊天 →",
   configure: "配置 API Key", notConfigured: "API Key 未配置，请先设置。",
   subtitle: "AI 雅思口语陪练助手", desc: "通过 AI 考官练习英语口语。选择一个模式开始。",
-  loading: "加载中...",
+  loading: "加载中...", dismiss: "关闭",
   tryAgain: "重试",
   reportNotFound: "未找到报告。",
   trainingLanguage: "训练语言",
@@ -38,8 +38,8 @@ const zh: Record<string, string> = {
   ttsAzureBillingDesc: "本应用使用你自己的 Azure Speech 资源，费用由 Microsoft 向你的 Azure 账户收取。当前免费 F0 层每月含 50 万字符的神经 TTS，实时合成限制为每 60 秒 20 次；标准 S0 按合成字符计费，单价随区域、币种及账户协议变化。音色语言与文本不匹配时，即使没有正常生成语音也可能计费。启用前请核对最新价格，并在 Azure 中设置预算和费用提醒。",
   ttsAzurePricingLink: "查看 Azure Speech 官方最新价格",
   ttsAzureKey: "Azure Speech 密钥", ttsAzureKeyHint: "Speech 资源密钥", ttsAzureRegion: "Azure 区域",
-  ttsHaruVoice: "Haru 音色", ttsMaoVoice: "Mao 音色", ttsPreviewHaru: "试听 Haru", ttsPreviewMao: "试听 Mao",
-  ttsSaved: "语音配置已保存。", ttsSaveFailed: "语音配置保存失败。", ttsPreviewFailed: "语音试听失败；浏览器语音仍可继续使用。",
+  ttsHaruVoice: "Haru 音色", ttsMaoVoice: "Mao 音色", ttsPreviewHaru: "保存并试听 Haru", ttsPreviewMao: "保存并试听 Mao",
+  ttsSaved: "语音配置已保存。", ttsLoadFailed: "语音配置加载失败，当前显示的是默认值。", ttsSaveFailed: "语音配置保存失败。", ttsPreviewFailed: "语音试听失败；浏览器语音仍可继续使用。",
   eyeBehavior: "视线行为", followMouse: "跟随鼠标", lookForward: "目视前方",
   languageSection: "界面语言", languageDesc: "切换界面显示语言。",
   langZh: "中文", langEn: "English",
@@ -47,7 +47,7 @@ const zh: Record<string, string> = {
   trainingLangDesc: "设置口语练习和考试使用的语言。此设置控制语音识别、语音输出和可用考试。",
   statusConfigured: "状态：已配置",
   hintApiKey: "sk-xxxxxxxxxxxx", leaveBlank: "（留空保持当前）",
-  saveFailed: "保存失败。", loadFailed: "加载配置失败。",
+  saveFailed: "保存失败。", loadFailed: "加载配置失败。", preferencesSaveFailed: "偏好设置无法读取或保存，请稍后重试。",
 
   // Exam page
   intro: "介绍", part1: "第1部分：访谈", part2Prep: "第2部分：准备",

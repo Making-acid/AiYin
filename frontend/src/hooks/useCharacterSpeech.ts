@@ -19,17 +19,29 @@ const VISEME_OPEN: Record<number, number> = {
 
 let cachedConfig: TtsConfig | null = null;
 let cachedConfigPromise: Promise<TtsConfig> | null = null;
+let configCacheGeneration = 0;
 
 async function loadConfig() {
   if (cachedConfig) return cachedConfig;
-  cachedConfigPromise ??= fetchTtsConfig().then((config) => {
-    cachedConfig = config;
-    return config;
-  });
+  if (!cachedConfigPromise) {
+    const generation = configCacheGeneration;
+    const request = fetchTtsConfig().then((config) => {
+      if (generation === configCacheGeneration) cachedConfig = config;
+      return config;
+    });
+    cachedConfigPromise = request;
+    try {
+      return await request;
+    } catch (error) {
+      if (cachedConfigPromise === request) cachedConfigPromise = null;
+      throw error;
+    }
+  }
   return cachedConfigPromise;
 }
 
 export function clearTtsConfigCache() {
+  configCacheGeneration += 1;
   cachedConfig = null;
   cachedConfigPromise = null;
 }

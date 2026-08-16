@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { fetchPreferences, savePreferences } from "../api/config";
 import type { Live2DBehavior } from "../live2d/types";
 import en from "./en";
@@ -26,6 +26,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLang] = useState<Language>("zh");
   const [preferencesReady, setPreferencesReady] = useState(false);
   const [tutorialSeenVersion, setTutorialSeenVersion] = useState("");
+  const [preferencesSaveFailed, setPreferencesSaveFailed] = useState(false);
+  const behaviorSaveVersion = useRef(0);
+  const languageSaveVersion = useRef(0);
+  const tutorialSaveVersion = useRef(0);
 
   useEffect(() => {
     let active = true;
@@ -36,7 +40,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setBehavior(preferences.live2d_behavior);
         setTutorialSeenVersion(preferences.tutorial_seen_version);
       })
-      .catch(() => {})
+      .catch(() => { if (active) setPreferencesSaveFailed(true); })
       .finally(() => { if (active) setPreferencesReady(true); });
     return () => { active = false; };
   }, []);
@@ -47,24 +51,51 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [lang]);
 
   const handleBehavior = (m: Live2DBehavior) => {
+    const previous = behavior;
+    const version = ++behaviorSaveVersion.current;
     setBehavior(m);
-    void savePreferences({ live2d_behavior: m }).catch(() => {});
+    void savePreferences({ live2d_behavior: m })
+      .then(() => { if (version === behaviorSaveVersion.current) setPreferencesSaveFailed(false); })
+      .catch(() => {
+        if (version !== behaviorSaveVersion.current) return;
+        setBehavior(previous);
+        setPreferencesSaveFailed(true);
+      });
   };
 
   const handleLang = (l: Language) => {
+    const previous = lang;
+    const version = ++languageSaveVersion.current;
     setLang(l);
-    void savePreferences({ ui_language: l }).catch(() => {});
+    void savePreferences({ ui_language: l })
+      .then(() => { if (version === languageSaveVersion.current) setPreferencesSaveFailed(false); })
+      .catch(() => {
+        if (version !== languageSaveVersion.current) return;
+        setLang(previous);
+        setPreferencesSaveFailed(true);
+      });
   };
 
   const markTutorialSeen = (version: string) => {
+    const requestVersion = ++tutorialSaveVersion.current;
     setTutorialSeenVersion(version);
-    void savePreferences({ tutorial_seen_version: version }).catch(() => {});
+    void savePreferences({ tutorial_seen_version: version })
+      .then(() => { if (requestVersion === tutorialSaveVersion.current) setPreferencesSaveFailed(false); })
+      .catch(() => {
+        if (requestVersion === tutorialSaveVersion.current) setPreferencesSaveFailed(true);
+      });
   };
 
   return (
     <BehaviorContext.Provider value={{ behavior, setBehavior: handleBehavior }}>
       <LanguageContext.Provider value={{ lang, setLang: handleLang, preferencesReady, tutorialSeenVersion, markTutorialSeen }}>
         {children}
+        {preferencesSaveFailed && (
+          <div className="preference-save-alert" role="alert">
+            <span>{STRINGS[lang]["preferencesSaveFailed"]}</span>
+            <button type="button" onClick={() => setPreferencesSaveFailed(false)} aria-label={STRINGS[lang]["dismiss"]}>×</button>
+          </div>
+        )}
       </LanguageContext.Provider>
     </BehaviorContext.Provider>
   );

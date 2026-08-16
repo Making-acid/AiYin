@@ -9,7 +9,7 @@ import { clearTtsConfigCache, useCharacterSpeech } from "../hooks/useCharacterSp
 
 export function Settings() {
   const navigate = useNavigate();
-  const { t, lang, setLanguage } = useLanguage();
+  const { t, lang, setLanguage, preferencesReady } = useLanguage();
   const [behavior, updateBehavior] = useLive2DBehavior();
   const { trainingLang } = useTrainingLanguage();
 
@@ -38,23 +38,36 @@ export function Settings() {
   }, []);
 
   const loadData = async () => {
-    try {
-      const [cfg, pr, speech] = await Promise.all([fetchConfig(), fetchProviders(), fetchTtsConfig()]);
+    const [configResult, providersResult, speechResult] = await Promise.allSettled([
+      fetchConfig(),
+      fetchProviders(),
+      fetchTtsConfig(),
+    ]);
+    if (configResult.status === "fulfilled") {
+      const cfg = configResult.value;
       setConfig(cfg);
-      setProviders(pr);
       setProvider(cfg.provider || "deepseek-v4-pro");
       setBaseUrl(cfg.base_url);
       setModel(cfg.model);
+    } else {
+      setMessage(t("loadFailed"));
+    }
+    if (providersResult.status === "fulfilled") {
+      setProviders(providersResult.value);
+    } else {
+      setMessage(t("loadFailed"));
+    }
+    if (speechResult.status === "fulfilled") {
+      const speech = speechResult.value;
       setTtsConfig(speech);
       setTtsProvider(speech.provider);
       setAzureRegion(speech.azure_region);
       setHaruVoice(speech.haru_voice);
       setMaoVoice(speech.mao_voice);
-    } catch {
-      setMessage(t("loadFailed"));
-    } finally {
-      setLoading(false);
+    } else {
+      setTtsMessage(t("ttsLoadFailed"));
     }
+    setLoading(false);
   };
 
   const handleProviderChange = (value: string) => {
@@ -208,7 +221,7 @@ export function Settings() {
           <p className="settings-desc">{t("live2dDesc")}</p>
           <div className="form-group">
             <label>{t("eyeBehavior")}</label>
-            <select value={behavior} onChange={(e) => updateBehavior(e.target.value as "follow_mouse" | "look_forward")}>
+            <select disabled={!preferencesReady} value={behavior} onChange={(e) => updateBehavior(e.target.value as "follow_mouse" | "look_forward")}>
               <option value="follow_mouse">{t("followMouse")}</option>
               <option value="look_forward">{t("lookForward")}</option>
             </select>
@@ -220,7 +233,7 @@ export function Settings() {
           <p className="settings-desc">{t("languageDesc")}</p>
           <div className="form-group">
             <label>{t("languageSection")}</label>
-            <select value={lang} onChange={(e) => setLanguage(e.target.value as "zh" | "en")}>
+            <select disabled={!preferencesReady} value={lang} onChange={(e) => setLanguage(e.target.value as "zh" | "en")}>
               <option value="zh">{t("langZh")}</option>
               <option value="en">{t("langEn")}</option>
             </select>
@@ -303,7 +316,11 @@ export function Settings() {
               {t("ttsPreviewMao")}
             </button>
           </div>
-          {ttsMessage && <p className="settings-message">{ttsMessage}</p>}
+          {ttsMessage && (
+            <p className={`settings-message ${ttsMessage === t("ttsSaved") ? "success" : "error"}`}>
+              {ttsMessage}
+            </p>
+          )}
         </div>
 
         <div className="settings-section">

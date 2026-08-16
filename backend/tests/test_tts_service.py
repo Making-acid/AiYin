@@ -44,3 +44,75 @@ def test_issue_token_keeps_key_server_side(monkeypatch, tmp_path):
     assert result["token"] == "short-lived-token"
     assert result["region"] == "eastus"
     assert post.call_args.kwargs["headers"]["Ocp-Apim-Subscription-Key"] == "1234567890abcdef"
+
+
+def test_issue_token_reuses_cached_token(monkeypatch, tmp_path):
+    monkeypatch.setattr(tts_service, "CONFIG_PATH", tmp_path / "tts_config.json")
+    tts_service.update_config(
+        provider="azure",
+        azure_key="1234567890abcdef",
+        azure_region="eastus",
+    )
+    response = Mock(text="cached-token")
+    response.raise_for_status.return_value = None
+    with patch("app.services.tts_service.httpx.post", return_value=response) as post:
+        first = tts_service.issue_azure_token()
+        second = tts_service.issue_azure_token()
+
+    assert first["token"] == second["token"] == "cached-token"
+    assert second["expires_in"] <= first["expires_in"]
+    assert post.call_count == 1
+
+
+def test_changing_azure_credentials_invalidates_cached_token(monkeypatch, tmp_path):
+    monkeypatch.setattr(tts_service, "CONFIG_PATH", tmp_path / "tts_config.json")
+    tts_service.update_config(
+        provider="azure",
+        azure_key="1234567890abcdef",
+        azure_region="eastus",
+    )
+    first_response = Mock(text="first-token")
+    first_response.raise_for_status.return_value = None
+    second_response = Mock(text="second-token")
+    second_response.raise_for_status.return_value = None
+
+    with patch(
+        "app.services.tts_service.httpx.post",
+        side_effect=[first_response, second_response],
+    ) as post:
+        first = tts_service.issue_azure_token()
+        tts_service.update_config(azure_region="westus")
+        second = tts_service.issue_azure_token()
+
+    assert first["token"] == "first-token"
+    assert second["token"] == "second-token"
+    assert second["region"] == "westus"
+    assert post.call_count == 2
+
+
+def test_issue_token_refreshes_before_cached_token_expires(monkeypatch, tmp_path):
+    monkeypatch.setattr(tts_service, "CONFIG_PATH", tmp_path / "tts_config.json")
+    tts_service.update_config(
+        provider="azure",
+        azure_key="1234567890abcdef",
+        azure_region="eastus",
+    )
+    first_response = Mock(text="first-token")
+    first_response.raise_for_status.return_value = None
+    second_response = Mock(text="refreshed-token")
+    second_response.raise_for_status.return_value = None
+
+    with patch(
+        "app.services.tts_service.time.monotonic",
+        side_effect=[100.0, 581.0],
+    ):
+        with patch(
+            "app.services.tts_service.httpx.post",
+            side_effect=[first_response, second_response],
+        ) as post:
+            first = tts_service.issue_azure_token()
+            second = tts_service.issue_azure_token()
+
+    assert first["token"] == "first-token"
+    assert second["token"] == "refreshed-token"
+    assert post.call_count == 2

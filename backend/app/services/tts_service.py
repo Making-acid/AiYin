@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from pathlib import Path
 from threading import Lock
 
@@ -12,6 +13,12 @@ from app.core.user_data import get_writable_dir, migrate_if_needed
 
 logger = logging.getLogger("tts")
 _lock = Lock()
+_token_lock = Lock()
+_cached_token = ""
+_cached_token_identity: tuple[str, str] | None = None
+_cached_token_expires_at = 0.0
+TOKEN_TTL_SECONDS = 540
+TOKEN_REFRESH_MARGIN_SECONDS = 60
 
 migrate_if_needed("tts_config.json")
 CONFIG_PATH = get_writable_dir() / "tts_config.json"
@@ -66,6 +73,14 @@ def _public_config(config: dict) -> dict:
     }
 
 
+def _clear_azure_token_cache() -> None:
+    global _cached_token, _cached_token_identity, _cached_token_expires_at
+    with _token_lock:
+        _cached_token = ""
+        _cached_token_identity = None
+        _cached_token_expires_at = 0.0
+
+
 def get_config() -> dict:
     with _lock:
         return _public_config(_load_config())
@@ -80,6 +95,10 @@ def update_config(
 ) -> dict:
     with _lock:
         config = _load_config()
+        previous_token_identity = (
+            config.get("azure_key", ""),
+            config.get("azure_region", ""),
+        )
         if provider is not None:
             normalized_provider = provider.strip().lower()
             if normalized_provider not in SUPPORTED_PROVIDERS:
@@ -102,7 +121,15 @@ def update_config(
             raise ValueError("Azure Speech requires both a key and a region.")
 
         _save_config(config)
-        return _public_config(config)
+        public_config = _public_config(config)
+
+    current_token_identity = (
+        config.get("azure_key", ""),
+        config.get("azure_region", ""),
+    )
+    if current_token_identity != previous_token_identity:
+        _clear_azure_token_cache()
+    return public_config
 
 
 def issue_azure_token() -> dict:
@@ -113,19 +140,42 @@ def issue_azure_token() -> dict:
     if not key or not region:
         raise TtsConfigError("Azure Speech is not configured.")
 
+    identity = (key, region)
     endpoint = f"https://{region}.api.cognitive.microsoft.com/sts/v1.0/issueToken"
-    try:
-        response = httpx.post(
-            endpoint,
-            headers={"Ocp-Apim-Subscription-Key": key},
-            timeout=10.0,
-        )
-        response.raise_for_status()
-    except httpx.HTTPStatusError as exc:
-        logger.warning("Azure Speech rejected the configured credentials: %s", exc.response.status_code)
-        raise TtsConfigError("Azure Speech rejected the key or region.") from exc
-    except httpx.HTTPError as exc:
-        logger.warning("Azure Speech token request failed: %s", exc)
-        raise TtsConfigError("Azure Speech could not be reached.") from exc
+    global _cached_token, _cached_token_identity, _cached_token_expires_at
+    with _token_lock:
+        now = time.monotonic()
+        remaining = _cached_token_expires_at - now
+        if (
+            _cached_token
+            and _cached_token_identity == identity
+            and remaining > TOKEN_REFRESH_MARGIN_SECONDS
+        ):
+            return {
+                "token": _cached_token,
+                "region": region,
+                "expires_in": int(remaining),
+            }
 
-    return {"token": response.text, "region": region, "expires_in": 540}
+        try:
+            response = httpx.post(
+                endpoint,
+                headers={"Ocp-Apim-Subscription-Key": key},
+                timeout=10.0,
+            )
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            logger.warning("Azure Speech rejected the configured credentials: %s", exc.response.status_code)
+            raise TtsConfigError("Azure Speech rejected the key or region.") from exc
+        except httpx.HTTPError as exc:
+            logger.warning("Azure Speech token request failed: %s", exc)
+            raise TtsConfigError("Azure Speech could not be reached.") from exc
+
+        _cached_token = response.text
+        _cached_token_identity = identity
+        _cached_token_expires_at = now + TOKEN_TTL_SECONDS
+        return {
+            "token": _cached_token,
+            "region": region,
+            "expires_in": TOKEN_TTL_SECONDS,
+        }
