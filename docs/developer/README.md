@@ -1,4 +1,4 @@
-# IELTS Speaking Beta 1.1 开发者指南
+# IELTS Speaking Beta 1.1.1 开发者指南
 
 本文档面向参与开发、测试和发布的贡献者。普通用户请阅读[用户指南](../user/README.md)。
 
@@ -59,13 +59,13 @@ dotnet build desktop\IELTSSpeaking.Desktop\IELTSSpeaking.Desktop.csproj --config
 
 ## 五、版本与发布
 
-Beta 1.1 的内部语义版本为 `1.1.0-beta.1`。版本目前由测试约束在后端、前端、桌面项目、安装器和发布脚本之间保持一致。
+Beta 1.1.1 的内部语义版本为 `1.1.1-beta.1`。版本目前由测试约束在后端、前端、桌面项目、安装器和发布脚本之间保持一致。
 
 ```powershell
 .\desktop\build-webview-release.ps1
 ```
 
-发布脚本会在仓库外创建 `IELTS-Speaking-WebView2-Beta-1.1-Release`，其中：
+发布脚本会在仓库外创建 `IELTS-Speaking-WebView2-Beta-1.1.1-Release`，其中：
 
 - `AppStage/`：便携桌面发布目录，不能只复制其中一个 EXE。
 - `Installer/`：Inno Setup 覆盖安装包。

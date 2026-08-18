@@ -5,6 +5,16 @@ from pathlib import Path
 
 project_root = Path(SPECPATH).parent
 backend_root = project_root / "backend"
+backend_data_root = backend_root / "data"
+private_data_files = {"config.json", "whisper_config.json"}
+backend_data_files = [
+    (
+        str(path),
+        str(Path("data") / path.relative_to(backend_data_root).parent),
+    )
+    for path in backend_data_root.rglob("*")
+    if path.is_file() and path.name not in private_data_files
+]
 
 a = Analysis(
     [str(backend_root / "run.py")],
@@ -12,7 +22,7 @@ a = Analysis(
     binaries=[],
     datas=[
         (str(project_root / "frontend" / "dist"), "static"),
-        (str(backend_root / "data"), "data"),
+        *backend_data_files,
     ],
     hiddenimports=[],
     hookspath=[],

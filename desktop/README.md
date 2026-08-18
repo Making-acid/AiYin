@@ -22,7 +22,7 @@ dotnet run --project desktop/IELTSSpeaking.Desktop
 .\desktop\build-webview-release.ps1
 ```
 
-脚本会把正式发布目录、中间文件、微软 WebView2 Evergreen 引导程序和 Inno Setup 安装包写入仓库外的 `IELTS-Speaking-WebView2-Beta-1.1-Release`。使用 `-SkipInstaller` 可只生成应用目录。
+脚本会把正式发布目录、中间文件、微软 WebView2 Evergreen 引导程序和 Inno Setup 安装包写入仓库外的 `IELTS-Speaking-WebView2-Beta-1.1.1-Release`。使用 `-SkipInstaller` 可只生成应用目录。
 
 ## 运行边界
 
