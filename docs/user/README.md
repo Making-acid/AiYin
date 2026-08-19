@@ -1,4 +1,4 @@
-# IELTS Speaking Beta 1.1.1 用户指南
+# IELTS Speaking Beta 1.2 用户指南
 
 本指南面向普通 Windows 用户，不要求编程或 AI 技术基础。
 

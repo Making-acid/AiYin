@@ -15,7 +15,7 @@
 - **文档总目录**：[用户文档与开发者文档分类](docs/README.md)。
 - **法律与隐私**：[免责声明](DISCLAIMER.md)、[隐私说明](PRIVACY.md)与[第三方声明](NOTICE.md)。
 
-## Beta 1.1.1 重点
+## Beta 1.2 重点
 
 - 考试流程与评分彻底分离：Part 3 由考官现场追问，考试结束后才生成评估。
 - 自由对话支持本地历史记录；考试模式保存本地 memory，便于查看长期表现。
@@ -64,7 +64,7 @@ python -m nltk.downloader punkt_tab
 
 ---
 
-## 项目结构（Beta 1.1.1）
+## 项目结构（Beta 1.2）
 
 ```
 IELTS/
@@ -197,7 +197,7 @@ dotnet run --project desktop/IELTSSpeaking.Desktop
 
 脚本会构建前端、冻结独立 Python 后端、发布自包含的 x64 .NET 桌面宿主、下载微软官方
 Evergreen WebView2 引导程序，并调用 Inno Setup。全部产物写入仓库同级目录
-`IELTS-Speaking-WebView2-Beta-1.1.1-Release`，不会进入源码目录。详见
+`IELTS-Speaking-WebView2-Beta-1.2-Release`，不会进入源码目录。详见
 [`desktop/README.md`](desktop/README.md)。
 
 ---
