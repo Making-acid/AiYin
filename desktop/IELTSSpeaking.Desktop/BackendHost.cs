@@ -54,6 +54,15 @@ internal sealed class BackendHost : IAsyncDisposable
         {
             startInfo.Environment["IELTS_STATIC_DIR"] = launch.StaticDirectory;
         }
+        var bundledTtsModel = Path.Combine(
+            AppContext.BaseDirectory,
+            "models",
+            "tts",
+            "kokoro-int8-multi-lang-v1_1");
+        if (Directory.Exists(bundledTtsModel))
+        {
+            startInfo.Environment["IELTS_TTS_MODEL_DIR"] = bundledTtsModel;
+        }
 
         _process = new Process { StartInfo = startInfo, EnableRaisingEvents = true };
         var launchedProcess = _process;

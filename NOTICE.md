@@ -32,6 +32,7 @@ third-party software and content under their respective licenses.
 | PyAV | 11 | BSD-3 | https://pyav.org |
 | requests | 2 | Apache 2.0 | https://requests.readthedocs.io |
 | PyInstaller | 6 | GPL | https://pyinstaller.org |
+| sherpa-onnx | 1.13 | Apache 2.0 | https://github.com/k2-fsa/sherpa-onnx |
 
 ---
 
@@ -90,6 +91,17 @@ OpenAI's Whisper model using CTranslate2.
 
 Copyright (c) 2023 SYSTRAN
 
+### Kokoro local neural speech
+
+The installer bundles the INT8 `kokoro-multi-lang-v1_1` speech model for
+offline character speech. The model is based on Kokoro-82M and is distributed
+under the Apache License 2.0. Inference is provided by sherpa-onnx. The model's
+own `LICENSE` and `README.md` files are retained beside the installed model.
+
+- Model: https://huggingface.co/hexgrad/Kokoro-82M-v1.1-zh
+- Runtime: https://github.com/k2-fsa/sherpa-onnx
+- Packaged model source: https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models
+
 ---
 
 ## Question Bank
@@ -129,7 +141,7 @@ See [LICENSE](./LICENSE) for the full text used by this project.
 
 ### Apache License 2.0
 
-Applies to: OpenAI Python SDK, TypeScript, requests
+Applies to: OpenAI Python SDK, TypeScript, requests, sherpa-onnx, Kokoro model weights
 
 http://www.apache.org/licenses/LICENSE-2.0
 

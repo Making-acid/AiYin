@@ -27,7 +27,7 @@ function formatTime(seconds: number) {
 export function Exam() {
   const navigate = useNavigate();
   const { trainingLang } = useTrainingLanguage();
-  const { speak, stop: stopSpeech, isSupported: ttsSupported, mouthValue } = useCharacterSpeech("haru", trainingLang);
+  const { speak, stop: stopSpeech, mouthValue } = useCharacterSpeech("haru", trainingLang);
   const [behavior] = useLive2DBehavior();
   const { t } = useLanguage();
   const dual = useDualRecording();
@@ -71,11 +71,10 @@ export function Exam() {
 
   const handleExaminerSpeak = useCallback(
     (text: string, onEnd?: () => void) => {
-      if (!ttsSupported) { onEnd?.(); return; }
       setLive2dState("speaking");
       speak(text, undefined, () => { setLive2dState("idle"); onEnd?.(); });
     },
-    [ttsSupported, speak]
+    [speak]
   );
 
   const advanceToNextPrompt = useCallback(async () => {

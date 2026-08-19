@@ -50,6 +50,36 @@ foreach ($candidate in $pythonCandidates) {
 }
 if (-not $python) { throw "No backend virtual-environment Python was found." }
 
+# Kokoro is bundled with the release so end users never need to download a
+# voice model. The cache lives under the external release root, not the repo.
+$ttsModelName = "kokoro-int8-multi-lang-v1_1"
+$ttsModelCache = Join-Path $ReleaseRoot "ModelCache"
+$ttsModelArchive = Join-Path $ttsModelCache "$ttsModelName.tar.bz2"
+$ttsModelUrl = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/$ttsModelName.tar.bz2"
+$ttsModelSha256 = "A1E94694776049035C4F2C6529F003AAECE993C76AAE9A78995831C3C4DCAFC6"
+New-Item -ItemType Directory -Path $ttsModelCache -Force | Out-Null
+if (-not (Test-Path -LiteralPath $ttsModelArchive)) {
+    Write-Host "Downloading bundled Kokoro speech model..."
+    Invoke-WebRequest -Uri $ttsModelUrl -OutFile $ttsModelArchive -UseBasicParsing
+}
+$actualTtsModelSha256 = (Get-FileHash -LiteralPath $ttsModelArchive -Algorithm SHA256).Hash
+if ($actualTtsModelSha256 -ne $ttsModelSha256) {
+    throw "Kokoro model checksum verification failed. Delete '$ttsModelArchive' and rebuild."
+}
+$ttsExtractRoot = Join-Path $buildRoot "KokoroModel"
+if (Test-Path -LiteralPath $ttsExtractRoot) {
+    Remove-Item -LiteralPath $ttsExtractRoot -Recurse -Force
+}
+New-Item -ItemType Directory -Path $ttsExtractRoot | Out-Null
+& $python -c "import sys, tarfile; tarfile.open(sys.argv[1], 'r:bz2').extractall(sys.argv[2])" $ttsModelArchive $ttsExtractRoot
+if ($LASTEXITCODE -ne 0) { throw "Kokoro model extraction failed with exit code $LASTEXITCODE" }
+$ttsVoicesFile = Get-ChildItem -LiteralPath $ttsExtractRoot -Filter "voices.bin" -File -Recurse | Select-Object -First 1
+if (-not $ttsVoicesFile) { throw "The Kokoro model archive is incomplete (voices.bin missing)." }
+$ttsModelSource = $ttsVoicesFile.Directory.FullName
+$ttsModelDestination = Join-Path $appStage "models\tts\$ttsModelName"
+New-Item -ItemType Directory -Path (Split-Path $ttsModelDestination -Parent) -Force | Out-Null
+Copy-Item -LiteralPath $ttsModelSource -Destination $ttsModelDestination -Recurse
+
 & $python -m PyInstaller --noconfirm --clean `
     --distpath $backendStage `
     --workpath (Join-Path $buildRoot "PyInstaller") `

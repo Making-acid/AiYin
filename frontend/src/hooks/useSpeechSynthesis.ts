@@ -114,25 +114,34 @@ export function useSpeechSynthesis(profile: VoiceProfile = "standard", lang: str
   useEffect(() => () => stopPulse(), [stopPulse]);
 
   const speak = useCallback(
-    (text: string, onStart?: () => void, onEnd?: () => void) => {
+    (text: string, onStart?: () => void, onEnd?: () => void, volume: number = 70) => {
       if (!isSupported) {
         setTimeout(() => onEnd?.(), 0);
         return;
       }
 
-      const voice = voiceRef.current || findVoice();
-      if (!voice) {
-        setTimeout(() => onEnd?.(), 0);
-        return;
+      // Chrome/Edge quirk: the engine can stall in a paused state after idling.
+      // Resume before queuing anything, otherwise speak() is silently ignored.
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
       }
 
-      voiceRef.current = voice;
+      const voice = voiceRef.current || findVoice();
       const speechProfile = SPEECH_PROFILES[profile];
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.voice = voice;
-      utterance.lang = voice.lang;
+      if (voice) {
+        voiceRef.current = voice;
+        utterance.voice = voice;
+        utterance.lang = voice.lang;
+      } else {
+        // No matching voice yet (voices load asynchronously, or the OS has no
+        // voice for this language). Fall back to the browser default voice so
+        // speech still happens instead of failing silently.
+        utterance.lang = normalizeLanguage(lang);
+      }
       utterance.rate = speechProfile.rate;
       utterance.pitch = speechProfile.pitch;
+      utterance.volume = Math.max(0, Math.min(1, volume / 100));
 
       let finished = false;
       const finish = () => {
@@ -148,12 +157,24 @@ export function useSpeechSynthesis(profile: VoiceProfile = "standard", lang: str
         onStart?.();
       };
       utterance.onend = finish;
-      utterance.onerror = finish;
+      utterance.onerror = (event) => {
+        if (!voice) {
+          console.warn("[TTS] No voice available for language '" + lang + "'; browser used its default voice instead.", event.error);
+        }
+        finish();
+      };
 
       window.speechSynthesis.cancel();
-      setTimeout(() => window.speechSynthesis.speak(utterance), 50);
+      // Chrome can drop an utterance queued immediately after cancel(); give it
+      // a short delay and resume once more in case cancel() re-paused the engine.
+      setTimeout(() => {
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+        window.speechSynthesis.speak(utterance);
+      }, 100);
     },
-    [findVoice, isSupported, profile, startPulse, stopPulse],
+    [findVoice, isSupported, lang, profile, startPulse, stopPulse],
   );
 
   const stop = useCallback(() => {

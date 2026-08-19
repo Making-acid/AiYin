@@ -1,9 +1,12 @@
 import logging
 
-from fastapi import APIRouter, HTTPException
+from io import BytesIO
 
-from app.models.schemas import TtsConfigRequest
-from app.services import tts_service
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
+
+from app.models.schemas import LocalTtsSynthesisRequest, TtsConfigRequest
+from app.services import local_tts_service, tts_service
 
 
 logger = logging.getLogger("api.tts")
@@ -27,6 +30,7 @@ def save_tts_config(request: TtsConfigRequest):
             azure_region=request.azure_region,
             haru_voice=request.haru_voice,
             mao_voice=request.mao_voice,
+            volume=request.volume,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -39,4 +43,20 @@ def get_azure_token():
     try:
         return tts_service.issue_azure_token()
     except tts_service.TtsConfigError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.get("/local/status")
+def get_local_tts_status():
+    return local_tts_service.get_status()
+
+
+@router.post("/local/synthesize")
+def synthesize_local_speech(request: LocalTtsSynthesisRequest):
+    try:
+        audio = local_tts_service.synthesize(request.text, request.character)
+        return StreamingResponse(BytesIO(audio), media_type="audio/wav")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except local_tts_service.LocalTtsError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc

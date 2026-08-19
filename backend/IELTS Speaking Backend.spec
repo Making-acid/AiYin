@@ -1,6 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 from pathlib import Path
+from PyInstaller.utils.hooks import collect_all
 
 
 project_root = Path(SPECPATH).parent
@@ -15,23 +16,25 @@ backend_data_files = [
     for path in backend_data_root.rglob("*")
     if path.is_file() and path.name not in private_data_files
 ]
+sherpa_datas, sherpa_binaries, sherpa_hiddenimports = collect_all("sherpa_onnx")
 
 a = Analysis(
     [str(backend_root / "run.py")],
     pathex=[str(backend_root)],
-    binaries=[],
+    binaries=sherpa_binaries,
     datas=[
         (str(project_root / "frontend" / "dist"), "static"),
         *backend_data_files,
+        *sherpa_datas,
     ],
-    hiddenimports=[],
+    hiddenimports=sherpa_hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
         "whisperx", "torch", "torchaudio", "torchvision", "transformers",
         "lightning", "pytorch_lightning", "pandas", "scipy", "sklearn",
-        "nltk", "numba", "matplotlib", "onnxruntime", "sqlalchemy",
+        "nltk", "numba", "matplotlib", "sqlalchemy",
     ],
     noarchive=False,
     optimize=0,

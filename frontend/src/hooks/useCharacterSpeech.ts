@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchAzureSpeechToken, fetchTtsConfig, type TtsConfig } from "../api/tts";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { fetchAzureSpeechToken, fetchTtsConfig, synthesizeLocalSpeech, type TtsConfig } from "../api/tts";
 import { useSpeechSynthesis } from "./useSpeechSynthesis";
 import { toSpeechText } from "../utils/speechText";
 
@@ -55,6 +55,14 @@ export function useCharacterSpeech(character: CharacterVoice, lang: string) {
   const objectUrlRef = useRef("");
   const animationRef = useRef<number | null>(null);
   const disposedRef = useRef(false);
+  const speechGenerationRef = useRef(0);
+
+  const desktopTts = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    if (window.__IELTS_DESKTOP__?.host !== "webview2") return null;
+    const host = window.chrome?.webview?.hostObjects?.desktopTts;
+    return typeof host?.SpeakAsync === "function" ? host : null;
+  }, []);
 
   const clearAzurePlayback = useCallback(() => {
     if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
@@ -69,25 +77,44 @@ export function useCharacterSpeech(character: CharacterVoice, lang: string) {
     setMouthValue(0);
   }, []);
 
-  const stop = useCallback(() => {
+  const stopLocalPlayback = useCallback(() => {
     browserStop();
     clearAzurePlayback();
   }, [browserStop, clearAzurePlayback]);
+
+  const stopDesktopPlayback = useCallback(async () => {
+    if (!desktopTts) return;
+    try {
+      await desktopTts.Stop();
+    } catch {
+      // Host object may be tearing down during shutdown. Browser and Azure
+      // playback remain available even when the native bridge disappears.
+    }
+  }, [desktopTts]);
+
+  const stop = useCallback(() => {
+    speechGenerationRef.current += 1;
+    stopLocalPlayback();
+    void stopDesktopPlayback();
+  }, [stopDesktopPlayback, stopLocalPlayback]);
 
   useEffect(() => {
     disposedRef.current = false;
     return () => {
       disposedRef.current = true;
+      speechGenerationRef.current += 1;
       browserStop();
       if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
       audioRef.current?.pause();
       if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+      void stopDesktopPlayback();
     };
-  }, [browserStop]);
+  }, [browserStop, stopDesktopPlayback]);
 
   const playAzure = useCallback(async (
     text: string,
     config: TtsConfig,
+    volume: number,
     onStart?: () => void,
     onEnd?: () => void,
   ) => {
@@ -129,6 +156,7 @@ export function useCharacterSpeech(character: CharacterVoice, lang: string) {
     const url = URL.createObjectURL(blob);
     objectUrlRef.current = url;
     const audio = new Audio(url);
+    audio.volume = Math.max(0, Math.min(1, volume / 100));
     audioRef.current = audio;
     let finished = false;
     const finish = () => {
@@ -162,30 +190,152 @@ export function useCharacterSpeech(character: CharacterVoice, lang: string) {
     await audio.play();
   }, [character, clearAzurePlayback]);
 
+  const playKokoro = useCallback(async (
+    text: string,
+    volume: number,
+    onStart?: () => void,
+    onEnd?: () => void,
+  ) => {
+    const blob = await synthesizeLocalSpeech(text, character);
+    if (disposedRef.current) return;
+    const url = URL.createObjectURL(blob);
+    objectUrlRef.current = url;
+    const audio = new Audio(url);
+    audio.volume = Math.max(0, Math.min(1, volume / 100));
+    audioRef.current = audio;
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      clearAzurePlayback();
+      onEnd?.();
+    };
+    audio.onended = finish;
+    audio.onerror = finish;
+    audio.onplay = () => {
+      onStart?.();
+      const animate = () => {
+        if (!audioRef.current || audio.paused || audio.ended) return;
+        const now = audio.currentTime * 1000;
+        setMouthValue(0.3 + Math.sin(now / 82) * 0.22);
+        animationRef.current = requestAnimationFrame(animate);
+      };
+      animate();
+    };
+    await audio.play();
+  }, [character, clearAzurePlayback]);
+
+  const runClockMouth = useCallback(() => {
+    const started = Date.now();
+    const tick = () => {
+      const elapsed = (Date.now() - started) / 1000;
+      const value = 0.35 + Math.sin(elapsed * 7.5) * 0.2;
+      setMouthValue(Math.max(0.12, Math.min(1, value)));
+      animationRef.current = requestAnimationFrame(tick);
+    };
+    animationRef.current = requestAnimationFrame(tick);
+  }, []);
+
+  const speakViaDesktop = useCallback(async (
+    text: string,
+    volume: number,
+    onStart?: () => void,
+    onEnd?: () => void,
+  ) => {
+    if (!desktopTts) return false;
+    onStart?.();
+    runClockMouth();
+    try {
+      await desktopTts.SpeakAsync(text, volume);
+    } catch (error) {
+      console.warn("[TTS] Desktop host speech failed; falling back.", error);
+      return false;
+    } finally {
+      if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+      setMouthValue(0);
+    }
+    onEnd?.();
+    return true;
+  }, [desktopTts, runClockMouth]);
+
   const speak = useCallback(async (text: string, onStart?: () => void, onEnd?: () => void) => {
-    stop();
+    const generation = speechGenerationRef.current + 1;
+    speechGenerationRef.current = generation;
+    stopLocalPlayback();
+    // WebView2 host-object calls are asynchronous. Waiting here prevents an
+    // older Stop call from arriving after the new SpeakAsync call.
+    await stopDesktopPlayback();
+    if (disposedRef.current || generation !== speechGenerationRef.current) return;
+
     const spokenText = toSpeechText(text);
     if (!spokenText) {
       setTimeout(() => onEnd?.(), 0);
       return;
     }
+
+    let started = false;
+    let ended = false;
+    const notifyStart = () => {
+      if (started || generation !== speechGenerationRef.current) return;
+      started = true;
+      onStart?.();
+    };
+    const notifyEnd = () => {
+      if (ended || generation !== speechGenerationRef.current) return;
+      ended = true;
+      onEnd?.();
+    };
+
+    let config: TtsConfig | null = null;
     try {
-      const config = await loadConfig();
+      config = await loadConfig();
       if (config.provider === "azure" && config.azure_configured) {
-        await playAzure(spokenText, config, onStart, onEnd);
-        return;
+        try {
+          await playAzure(spokenText, config, config.volume, notifyStart, notifyEnd);
+          return;
+        } catch (error) {
+          console.warn("[TTS] Azure Speech failed; trying bundled Kokoro.", error);
+          clearAzurePlayback();
+        }
       }
     } catch (error) {
-      console.warn("Azure Speech unavailable; using browser speech.", error);
+      console.warn("[TTS] Speech configuration failed; using a local fallback.", error);
       clearAzurePlayback();
     }
-    browserSpeak(spokenText, onStart, onEnd);
-  }, [browserSpeak, clearAzurePlayback, playAzure, stop]);
+    if (disposedRef.current || generation !== speechGenerationRef.current) return;
+
+    if (!config || config.provider === "kokoro" || config.provider === "azure") {
+      try {
+        await playKokoro(spokenText, config?.volume ?? 70, notifyStart, notifyEnd);
+        return;
+      } catch (error) {
+        console.warn("[TTS] Bundled Kokoro failed; trying Windows speech.", error);
+        clearAzurePlayback();
+      }
+    }
+    if (disposedRef.current || generation !== speechGenerationRef.current) return;
+
+    // In the packaged desktop app, Windows SAPI is more reliable than
+    // WebView2 speechSynthesis. It is only a local fallback: a configured
+    // Azure provider above always keeps priority, and regular browsers never
+    // see this host object.
+    if (desktopTts && config?.provider !== "browser") {
+      const handled = await speakViaDesktop(spokenText, config?.volume ?? 70, notifyStart, notifyEnd);
+      if (handled || generation !== speechGenerationRef.current) return;
+    }
+
+    if (browser.isSupported) {
+      browserSpeak(spokenText, notifyStart, notifyEnd, config?.volume ?? 70);
+      return;
+    }
+    setTimeout(notifyEnd, 0);
+  }, [browser.isSupported, browserSpeak, clearAzurePlayback, desktopTts, playAzure, playKokoro, speakViaDesktop, stopDesktopPlayback, stopLocalPlayback]);
 
   return {
     speak,
     stop,
-    isSupported: true,
+    isSupported: Boolean(desktopTts) || browser.isSupported,
     mouthValue: mouthValue || (browser.mouthOpen ? 0.62 : 0),
   };
 }

@@ -20,7 +20,7 @@
 - 考试流程与评分彻底分离：Part 3 由考官现场追问，考试结束后才生成评估。
 - 自由对话支持本地历史记录；考试模式保存本地 memory，便于查看长期表现。
 - 可选 WhisperX 只参与考后时间对齐和流利度证据，绝不介入 Part 3 出题或状态机。
-- 浏览器 TTS 与可选 Azure Speech 并存；Azure viseme 可驱动 Live2D 口型，并提供独立配置帮助。
+- Azure、随安装包提供的离线 Kokoro 神经语音、Windows 系统语音与浏览器 TTS 分层回退；Azure viseme 可驱动 Live2D 口型。
 - Haru 与 Mao 使用独立角色定义、布局和行为配置，均采用更接近视频通话的半身构图。
 
 ## 快速开始
@@ -229,9 +229,11 @@ Evergreen WebView2 引导程序，并调用 Inno Setup。全部产物写入仓�
 | `GET` | `/whisper/models` | 模型列表 |
 | `POST` | `/whisper/models/download` | 下载模型 |
 | `POST` | `/whisper/transcribe` | 音频转录 |
-| `GET` | `/tts/config` | 获取 Azure Speech 配置状态 |
-| `POST` | `/tts/config` | 保存 Azure Speech 配置 |
-| `POST` | `/tts/token` | 获取短期 Azure Speech 授权令牌 |
+| `GET` | `/tts/config` | 获取语音提供方与 Azure 配置状态 |
+| `POST` | `/tts/config` | 保存 Azure/Kokoro/Windows/浏览器语音配置 |
+| `POST` | `/tts/azure-token` | 获取短期 Azure Speech 授权令牌 |
+| `GET` | `/tts/local/status` | 检查内置 Kokoro 模型与运行时 |
+| `POST` | `/tts/local/synthesize` | 经本地服务层生成 Kokoro WAV 音频 |
 
 ---
 
@@ -243,7 +245,7 @@ Evergreen WebView2 引导程序，并调用 Inno Setup。全部产物写入仓�
 | 后端 | FastAPI / Uvicorn / OpenAI SDK |
 | LLM | DeepSeek V4 / OpenAI / Groq / OpenRouter / Ollama |
 | ASR | Web Speech API / faster-whisper（9 模型）/ 可选 WhisperX 考后增强 |
-| TTS | Web Speech API / 可选 Azure Speech（神经语音与 Live2D viseme 口型） |
+| TTS | Azure Speech / 内置 Kokoro+sherpa-onnx / Windows SAPI / Web Speech API |
 | 打包 | PyInstaller / Inno Setup |
 | 运维 | Docker + Docker Compose |
 

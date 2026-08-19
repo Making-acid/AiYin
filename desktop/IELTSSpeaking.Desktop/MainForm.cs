@@ -22,6 +22,7 @@ internal sealed class MainForm : Form
     private Uri? _appUri;
     private bool _restartRequested;
     private bool _backendRecoveryAttempted;
+    private readonly DesktopTts _desktopTts = new();
 
     public MainForm()
     {
@@ -90,7 +91,14 @@ internal sealed class MainForm : Form
             "IELTS Speaking",
             "WebView2");
         Directory.CreateDirectory(userDataFolder);
-        var environment = await CoreWebView2Environment.CreateAsync(userDataFolder: userDataFolder);
+        var environment = await CoreWebView2Environment.CreateAsync(
+            userDataFolder: userDataFolder,
+            options: new CoreWebView2EnvironmentOptions
+            {
+                // WebView2 blocks audio playback without a user gesture by
+                // default; speech synthesis and <audio> must work on load.
+                AdditionalBrowserArguments = "--autoplay-policy=no-user-gesture-required",
+            });
 
         var webView = new WebView2
         {
@@ -102,6 +110,18 @@ internal sealed class MainForm : Form
         _webView = webView;
 
         await webView.EnsureCoreWebView2Async(environment);
+        try
+        {
+            if (_desktopTts.IsAvailable())
+            {
+                webView.CoreWebView2.AddHostObjectToScript("desktopTts", _desktopTts);
+            }
+        }
+        catch (Exception)
+        {
+            // Native speech is an optional desktop enhancement. Keep the web
+            // application running so Azure or browser TTS can still be used.
+        }
         await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(
             "Object.defineProperty(window, '__IELTS_DESKTOP__', { value: Object.freeze({ host: 'webview2' }), configurable: false });");
         ConfigureWebView(webView.CoreWebView2);
@@ -232,6 +252,7 @@ internal sealed class MainForm : Form
     {
         _lifetime.Cancel();
         _webView?.Dispose();
+        _desktopTts.Dispose();
         _backend.DisposeAsync().AsTask().GetAwaiter().GetResult();
         base.OnFormClosing(eventArgs);
     }
@@ -241,6 +262,7 @@ internal sealed class MainForm : Form
         if (disposing)
         {
             _lifetime.Dispose();
+            _desktopTts.Dispose();
         }
         base.Dispose(disposing);
     }

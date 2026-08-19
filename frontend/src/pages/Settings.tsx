@@ -4,7 +4,7 @@ import { fetchConfig, fetchProviders, saveConfig, clearLocalMemory, type AppConf
 import { useLive2DBehavior, useLanguage } from "../i18n";
 import { useTrainingLanguage } from "../i18n/trainingLang";
 import { AsrSettings } from "../asr";
-import { fetchTtsConfig, saveTtsConfig, type TtsConfig, type TtsProvider } from "../api/tts";
+import { fetchLocalTtsStatus, fetchTtsConfig, saveTtsConfig, type LocalTtsStatus, type TtsConfig, type TtsProvider } from "../api/tts";
 import { clearTtsConfigCache, useCharacterSpeech } from "../hooks/useCharacterSpeech";
 
 export function Settings() {
@@ -23,11 +23,13 @@ export function Settings() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [ttsConfig, setTtsConfig] = useState<TtsConfig | null>(null);
-  const [ttsProvider, setTtsProvider] = useState<TtsProvider>("browser");
+  const [ttsProvider, setTtsProvider] = useState<TtsProvider>("kokoro");
+  const [localTtsStatus, setLocalTtsStatus] = useState<LocalTtsStatus | null>(null);
   const [azureKey, setAzureKey] = useState("");
   const [azureRegion, setAzureRegion] = useState("");
   const [haruVoice, setHaruVoice] = useState("en-GB-SoniaNeural");
   const [maoVoice, setMaoVoice] = useState("en-US-AnaNeural");
+  const [ttsVolume, setTtsVolume] = useState(70);
   const [ttsSaving, setTtsSaving] = useState(false);
   const [ttsMessage, setTtsMessage] = useState("");
   const haruPreview = useCharacterSpeech("haru", trainingLang);
@@ -38,10 +40,11 @@ export function Settings() {
   }, []);
 
   const loadData = async () => {
-    const [configResult, providersResult, speechResult] = await Promise.allSettled([
+    const [configResult, providersResult, speechResult, localSpeechResult] = await Promise.allSettled([
       fetchConfig(),
       fetchProviders(),
       fetchTtsConfig(),
+      fetchLocalTtsStatus(),
     ]);
     if (configResult.status === "fulfilled") {
       const cfg = configResult.value;
@@ -64,8 +67,12 @@ export function Settings() {
       setAzureRegion(speech.azure_region);
       setHaruVoice(speech.haru_voice);
       setMaoVoice(speech.mao_voice);
+      setTtsVolume(speech.volume);
     } else {
       setTtsMessage(t("ttsLoadFailed"));
+    }
+    if (localSpeechResult.status === "fulfilled") {
+      setLocalTtsStatus(localSpeechResult.value);
     }
     setLoading(false);
   };
@@ -110,10 +117,13 @@ export function Settings() {
     try {
       const result = await saveTtsConfig({
         provider: ttsProvider,
-        azure_key: azureKey.trim() || undefined,
-        azure_region: azureRegion.trim(),
+        ...(ttsProvider === "azure" ? {
+          azure_key: azureKey.trim() || undefined,
+          azure_region: azureRegion.trim(),
+        } : {}),
         haru_voice: haruVoice.trim(),
         mao_voice: maoVoice.trim(),
+        volume: ttsVolume,
       });
       clearTtsConfigCache();
       setTtsConfig(result);
@@ -268,10 +278,49 @@ export function Settings() {
           <div className="form-group">
             <label>{t("ttsProvider")}</label>
             <select value={ttsProvider} onChange={(event) => setTtsProvider(event.target.value as TtsProvider)}>
-              <option value="browser">{t("ttsBrowser")}</option>
               <option value="azure">{t("ttsAzure")}</option>
+              <option value="kokoro">{t("ttsKokoro")}</option>
+              <option value="windows">{t("ttsWindows")}</option>
+              <option value="browser">{t("ttsBrowser")}</option>
             </select>
           </div>
+          <div className="form-group">
+            <label htmlFor="tts-volume">{t("ttsVolume")}：{ttsVolume}%</label>
+            <input
+              id="tts-volume"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={ttsVolume}
+              onInput={(event) => setTtsVolume(Number(event.currentTarget.value))}
+              aria-valuetext={`${ttsVolume}%`}
+            />
+            <p className="settings-desc">{t("ttsVolumeDesc")}</p>
+          </div>
+          {ttsProvider === "kokoro" && (
+            <div className={`tts-provider-status ${localTtsStatus?.ready ? "ready" : "warning"}`}>
+              <strong>{t("ttsKokoroBundled")}</strong>
+              <p>{localTtsStatus?.ready ? t("ttsKokoroReady") : t("ttsKokoroUnavailable")}</p>
+              {localTtsStatus?.ready && (
+                <p>
+                  Haru: {localTtsStatus.voices.haru} · Mao: {localTtsStatus.voices.mao} · {Math.max(1, Math.round(localTtsStatus.installed_bytes / 1024 / 1024))} MB
+                </p>
+              )}
+            </div>
+          )}
+          {ttsProvider === "windows" && (
+            <div className="tts-provider-status">
+              <strong>{t("ttsWindows")}</strong>
+              <p>{t("ttsWindowsDesc")}</p>
+            </div>
+          )}
+          {ttsProvider === "browser" && (
+            <div className="tts-provider-status">
+              <strong>{t("ttsBrowser")}</strong>
+              <p>{t("ttsBrowserDesc")}</p>
+            </div>
+          )}
           {ttsProvider === "azure" && (
             <>
               <div className="tutorial-tip">

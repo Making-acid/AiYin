@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 
 
@@ -71,6 +71,12 @@ class TtsConfigRequest(BaseModel):
     azure_region: Optional[str] = None
     haru_voice: Optional[str] = None
     mao_voice: Optional[str] = None
+    volume: Optional[int] = Field(default=None, ge=0, le=100)
+
+
+class LocalTtsSynthesisRequest(BaseModel):
+    text: str
+    character: str
 
 
 # ---- Response types (documentation) ----

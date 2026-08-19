@@ -5,12 +5,32 @@ import pytest
 from app.services import tts_service
 
 
-def test_default_config_uses_browser(monkeypatch, tmp_path):
+def test_default_config_uses_bundled_kokoro(monkeypatch, tmp_path):
     monkeypatch.setattr(tts_service, "CONFIG_PATH", tmp_path / "tts_config.json")
     config = tts_service.get_config()
-    assert config["provider"] == "browser"
+    assert config["provider"] == "kokoro"
     assert config["azure_configured"] is False
     assert config["azure_key"] == ""
+    assert config["volume"] == 70
+
+
+@pytest.mark.parametrize("provider", ["kokoro", "windows", "browser"])
+def test_local_and_fallback_providers_do_not_require_credentials(monkeypatch, tmp_path, provider):
+    monkeypatch.setattr(tts_service, "CONFIG_PATH", tmp_path / "tts_config.json")
+    assert tts_service.update_config(provider=provider)["provider"] == provider
+
+
+def test_volume_is_saved_and_returned(monkeypatch, tmp_path):
+    monkeypatch.setattr(tts_service, "CONFIG_PATH", tmp_path / "tts_config.json")
+    assert tts_service.update_config(volume=42)["volume"] == 42
+    assert tts_service.get_config()["volume"] == 42
+
+
+@pytest.mark.parametrize("volume", [-1, 101])
+def test_volume_outside_supported_range_is_rejected(monkeypatch, tmp_path, volume):
+    monkeypatch.setattr(tts_service, "CONFIG_PATH", tmp_path / "tts_config.json")
+    with pytest.raises(ValueError, match="between 0 and 100"):
+        tts_service.update_config(volume=volume)
 
 
 def test_azure_requires_key_and_region(monkeypatch, tmp_path):

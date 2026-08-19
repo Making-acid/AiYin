@@ -24,14 +24,15 @@ migrate_if_needed("tts_config.json")
 CONFIG_PATH = get_writable_dir() / "tts_config.json"
 
 DEFAULT_CONFIG = {
-    "provider": "browser",
+    "provider": "kokoro",
     "azure_key": "",
     "azure_region": "",
     "haru_voice": "en-GB-SoniaNeural",
     "mao_voice": "en-US-AnaNeural",
+    "volume": 70,
 }
 
-SUPPORTED_PROVIDERS = {"browser", "azure"}
+SUPPORTED_PROVIDERS = {"browser", "azure", "kokoro", "windows"}
 
 
 class TtsConfigError(Exception):
@@ -64,13 +65,22 @@ def _public_config(config: dict) -> dict:
     key = config.get("azure_key", "")
     masked = key[:4] + "****" + key[-4:] if len(key) > 8 else ("****" if key else "")
     return {
-        "provider": config.get("provider", "browser"),
+        "provider": config.get("provider", "kokoro"),
         "azure_key": masked,
         "azure_region": config.get("azure_region", ""),
         "haru_voice": config.get("haru_voice", DEFAULT_CONFIG["haru_voice"]),
         "mao_voice": config.get("mao_voice", DEFAULT_CONFIG["mao_voice"]),
+        "volume": _normalize_volume(config.get("volume")),
         "azure_configured": bool(key and config.get("azure_region")),
     }
+
+
+def _normalize_volume(value: object) -> int:
+    try:
+        volume = int(value) if value is not None else DEFAULT_CONFIG["volume"]
+    except (TypeError, ValueError):
+        return DEFAULT_CONFIG["volume"]
+    return max(0, min(100, volume))
 
 
 def _clear_azure_token_cache() -> None:
@@ -92,6 +102,7 @@ def update_config(
     azure_region: str | None = None,
     haru_voice: str | None = None,
     mao_voice: str | None = None,
+    volume: int | None = None,
 ) -> dict:
     with _lock:
         config = _load_config()
@@ -114,6 +125,10 @@ def update_config(
             config["haru_voice"] = haru_voice.strip()
         if mao_voice is not None and mao_voice.strip():
             config["mao_voice"] = mao_voice.strip()
+        if volume is not None:
+            if not 0 <= volume <= 100:
+                raise ValueError("TTS volume must be between 0 and 100.")
+            config["volume"] = volume
 
         if config["provider"] == "azure" and not (
             config.get("azure_key") and config.get("azure_region")

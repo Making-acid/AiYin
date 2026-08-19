@@ -9,3 +9,4 @@ faster-whisper>=1.0.0
 av>=11.0.0
 requests>=2.28.0
 pyinstaller>=6.0.0
+sherpa-onnx>=1.13.6

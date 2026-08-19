@@ -14,7 +14,7 @@ import type { ChatMessage } from "../types";
 export function FreeChat() {
   const navigate = useNavigate();
   const { trainingLang } = useTrainingLanguage();
-  const { speak, stop: stopSpeech, isSupported: ttsSupported, mouthValue } = useCharacterSpeech("mao", trainingLang);
+  const { speak, stop: stopSpeech, mouthValue } = useCharacterSpeech("mao", trainingLang);
   const [behavior] = useLive2DBehavior();
   const initRef = useRef(false);
   const { t } = useLanguage();
@@ -48,10 +48,8 @@ export function FreeChat() {
       const msg: ChatMessage = { role: "assistant", content: data.reply };
       setMessages([msg]);
       await refreshHistory();
-      if (ttsSupported) {
-        setLive2dState("speaking");
-        speak(data.reply, undefined, () => setLive2dState("idle"));
-      }
+      setLive2dState("speaking");
+      speak(data.reply, undefined, () => setLive2dState("idle"));
     } catch (err) {
       console.error("Failed to start chat:", err);
       setError(t("chatStartFailed"));
@@ -134,10 +132,8 @@ export function FreeChat() {
           const botMsg: ChatMessage = { role: "assistant", content: result.reply };
           setMessages((prev) => [...prev, botMsg]);
           refreshHistory();
-          if (ttsSupported) {
-            setLive2dState("speaking");
-            speak(result.reply, undefined, () => setLive2dState("idle"));
-          }
+          setLive2dState("speaking");
+          speak(result.reply, undefined, () => setLive2dState("idle"));
         }
       } catch (err) {
         console.error("Failed to send message:", err);
@@ -147,7 +143,7 @@ export function FreeChat() {
         setLoading(false);
       }
     },
-    [sessionId, loading, ttsSupported, speak, t]
+    [sessionId, loading, speak, t]
   );
 
   const handleVoiceStart = () => setLive2dState("listening");
