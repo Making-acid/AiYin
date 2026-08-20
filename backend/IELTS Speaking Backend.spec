@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 from pathlib import Path
-from PyInstaller.utils.hooks import collect_all
+from PyInstaller.utils.hooks import collect_all, collect_data_files
 
 
 project_root = Path(SPECPATH).parent
@@ -17,6 +17,15 @@ backend_data_files = [
     if path.is_file() and path.name not in private_data_files
 ]
 sherpa_datas, sherpa_binaries, sherpa_hiddenimports = collect_all("sherpa_onnx")
+whisperx_datas = collect_data_files("whisperx")
+whisperx_hiddenimports = [
+    "whisperx",
+    "whisperx.alignment",
+    "whisperx.audio",
+    "whisperx.log_utils",
+    "whisperx.schema",
+    "whisperx.utils",
+]
 
 a = Analysis(
     [str(backend_root / "run.py")],
@@ -26,15 +35,15 @@ a = Analysis(
         (str(project_root / "frontend" / "dist"), "static"),
         *backend_data_files,
         *sherpa_datas,
+        *whisperx_datas,
     ],
-    hiddenimports=sherpa_hiddenimports,
+    hiddenimports=[*sherpa_hiddenimports, *whisperx_hiddenimports],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
-        "whisperx", "torch", "torchaudio", "torchvision", "transformers",
-        "lightning", "pytorch_lightning", "pandas", "scipy", "sklearn",
-        "nltk", "numba", "matplotlib", "sqlalchemy",
+        "torchvision", "lightning", "pytorch_lightning", "sklearn",
+        "numba", "matplotlib", "sqlalchemy", "pyannote",
     ],
     noarchive=False,
     optimize=0,

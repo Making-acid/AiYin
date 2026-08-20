@@ -15,10 +15,11 @@
 - **文档总目录**：[用户文档与开发者文档分类](docs/README.md)。
 - **法律与隐私**：[免责声明](DISCLAIMER.md)、[隐私说明](PRIVACY.md)与[第三方声明](NOTICE.md)。
 
-## Beta 1.2 重点
+## Beta 1.2.1 重点
 
 - 考试流程与评分彻底分离：Part 3 由考官现场追问，考试结束后才生成评估。
 - 自由对话支持本地历史记录；考试模式保存本地 memory，便于查看长期表现。
+- 桌面安装包预装 Whisper Small English、Medium English 与 WhisperX 英文对齐模型，正式考试无需临时下载。
 - 可选 WhisperX 只参与考后时间对齐和流利度证据，绝不介入 Part 3 出题或状态机。
 - Azure、随安装包提供的离线 Kokoro 神经语音、Windows 系统语音与浏览器 TTS 分层回退；Azure viseme 可驱动 Live2D 口型。
 - Haru 与 Mao 使用独立角色定义、布局和行为配置，均采用更接近视频通话的半身构图。
@@ -49,22 +50,24 @@ npm install
 npm run dev
 ```
 
-### 可选：WhisperX 考后增强分析
+### WhisperX 考后增强分析
 
-WhisperX 只在考试结束后用于词级时间对齐和流利度时间证据，不参与 Part 3 出题或考试状态机。默认依赖仍使用 faster-whisper；如需启用 WhisperX，请使用 Python 3.10–3.13，并额外安装：
+桌面发布版已内置 `small.en`、`medium.en` 两个英文 Whisper 模型，以及 WhisperX 英文对齐模型和 CPU 运行库，无需用户访问外部模型源。WhisperX 只在考试结束后用于词级时间对齐和流利度时间证据，不参与 Part 3 出题或考试状态机。
+
+仅从源码运行时，如需启用 WhisperX，请使用 Python 3.10–3.13，并额外安装：
 
 ```powershell
 pip install -r backend/requirements-whisperx.txt
 python -m nltk.downloader punkt_tab
 ```
 
-未安装、版本不兼容或处理失败时，评分会自动回退到 faster-whisper；若本地 Whisper 模型也不可用，则继续使用考试现场的浏览器转写。
+未安装、版本不兼容或处理失败时，评分会自动回退到 faster-whisper。设置中其余模型需要连接外部模型托管方，在部分网络环境中可能需要 VPN。
 
 首次使用需在页面 **Settings** 中配置 LLM API Key（支持 DeepSeek / OpenAI / Groq / OpenRouter / Ollama）。
 
 ---
 
-## 项目结构（Beta 1.2）
+## 项目结构（Beta 1.2.1）
 
 ```
 IELTS/
@@ -197,7 +200,7 @@ dotnet run --project desktop/IELTSSpeaking.Desktop
 
 脚本会构建前端、冻结独立 Python 后端、发布自包含的 x64 .NET 桌面宿主、下载微软官方
 Evergreen WebView2 引导程序，并调用 Inno Setup。全部产物写入仓库同级目录
-`IELTS-Speaking-WebView2-Beta-1.2-Release`，不会进入源码目录。详见
+`IELTS-Speaking-WebView2-Beta-1.2.1-Release`，不会进入源码目录。详见
 [`desktop/README.md`](desktop/README.md)。
 
 ---

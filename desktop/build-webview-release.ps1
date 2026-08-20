@@ -5,8 +5,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$releaseVersion = "1.2.0-beta.1"
-$releaseLabel = "Beta-1.2"
+$releaseVersion = "1.2.1-beta.1"
+$releaseLabel = "Beta-1.2.1"
 if ([string]::IsNullOrWhiteSpace($ReleaseRoot)) {
     $ReleaseRoot = Join-Path (Split-Path $projectRoot -Parent) "IELTS-Speaking-WebView2-$releaseLabel-Release"
 }
@@ -36,19 +36,19 @@ finally {
 
 $backendRoot = Join-Path $projectRoot "backend"
 $pythonCandidates = @(
-    (Join-Path $backendRoot "venv\Scripts\python.exe"),
-    (Join-Path $backendRoot "venv-whisperx\Scripts\python.exe")
+    (Join-Path $backendRoot "venv-whisperx\Scripts\python.exe"),
+    (Join-Path $backendRoot "venv\Scripts\python.exe")
 )
 $python = $null
 foreach ($candidate in $pythonCandidates) {
     if (-not (Test-Path -LiteralPath $candidate)) { continue }
-    & $candidate -c "import PyInstaller" 2>$null
+    & $candidate -c "import PyInstaller, whisperx, torch, torchaudio" 2>$null
     if ($LASTEXITCODE -eq 0) {
         $python = $candidate
         break
     }
 }
-if (-not $python) { throw "No backend virtual-environment Python was found." }
+if (-not $python) { throw "No Python environment with PyInstaller and WhisperX was found." }
 
 # Kokoro is bundled with the release so end users never need to download a
 # voice model. The cache lives under the external release root, not the repo.
@@ -79,6 +79,24 @@ $ttsModelSource = $ttsVoicesFile.Directory.FullName
 $ttsModelDestination = Join-Path $appStage "models\tts\$ttsModelName"
 New-Item -ItemType Directory -Path (Split-Path $ttsModelDestination -Parent) -Force | Out-Null
 Copy-Item -LiteralPath $ttsModelSource -Destination $ttsModelDestination -Recurse
+
+# Both English ASR profiles and the WhisperX English aligner are staged so
+# end users can complete exams without contacting an external model host.
+$asrModelCache = Join-Path $ttsModelCache "offline-asr"
+& $python (Join-Path $backendRoot "scripts\prepare_offline_asr_models.py") $asrModelCache
+if ($LASTEXITCODE -ne 0) { throw "Offline ASR model preparation failed with exit code $LASTEXITCODE" }
+$whisperModelSource = Join-Path $asrModelCache "whisper"
+$whisperXModelSource = Join-Path $asrModelCache "whisperx"
+foreach ($requiredModel in @("small.en", "medium.en")) {
+    if (-not (Test-Path -LiteralPath (Join-Path $whisperModelSource "$requiredModel\model.bin"))) {
+        throw "Bundled Whisper model is incomplete: $requiredModel"
+    }
+}
+if (-not (Test-Path -LiteralPath (Join-Path $whisperXModelSource "wav2vec2_fairseq_base_ls960_asr_ls960.pth"))) {
+    throw "Bundled WhisperX English alignment model is incomplete."
+}
+Copy-Item -LiteralPath $whisperModelSource -Destination (Join-Path $appStage "models\whisper") -Recurse
+Copy-Item -LiteralPath $whisperXModelSource -Destination (Join-Path $appStage "models\whisperx") -Recurse
 
 & $python -m PyInstaller --noconfirm --clean `
     --distpath $backendStage `

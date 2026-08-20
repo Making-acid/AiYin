@@ -815,7 +815,7 @@ body {
 .tts-provider-status {
   margin: 12px 0 18px;
   padding: 14px 16px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border);
   border-radius: 12px;
   background: rgba(248, 250, 252, 0.9);
 }
@@ -1488,6 +1488,13 @@ body {
   color: var(--text-secondary);
 }
 
+.model-network-warning {
+  max-width: 560px;
+  color: #b45309;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 .btn-small {
   padding: 4px 12px;
   border-radius: 6px;
@@ -1716,6 +1723,62 @@ body {
 .tutorial-voice-choice {
   border-color: rgba(79, 70, 229, 0.4);
   background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(14, 165, 233, 0.05));
+}
+
+.tutorial-asr-choice {
+  border-color: rgba(14, 116, 144, 0.35);
+  background: linear-gradient(135deg, rgba(14, 116, 144, 0.08), rgba(34, 197, 94, 0.05));
+}
+
+.tutorial-asr-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.tutorial-asr-option {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+  cursor: pointer;
+}
+
+.tutorial-asr-option.selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.12);
+}
+
+.tutorial-asr-option input {
+  margin-top: 3px;
+}
+
+.tutorial-asr-option span,
+.tutorial-asr-option small,
+.tutorial-asr-option em {
+  display: block;
+}
+
+.tutorial-asr-option small {
+  margin-top: 4px;
+  color: var(--text-secondary);
+}
+
+.tutorial-asr-option em {
+  margin-top: 7px;
+  color: #047857;
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .tutorial-asr-options {
+    grid-template-columns: 1fr;
+  }
 }
 
 .tutorial-azure-fields {

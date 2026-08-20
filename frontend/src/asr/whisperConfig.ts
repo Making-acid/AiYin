@@ -8,6 +8,9 @@ interface WhisperModel {
   name: string;
   size: string;
   downloaded: boolean;
+  bundled: boolean;
+  profile: "performance" | "quality" | null;
+  download_requires_external_access: boolean;
 }
 
 interface WhisperConfig {
@@ -22,10 +25,11 @@ interface WhisperConfig {
     available: boolean;
     active: boolean;
     fallback: boolean;
-    reason: "ready" | "not_installed" | "python_unsupported" | "integration_pending";
+    reason: "ready" | "not_installed" | "python_unsupported" | "integration_pending" | "model_missing";
     python_version: string;
     minimum_python: string;
     supported_python: string;
+    alignment_model_bundled: boolean;
   };
 }
 

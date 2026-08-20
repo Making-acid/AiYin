@@ -15,6 +15,8 @@ function AsrModeSettings({ mode, label }: { mode: "exam" | "free_chat"; label: s
             .replace("{supported}", whisperCfg.whisperx.supported_python)
         : whisperCfg.whisperx.reason === "integration_pending"
           ? t("examEnhancementIntegrationPending")
+          : whisperCfg.whisperx.reason === "model_missing"
+            ? t("examEnhancementModelMissing")
           : t("examEnhancementNotInstalled");
 
   return (
@@ -41,7 +43,15 @@ function AsrModeSettings({ mode, label }: { mode: "exam" | "free_chat"; label: s
               <div key={m.id} className={`model-item ${m.id === whisperCfg.model && m.downloaded ? "active" : ""} ${m.downloaded ? "downloaded" : ""}`}>
                 <div className="model-info">
                   <span className="model-name">{m.name}</span>
-                  <span className="model-size">{m.size}</span>
+                  <span className="model-size">
+                    {m.size}
+                    {m.bundled && ` · ${t("whisperBundled")}`}
+                    {m.profile === "performance" && ` · ${t("whisperPerformanceProfile")}`}
+                    {m.profile === "quality" && ` · ${t("whisperQualityProfile")}`}
+                  </span>
+                  {m.download_requires_external_access && (
+                    <span className="model-network-warning">{t("whisperExternalDownloadWarning")}</span>
+                  )}
                 </div>
                 <button
                   className={`btn-small ${m.id === whisperCfg.model && m.downloaded ? "btn-active" : m.downloaded ? "btn-switch" : "btn-download"}`}

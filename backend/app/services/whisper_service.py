@@ -33,6 +33,11 @@ def _get_faster_whisper():
 
 _MODELS_DIR = get_writable_dir() / "models" / "whisper"
 _MODELS_DIR.mkdir(parents=True, exist_ok=True)
+_bundled_models_value = os.environ.get("IELTS_WHISPER_MODEL_DIR", "").strip()
+_BUNDLED_MODELS_DIR = Path(_bundled_models_value) if _bundled_models_value else None
+_whisperx_models_value = os.environ.get("IELTS_WHISPERX_MODEL_DIR", "").strip()
+_WHISPERX_MODELS_DIR = Path(_whisperx_models_value) if _whisperx_models_value else None
+WHISPERX_ALIGNMENT_FILENAME = "wav2vec2_fairseq_base_ls960_asr_ls960.pth"
 CONFIG_PATH = get_writable_dir() / "whisper_config.json"
 migrate_if_needed("whisper_config.json")
 
@@ -59,7 +64,7 @@ WHISPERX_PIPELINE_IMPLEMENTED = True
 
 def _default_config() -> dict:
     return {
-        "model": "small",
+        "model": "medium.en",
         "exam_enabled": True,
         "free_chat_enabled": False,
         "language": "en",
@@ -93,10 +98,13 @@ def _whisperx_capability() -> dict:
     except (ImportError, ValueError):
         installed = False
 
+    alignment_model = _whisperx_alignment_model()
     if not python_compatible:
         reason = "python_unsupported"
     elif not installed:
         reason = "not_installed"
+    elif alignment_model is None:
+        reason = "model_missing"
     elif not WHISPERX_PIPELINE_IMPLEMENTED:
         reason = "integration_pending"
     else:
@@ -104,11 +112,12 @@ def _whisperx_capability() -> dict:
 
     return {
         "installed": installed,
-        "available": installed and python_compatible and WHISPERX_PIPELINE_IMPLEMENTED,
+        "available": installed and python_compatible and WHISPERX_PIPELINE_IMPLEMENTED and alignment_model is not None,
         "reason": reason,
         "python_version": ".".join(str(part) for part in sys.version_info[:3]),
         "minimum_python": "3.10",
         "supported_python": "3.10–3.13",
+        "alignment_model_bundled": alignment_model is not None,
     }
 
 
@@ -139,7 +148,7 @@ def _save_config(config: dict):
 def get_whisper_config(mode: str = "exam") -> dict:
     mode = _validate_mode(mode)
     config = _get_config()
-    current = config.get("model", "small")
+    current = config.get("model", "medium.en")
     enhancement_mode = config.get("exam_enhancement", "auto")
     if enhancement_mode not in EXAM_ENHANCEMENT_MODES:
         enhancement_mode = "auto"
@@ -200,13 +209,47 @@ def list_models() -> list:
             "size": info["size"],
             "english_only": info["english_only"],
             "downloaded": is_model_downloaded(model_id),
+            "bundled": is_model_bundled(model_id),
+            "profile": "performance" if model_id == "small.en" else "quality" if model_id == "medium.en" else None,
+            # Non-bundled models come from an external model host when they need
+            # to be installed again, even if this development machine already
+            # happens to have a cached copy.
+            "download_requires_external_access": not is_model_bundled(model_id),
         })
     return result
 
 
 def is_model_downloaded(model_id: str) -> bool:
-    path = _MODELS_DIR / model_id
-    return (path / "model.bin").exists()
+    return _model_directory(model_id) is not None
+
+
+def is_model_bundled(model_id: str) -> bool:
+    return _BUNDLED_MODELS_DIR is not None and (
+        _BUNDLED_MODELS_DIR / model_id / "model.bin"
+    ).is_file()
+
+
+def _model_directory(model_id: str) -> Optional[Path]:
+    candidates = []
+    if _BUNDLED_MODELS_DIR is not None:
+        candidates.append(_BUNDLED_MODELS_DIR / model_id)
+    candidates.append(_MODELS_DIR / model_id)
+    return next((path for path in candidates if (path / "model.bin").is_file()), None)
+
+
+def _whisperx_alignment_model() -> Optional[Path]:
+    candidates = []
+    if _WHISPERX_MODELS_DIR is not None:
+        candidates.append(_WHISPERX_MODELS_DIR / WHISPERX_ALIGNMENT_FILENAME)
+    candidates.append(
+        Path.home()
+        / ".cache"
+        / "torch"
+        / "hub"
+        / "checkpoints"
+        / WHISPERX_ALIGNMENT_FILENAME
+    )
+    return next((path for path in candidates if path.is_file()), None)
 
 
 def download_model(model_id: str) -> dict:
@@ -225,7 +268,7 @@ def download_model(model_id: str) -> dict:
     os.makedirs(path, exist_ok=True)
 
     try:
-        dm.download_model(model_id, output_dir=path)
+        dm(model_id, output_dir=path)
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, OSError) as e:
         raise RuntimeError(f"Network error downloading {model_id}: {e}. Please check your internet connection or try a different network.")
 
@@ -244,7 +287,7 @@ def download_model(model_id: str) -> dict:
 def _get_model():
     global _model, _current_model_name
     config = _get_config()
-    model_id = config.get("model", "small")
+    model_id = config.get("model", "medium.en")
 
     if _model is not None and _current_model_name == model_id:
         return _model
@@ -258,7 +301,8 @@ def _get_model():
         except ImportError:
             raise RuntimeError("faster-whisper is not installed. Run: pip install faster-whisper")
 
-        model_path = str(_MODELS_DIR / model_id) if is_model_downloaded(model_id) else model_id
+        local_model = _model_directory(model_id)
+        model_path = str(local_model) if local_model is not None else model_id
         _model = WhisperModel(model_path, device="cpu", compute_type="int8")
         _current_model_name = model_id
         return _model
@@ -375,7 +419,15 @@ def align_with_whisperx(wav_path: str, transcription: dict, language: str = "en"
     if not samples:
         raise RuntimeError("WhisperX alignment received an empty WAV file.")
     audio = np.concatenate(samples).astype(np.float32) / 32768.0
-    align_model, metadata = whisperx.load_align_model(language_code=language, device=device)
+    alignment_model = _whisperx_alignment_model()
+    if alignment_model is None:
+        raise RuntimeError("The bundled WhisperX English alignment model is missing.")
+    align_model, metadata = whisperx.load_align_model(
+        language_code=language,
+        device=device,
+        model_dir=str(alignment_model.parent),
+        model_cache_only=True,
+    )
     aligned = whisperx.align(
         transcription["segments"],
         align_model,
@@ -404,11 +456,11 @@ def analyze_for_scoring(audio_bytes: bytes, language: str = None) -> dict:
         return {"text": "", "segments": [], "words": [], "alignment": "none"}
 
     config = _get_config()
-    model_id = config.get("model", "small")
+    model_id = config.get("model", "medium.en")
     if not is_model_downloaded(model_id):
         raise RuntimeError(
             f"Model '{model_id}' is not downloaded. "
-            f"Please go to Settings → Whisper ASR → download the model (e.g. 'small')."
+            "Please choose one of the bundled English models in Settings → Whisper ASR."
         )
 
     tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
@@ -443,11 +495,11 @@ def transcribe(audio_bytes: bytes, language: str = None) -> str:
     if not audio_bytes:
         return ""
     config = _get_config()
-    model_id = config.get("model", "small")
+    model_id = config.get("model", "medium.en")
     if not is_model_downloaded(model_id):
         raise RuntimeError(
             f"Model '{model_id}' is not downloaded. "
-            "Please go to Settings → Whisper ASR → download a model."
+            "Please choose one of the bundled English models in Settings → Whisper ASR."
         )
     tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
     try:

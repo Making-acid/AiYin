@@ -1,15 +1,15 @@
 ; -*- mode: pascal -*-
-; IELTS Speaking Beta 1.2 -- Windows Installer
+; IELTS Speaking Beta 1.2.1 -- Windows Installer
 ; Build: ISCC.exe setup.iss
-; Requires: ..\IELTS-Speaking-WebView2-Beta-1.2-Release\AppStage\
+; Requires: ..\IELTS-Speaking-WebView2-Beta-1.2.1-Release\AppStage\
 
 #define MyAppName "IELTS Speaking"
-#define MyAppVersion "1.2.0-beta.1"
-#define MyAppDisplayVersion "Beta 1.2"
+#define MyAppVersion "1.2.1-beta.1"
+#define MyAppDisplayVersion "Beta 1.2.1"
 #define MyAppPublisher "IELTS AI"
 #define MyAppURL "https://github.com/Making-acid/ielts-speaking-ai"
 #define MyAppExeName "IELTS Speaking.exe"
-#define MyReleaseRoot "..\IELTS-Speaking-WebView2-Beta-1.2-Release"
+#define MyReleaseRoot "..\IELTS-Speaking-WebView2-Beta-1.2.1-Release"
 #define MySourceDir MyReleaseRoot + "\AppStage"
 #define MyOutputDir MyReleaseRoot + "\Installer"
 #define WebView2Bootstrapper MyReleaseRoot + "\Prerequisites\MicrosoftEdgeWebview2Setup.exe"
@@ -27,7 +27,7 @@ DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 UsePreviousAppDir=yes
 OutputDir={#MyOutputDir}
-OutputBaseFilename=IELTS-Speaking-WebView2-Beta-1.2-Setup
+OutputBaseFilename=IELTS-Speaking-WebView2-Beta-1.2.1-Setup
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern

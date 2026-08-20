@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "../i18n";
 import { useWhisperConfig } from "../asr";
 import { saveTtsConfig } from "../api/tts";
 import { clearTtsConfigCache } from "../hooks/useCharacterSpeech";
 
-export const TUTORIAL_VERSION = "4";
+export const TUTORIAL_VERSION = "5";
 
 interface Props {
   onClose: () => void;
@@ -12,11 +12,24 @@ interface Props {
 
 export function TutorialModal({ onClose }: Props) {
   const { t, markTutorialSeen } = useLanguage();
-  const { config, loading, updateEnhancementMode } = useWhisperConfig("exam");
+  const { config, models, loading, operationError, switchModel, updateEnhancementMode } = useWhisperConfig("exam");
   const [azureKey, setAzureKey] = useState("");
   const [azureRegion, setAzureRegion] = useState("");
   const [voiceSaving, setVoiceSaving] = useState(false);
   const [voiceError, setVoiceError] = useState("");
+  const recommendedModel = useMemo(() => {
+    const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 0;
+    const threads = navigator.hardwareConcurrency ?? 0;
+    return memory >= 16 && threads >= 8 ? "medium.en" : "small.en";
+  }, []);
+  const [selectedAsrModel, setSelectedAsrModel] = useState(recommendedModel);
+  const bundledChoices = models.filter((model) => model.id === "small.en" || model.id === "medium.en");
+
+  useEffect(() => {
+    if (config?.model === "small.en" || config?.model === "medium.en") {
+      setSelectedAsrModel(config.model);
+    }
+  }, [config?.model]);
 
   const enhancementStatus = !config
     ? t("examEnhancementUnavailable")
@@ -28,6 +41,8 @@ export function TutorialModal({ onClose }: Props) {
             .replace("{supported}", config.whisperx.supported_python)
         : config.whisperx.reason === "integration_pending"
           ? t("examEnhancementIntegrationPending")
+          : config.whisperx.reason === "model_missing"
+            ? t("examEnhancementModelMissing")
           : t("examEnhancementNotInstalled");
 
   const finishTutorial = () => {
@@ -39,6 +54,10 @@ export function TutorialModal({ onClose }: Props) {
     setVoiceSaving(true);
     setVoiceError("");
     try {
+      if (!(await switchModel(selectedAsrModel))) {
+        setVoiceError(t("tutorialAsrSaveFailed"));
+        return;
+      }
       await saveTtsConfig({ provider: "kokoro" });
       clearTtsConfigCache();
       finishTutorial();
@@ -53,6 +72,10 @@ export function TutorialModal({ onClose }: Props) {
     setVoiceSaving(true);
     setVoiceError("");
     try {
+      if (!(await switchModel(selectedAsrModel))) {
+        setVoiceError(t("tutorialAsrSaveFailed"));
+        return;
+      }
       await saveTtsConfig({
         provider: "azure",
         azure_key: azureKey.trim(),
@@ -71,6 +94,31 @@ export function TutorialModal({ onClose }: Props) {
     <div className="tutorial-overlay" onClick={() => void chooseLocalVoice()}>
       <div className="tutorial-modal" onClick={(e) => e.stopPropagation()}>
         <h2>{t("tutorialTitle")}</h2>
+
+        <div className="tutorial-enhancement tutorial-asr-choice">
+          <strong>{t("tutorialAsrTitle")}</strong>
+          <p>{t("tutorialAsrDesc")}</p>
+          <div className="tutorial-asr-options">
+            {bundledChoices.map((model) => (
+              <label key={model.id} className={`tutorial-asr-option ${selectedAsrModel === model.id ? "selected" : ""}`}>
+                <input
+                  type="radio"
+                  name="tutorial-asr-model"
+                  value={model.id}
+                  checked={selectedAsrModel === model.id}
+                  onChange={() => setSelectedAsrModel(model.id)}
+                />
+                <span>
+                  <strong>{model.profile === "quality" ? t("tutorialAsrQuality") : t("tutorialAsrPerformance")}</strong>
+                  <small>{model.name} · {model.size} · {t("whisperBundled")}</small>
+                  {recommendedModel === model.id && <em>{t("tutorialRecommendedForDevice")}</em>}
+                </span>
+              </label>
+            ))}
+          </div>
+          <p className="enhancement-privacy">{t("tutorialAsrOffline")}</p>
+          {operationError && <p className="settings-message error">{operationError}</p>}
+        </div>
 
         <div className="tutorial-enhancement tutorial-voice-choice">
           <strong>{t("tutorialVoiceTitle")}</strong>

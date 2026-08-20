@@ -63,6 +63,21 @@ internal sealed class BackendHost : IAsyncDisposable
         {
             startInfo.Environment["IELTS_TTS_MODEL_DIR"] = bundledTtsModel;
         }
+        var bundledWhisperModels = Path.Combine(AppContext.BaseDirectory, "models", "whisper");
+        if (Directory.Exists(bundledWhisperModels))
+        {
+            startInfo.Environment["IELTS_WHISPER_MODEL_DIR"] = bundledWhisperModels;
+        }
+        var bundledWhisperXModels = Path.Combine(AppContext.BaseDirectory, "models", "whisperx");
+        if (Directory.Exists(bundledWhisperXModels))
+        {
+            startInfo.Environment["IELTS_WHISPERX_MODEL_DIR"] = bundledWhisperXModels;
+            var nltkData = Path.Combine(bundledWhisperXModels, "nltk_data");
+            if (Directory.Exists(nltkData))
+            {
+                startInfo.Environment["NLTK_DATA"] = nltkData;
+            }
+        }
 
         _process = new Process { StartInfo = startInfo, EnableRaisingEvents = true };
         var launchedProcess = _process;

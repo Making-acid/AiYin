@@ -1,5 +1,7 @@
 {
-  "model": "base",
-  "enabled": true,
-  "language": "en"
+  "model": "medium.en",
+  "exam_enabled": true,
+  "free_chat_enabled": false,
+  "language": "en",
+  "exam_enhancement": "auto"
 }

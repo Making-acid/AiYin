@@ -8,6 +8,46 @@ from app.services import whisper_service
 
 
 class WhisperConfigTests(unittest.TestCase):
+    def test_default_model_is_exam_quality_english_model(self):
+        self.assertEqual(whisper_service._default_config()["model"], "medium.en")
+
+    def test_bundled_models_are_discovered_before_user_downloads(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            bundled = root / "bundled"
+            writable = root / "user"
+            for model_id in ("small.en", "medium.en"):
+                model_dir = bundled / model_id
+                model_dir.mkdir(parents=True)
+                (model_dir / "model.bin").write_bytes(b"model")
+            with (
+                patch.object(whisper_service, "_BUNDLED_MODELS_DIR", bundled),
+                patch.object(whisper_service, "_MODELS_DIR", writable),
+            ):
+                models = {item["id"]: item for item in whisper_service.list_models()}
+
+        self.assertTrue(models["small.en"]["bundled"])
+        self.assertEqual(models["small.en"]["profile"], "performance")
+        self.assertTrue(models["medium.en"]["bundled"])
+        self.assertEqual(models["medium.en"]["profile"], "quality")
+        self.assertFalse(models["base.en"]["downloaded"])
+        self.assertTrue(models["base.en"]["download_requires_external_access"])
+
+    def test_cached_non_bundled_model_keeps_external_download_warning(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            cached_model = root / "user" / "base.en"
+            cached_model.mkdir(parents=True)
+            (cached_model / "model.bin").write_bytes(b"model")
+            with (
+                patch.object(whisper_service, "_BUNDLED_MODELS_DIR", root / "bundled"),
+                patch.object(whisper_service, "_MODELS_DIR", root / "user"),
+            ):
+                models = {item["id"]: item for item in whisper_service.list_models()}
+
+        self.assertTrue(models["base.en"]["downloaded"])
+        self.assertTrue(models["base.en"]["download_requires_external_access"])
+
     def test_default_enhancement_is_auto_and_reports_fallback(self):
         with tempfile.TemporaryDirectory() as tmp:
             config_path = Path(tmp) / "whisper_config.json"

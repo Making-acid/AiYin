@@ -32,11 +32,11 @@ const zh: HomeFaqItem[] = [
   },
   {
     question: "Whisper、WhisperX 和浏览器识别有什么区别？",
-    answer: "浏览器识别最省事；本地 Whisper 通常更稳定，但首次需要下载模型；WhisperX 只在考试结束后补充词级时间、语速和停顿证据，不参与 Part 3 出题。普通用户保持默认设置即可。",
+    answer: "桌面版已预装 Whisper Small English 与 Medium English，无需下载；首次打开时可按电脑配置选择。WhisperX 英文对齐模型同样预装，只在考试结束后补充词级时间、语速和停顿证据，不参与 Part 3 出题。",
   },
   {
-    question: "模型下载很慢、卡住或失败怎么办？",
-    answer: "模型文件较大，下载时间取决于网络。请保持应用开启并检查磁盘空间；失败后可以重新下载。若暂时无法下载，关闭本地 Whisper，继续使用浏览器语音识别即可。",
+    question: "为什么其他模型下载很慢、卡住或失败？",
+    answer: "预装的 Small English 与 Medium English 不需要下载。列表中的其他模型位于外部模型源，部分网络环境可能需要 VPN；下载失败时直接切回预装模型即可。",
   },
   {
     question: "考试过程中应该怎样操作？可以中途暂停吗？",
@@ -75,8 +75,8 @@ const en: HomeFaqItem[] = [
   { question: "Nothing happens, or the app says it cannot connect. What now?", answer: "Confirm Settings shows that the provider is configured, check your internet connection, save any changed provider settings, and retry. If needed, close and reopen the app and avoid running multiple old versions." },
   { question: "Why can the app not hear me?", answer: "Allow microphone access in Windows, select the correct input device, move closer to the microphone, and reduce background noise. For the web version, use a current Edge or Chrome and allow microphone access for the page." },
   { question: "Text appears but the character has no voice. What should I check?", answer: "Check system volume and the selected output device. Browser speech depends on voices installed in Windows and WebView2. Azure Speech is optional; a failure there falls back without blocking text conversation." },
-  { question: "What are browser recognition, Whisper, and WhisperX?", answer: "Browser recognition is the easiest option. Local Whisper usually offers more stable transcription after a model download. WhisperX only adds post-exam timing evidence and never controls Part 3 questions." },
-  { question: "A model download is slow or failed. What can I do?", answer: "Keep the app open, check network and free disk space, then retry. You can disable local Whisper and continue with browser recognition while the model is unavailable." },
+  { question: "What are browser recognition, Whisper, and WhisperX?", answer: "The desktop app bundles Whisper Small English and Medium English. The bundled WhisperX English aligner only adds post-exam timing evidence and never controls Part 3 questions." },
+  { question: "Why is another model download slow or failing?", answer: "The two bundled English models need no download. Other models use an external model host and may require a VPN on some networks; switch back to either bundled model if a download fails." },
   { question: "How do I operate the exam? Can I pause it?", answer: "Answer each prompt and stop recording when finished. Part 2 includes preparation and a long turn; Part 3 follows up on your answers. Leaving the page may end the current mock exam, so pausing is not recommended." },
   { question: "Why is there no score during the exam?", answer: "The mock exam and scoring are deliberately separated. The examiner does not score during Parts 1–3. A practice report is generated only after the complete test ends." },
   { question: "Is the report an official IELTS result?", answer: "No. It is AI-generated practice feedback and may be inaccurate or inconsistent. It cannot be used for admissions, visas, employment, registration, or any other official purpose." },
