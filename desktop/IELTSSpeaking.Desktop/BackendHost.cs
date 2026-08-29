@@ -14,6 +14,7 @@ internal sealed class BackendHost : IAsyncDisposable
 
     public BackendHost()
     {
+        // Keep the legacy directory so an in-place brand upgrade preserves runtime state.
         var runtimeDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "IELTS Speaking",
@@ -204,8 +205,8 @@ internal sealed class BackendHost : IAsyncDisposable
     {
         var packagedCandidates = new[]
         {
-            Path.Combine(AppContext.BaseDirectory, "backend", "IELTS Speaking Backend.exe"),
-            Path.Combine(AppContext.BaseDirectory, "IELTS Speaking Backend.exe"),
+            Path.Combine(AppContext.BaseDirectory, "backend", "AiYin Backend.exe"),
+            Path.Combine(AppContext.BaseDirectory, "AiYin Backend.exe"),
         };
         foreach (var candidate in packagedCandidates)
         {

@@ -1,10 +1,10 @@
 # Privacy Notice / 隐私说明
 
-Effective date: 14 August 2026
-生效日期：2026 年 8 月 14 日
+Effective date: 30 August 2026
+生效日期：2026 年 8 月 30 日
 
-This notice describes the current Beta 1.2.1 desktop/local-web build. A modified or
-hosted deployment may behave differently. / 本说明适用于当前 Beta 1.2.1 桌面版及本地网页版本；
+This notice describes the current AiYin Beta 1.3 desktop/local-web build. A modified or
+hosted deployment may behave differently. / 本说明适用于当前爱音 Beta 1.3 桌面版及本地网页版本；
 经修改或部署到服务器后的版本可能存在不同的数据处理方式。
 
 ## English
@@ -17,7 +17,7 @@ hosted deployment may behave differently. / 本说明适用于当前 Beta 1.2.1 
 - AI-generated replies and estimated scoring reports;
 - local preferences such as interface language, training language, Live2D gaze,
   tutorial state, and Whisper settings; and
-- the AI-provider configuration entered in Settings.
+- the AI-provider configuration entered in Options.
 
 The Software does not ask for an IELTS candidate number, passport, identity
 document, payment card, or official test record. Do not enter these items into a
@@ -27,7 +27,7 @@ practice answer or chat.
 
 | Feature | Processing and destination |
 |---|---|
-| AI conversation and scoring | Required text and session context are sent through the local backend to the AI endpoint selected in Settings. The selected provider's own privacy policy and retention rules apply. |
+| AI conversation and scoring | Required text and session context are sent through the local backend to the AI endpoint selected in Options. The selected provider's own privacy policy and retention rules apply. |
 | Browser speech recognition | Audio may be processed by the browser or operating-system vendor and may leave the device, depending on that implementation. |
 | Local Whisper and optional enhanced analysis | Recorded audio is sent only to the Software's local backend. It is converted in a temporary file, transcribed or time-aligned locally, and the temporary file is deleted after processing. Enhanced analysis is intended to derive timing evidence such as speaking rate and pauses; it does not independently determine pronunciation quality. Model downloads contact the applicable model host. |
 | Exam recording and scoring analysis | During the live test, captured audio remains in page memory and does not affect Part 3 questions or state transitions. After the test ends, if local exam analysis is enabled, response recordings are uploaded only to the local backend for Whisper transcription and optional WhisperX timing alignment. Raw audio is not sent to the AI scoring provider; the resulting transcript and aggregate timing evidence can be included in the scoring request. Temporary audio is deleted after local processing and the page buffer is discarded when the page/session is cleared. Browser recognition may still process the same speech as described above. |

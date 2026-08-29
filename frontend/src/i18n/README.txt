@@ -1,4 +1,4 @@
-This directory contains translations for the IELTS Speaking AI application.
+This directory contains translations for the AiYin speaking-practice application.
 
 Current languages:
   en.ts   — English (default)

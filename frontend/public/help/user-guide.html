@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>IELTS Speaking Beta 1.2.1 用户指南</title>
+  <title>爱音 Beta 1.3 用户指南</title>
   <style>
     :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #1e293b; background: #f8fafc; }
     * { box-sizing: border-box; }
@@ -37,7 +37,7 @@
 </nav>
 <main>
   <header>
-    <h1>IELTS Speaking Beta 1.2.1 用户指南</h1>
+    <h1>爱音 Beta 1.3 用户指南</h1>
     <p>面向没有技术基础的普通用户。应用默认显示中文，本指南无需联网即可打开。</p>
     <p class="notice"><strong>重要：</strong>本软件是独立开发的 AI 口语练习工具，不是官方 IELTS 考试。所有分数与反馈仅供练习参考。</p>
   </header>
@@ -45,44 +45,44 @@
   <section>
     <h2>第一次使用：按顺序完成</h2>
     <ol class="steps">
-      <li>打开“设置”，选择 AI 服务商，填写该服务商提供的 API Key，然后保存。</li>
+      <li>打开“选项”，选择 AI 服务商，填写该服务商提供的 API Key，然后保存。</li>
       <li>允许 Windows 麦克风权限，先在“自由聊天”中试说一句英语。</li>
-      <li>确认文字识别和角色声音正常后，再进入“雅思考试”完成模拟。</li>
+      <li>确认文字识别和角色声音正常后，再进入“雅思模拟”完成完整流程。</li>
     </ol>
   </section>
 
   <section>
     <h2>你需要知道的功能</h2>
-    <h3>考试模式</h3>
+    <h3>雅思模拟</h3>
     <p>按 Part 1、Part 2、Part 3 推进。考试和评分相互分离，完成全部考试后才生成练习报告。</p>
     <h3>自由聊天</h3>
     <p>用于无压力对话练习，不评分。历史对话保存在本机，可以继续或删除。</p>
     <h3>语音识别</h3>
     <p>桌面版已预装 Whisper Small English 与 Medium English，并内置 WhisperX 英文对齐模型，无需 VPN 或首次下载。WhisperX 只在考试结束后补充时间与停顿证据，不参与 Part 3 出题。其他在线模型可能需要 VPN 才能下载。</p>
     <h3>角色声音</h3>
-    <p>浏览器语音无需配置。Azure Speech 是可选收费服务，使用你自己的 Azure 账户；不了解 Azure 时建议保持关闭。</p>
+    <p>首次打开时可以选择 Azure Speech；如果拒绝或暂不配置，则默认使用安装包内置的 Kokoro 本地语音。Windows 系统语音与浏览器语音作为兼容性回退。</p>
   </section>
 
   <section>
     <h2>常见问题</h2>
     <details open><summary>API Key 是什么？软件会提供吗？</summary><p>它是 AI 服务商发给你的个人凭证。本软件不附送 Key，也不代收费用。请在服务商官方平台申请、核对价格，并且不要把 Key 发给别人。</p></details>
     <details><summary>没有 API Key 能使用吗？</summary><p>AI 对话和评分通常必须配置 Key。你仍可阅读帮助和查看本地资料；熟悉本地模型的用户可以自行配置 Ollama。</p></details>
-    <details><summary>应用无法连接或开始后没有反应？</summary><p>确认设置页显示“已配置”，检查网络并重新保存设置。仍失败时关闭应用再打开，不要同时运行多个旧版本。</p></details>
+    <details><summary>应用无法连接或开始后没有反应？</summary><p>确认“选项”页显示“已配置”，检查网络并重新保存配置。仍失败时关闭应用再打开，不要同时运行多个旧版本。</p></details>
     <details><summary>麦克风识别不到声音？</summary><p>在 Windows 隐私设置中允许麦克风，选择正确输入设备，靠近麦克风并减少噪声。网页模式建议使用最新版 Edge 或 Chrome。</p></details>
     <details><summary>有文字但角色不说话？</summary><p>检查系统音量和输出设备。Azure 失败时可切回浏览器语音，不会阻止文字对话。</p></details>
     <details><summary>模型下载很慢或失败？</summary><p>保持应用开启，检查网络和磁盘空间后重试。也可以关闭本地 Whisper，暂时使用浏览器识别。</p></details>
     <details><summary>为什么考试中看不到分数？</summary><p>这是有意设计的：考试流程与评分分离，完成 Part 1、2、3 后才进行练习评分。</p></details>
     <details><summary>报告是官方 IELTS 成绩吗？</summary><p>不是。AI 报告可能不准确或不一致，不能用于报名、留学、签证、求职或其他正式用途。</p></details>
     <details><summary>数据保存在哪里？</summary><p>聊天历史、考试记忆和密钥保存在本机；必要文本会发送给你选择的 AI 服务商。Azure 模式会把角色回复文本发送给 Microsoft。请勿输入敏感资料。</p></details>
-    <details><summary>覆盖安装会删除历史吗？</summary><p>正常覆盖安装不会主动删除用户目录中的配置和历史。不要手动删除 IELTS Speaking 的本地用户数据目录，重要结果建议备份。</p></details>
+    <details><summary>覆盖安装会删除历史吗？</summary><p>正常覆盖安装不会主动删除用户目录中的配置和历史。不要手动删除爱音使用的本地用户数据目录，重要结果建议备份。</p></details>
   </section>
 
   <section class="english" lang="en">
     <h2>English quick reference</h2>
-    <p>Open Settings, choose an AI provider, enter your own API key, and save. Allow microphone access and test Free Chat before an exam. Browser speech works without Azure; Azure Speech is optional and may incur charges. WhisperX is post-exam only. All scores are unofficial practice estimates.</p>
+    <p>Open Options, choose an AI provider, enter your own API key, and save. Allow microphone access and test Free Chat before an exam. Browser speech works without Azure; Azure Speech is optional and may incur charges. WhisperX is post-exam only. All scores are unofficial practice estimates.</p>
   </section>
 
-  <footer>IELTS Speaking Beta 1.2.1 · 用户文档（中文为主）</footer>
+  <footer>爱音 Beta 1.3 · 用户文档（中文为主）</footer>
 </main>
 </body>
 </html>

@@ -8,7 +8,7 @@ export interface HomeFaqItem {
 const zh: HomeFaqItem[] = [
   {
     question: "我完全不懂技术，第一次应该做什么？",
-    answer: "先打开“设置”，选择一个 AI 服务商并填写该服务商提供的 API Key，保存后返回首页。然后允许麦克风权限，先用“自由聊天”试说一句；确认能识别和播放声音后，再开始考试。",
+    answer: "先打开“选项”，选择一个 AI 服务商并填写该服务商提供的 API Key，保存后返回首页。然后允许麦克风权限，先用“自由聊天”试说一句；确认能识别和播放声音后，再开始考试。",
   },
   {
     question: "API Key 是什么？软件会免费提供吗？",
@@ -16,11 +16,11 @@ const zh: HomeFaqItem[] = [
   },
   {
     question: "没有 API Key 能使用吗？",
-    answer: "考试问答、自由聊天和评分需要连接 AI，通常必须配置 Key。你仍可以打开设置、阅读帮助和查看本地资料。熟悉本地模型的用户也可以自行配置 Ollama。",
+    answer: "考试问答、自由聊天和评分需要连接 AI，通常必须配置 Key。你仍可以打开选项、阅读帮助和查看本地资料。熟悉本地模型的用户也可以自行配置 Ollama。",
   },
   {
     question: "点击开始后没有反应，或提示连接失败怎么办？",
-    answer: "先回到设置确认已显示“已配置”，再检查电脑网络。若刚修改过 Key、模型或服务商，请保存后重试。仍失败时，关闭应用再重新打开；不要同时启动多个旧版本。",
+    answer: "先回到“选项”确认已显示“已配置”，再检查电脑网络。若刚修改过 Key、模型或服务商，请保存后重试。仍失败时，关闭应用再重新打开；不要同时启动多个旧版本。",
   },
   {
     question: "麦克风没有声音或一直识别不到我说话？",
@@ -28,7 +28,7 @@ const zh: HomeFaqItem[] = [
   },
   {
     question: "角色不说话，但文字回复正常，怎么办？",
-    answer: "先检查系统音量和输出设备。默认浏览器语音无需额外付费，但可用音色取决于 Windows 和 WebView2。设置中的 Azure Speech 是可选项，配置错误或余额不足时会自动回退；不影响文字对话。",
+    answer: "先检查系统音量和输出设备。默认浏览器语音无需额外付费，但可用音色取决于 Windows 和 WebView2。“选项”中的 Azure Speech 是可选项，配置错误或余额不足时会自动回退；不影响文字对话。",
   },
   {
     question: "Whisper、WhisperX 和浏览器识别有什么区别？",
@@ -64,15 +64,15 @@ const zh: HomeFaqItem[] = [
   },
   {
     question: "覆盖安装新版本会丢失历史记录吗？",
-    answer: "正常覆盖安装不会主动删除保存在本机用户目录中的配置、自由聊天和考试记忆。不要手动删除本机的 IELTS Speaking 用户数据目录；重要内容仍建议自行截图或备份。",
+    answer: "正常覆盖安装不会主动删除保存在本机用户目录中的配置、自由聊天和考试记忆。不要手动删除爱音使用的本地用户数据目录；重要内容仍建议自行截图或备份。",
   },
 ];
 
 const en: HomeFaqItem[] = [
-  { question: "I have no technical experience. What should I do first?", answer: "Open Settings, choose an AI provider, enter the API key issued by that provider, and save. Allow microphone access and test one sentence in Free Chat before starting an exam." },
+  { question: "I have no technical experience. What should I do first?", answer: "Open Options, choose an AI provider, enter the API key issued by that provider, and save. Allow microphone access and test one sentence in Free Chat before starting an exam." },
   { question: "What is an API key, and is one included?", answer: "An API key is a private credential from an AI provider. The app does not include one or collect provider charges. Register with your chosen provider, review its prices, and keep the key private." },
   { question: "Can I use the app without an API key?", answer: "AI conversation and scoring normally require a configured provider. Help, settings, and local records remain available. Experienced users may configure a local Ollama service." },
-  { question: "Nothing happens, or the app says it cannot connect. What now?", answer: "Confirm Settings shows that the provider is configured, check your internet connection, save any changed provider settings, and retry. If needed, close and reopen the app and avoid running multiple old versions." },
+  { question: "Nothing happens, or the app says it cannot connect. What now?", answer: "Confirm Options shows that the provider is configured, check your internet connection, save any changed provider settings, and retry. If needed, close and reopen the app and avoid running multiple old versions." },
   { question: "Why can the app not hear me?", answer: "Allow microphone access in Windows, select the correct input device, move closer to the microphone, and reduce background noise. For the web version, use a current Edge or Chrome and allow microphone access for the page." },
   { question: "Text appears but the character has no voice. What should I check?", answer: "Check system volume and the selected output device. Browser speech depends on voices installed in Windows and WebView2. Azure Speech is optional; a failure there falls back without blocking text conversation." },
   { question: "What are browser recognition, Whisper, and WhisperX?", answer: "The desktop app bundles Whisper Small English and Medium English. The bundled WhisperX English aligner only adds post-exam timing evidence and never controls Part 3 questions." },
@@ -83,7 +83,7 @@ const en: HomeFaqItem[] = [
   { question: "Where do my audio, chats, and keys go?", answer: "Required text is sent to your selected AI provider. Azure mode sends reply text to Microsoft. Keys, chat history, and exam memory are stored locally. Temporary exam audio processed locally is deleted after analysis." },
   { question: "Is Azure Speech required, and can it cost money?", answer: "It is optional. Browser speech works without Azure. Azure uses your own account and may incur charges; leave it disabled if you are unfamiliar with the service." },
   { question: "The character is missing or animation is slow. What can I do?", answer: "Restart the app, close other graphics-heavy programs, and update graphics drivers and WebView2 Runtime. Live2D affects visuals only; text practice can continue." },
-  { question: "Will an upgrade remove my history?", answer: "A normal in-place upgrade does not intentionally remove configuration, chat history, or exam memory stored in your local user profile. Avoid manually deleting the IELTS Speaking user-data directory." },
+  { question: "Will an upgrade remove my history?", answer: "A normal in-place upgrade does not intentionally remove configuration, chat history, or exam memory stored in your local user profile. Avoid manually deleting AiYin's local user-data directory." },
 ];
 
 export const homeFaq: Record<Language, HomeFaqItem[]> = { zh, en };

@@ -7,10 +7,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <ApplicationIcon>..\..\frontend\public\icons\app-icon.ico</ApplicationIcon>
-    <AssemblyName>IELTS Speaking</AssemblyName>
+    <AssemblyName>爱音</AssemblyName>
     <RootNamespace>IELTSSpeaking.Desktop</RootNamespace>
-    <Version>1.2.1-beta.1</Version>
-    <Product>IELTS Speaking Beta 1.2.1</Product>
+    <Version>1.3.0-beta.1</Version>
+    <Product>爱音 Beta 1.3</Product>
   </PropertyGroup>
 
   <ItemGroup>

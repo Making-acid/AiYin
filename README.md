@@ -1,263 +1,111 @@
-# IELTS Speaking Practice — AI
+# 爱音
 
-雅思口语智能陪练助手。模拟完整雅思口语考试流程（Part 1 → Part 2 → Part 3 → 评分报告），支持 AI 自由对话。
+> 利用 AI 与 Live2D 进行轻松愉快的口语训练。
+
+爱音（AiYin）是一款面向 Windows 的本地桌面口语练习工具。你可以和 Mao 自由聊天，也可以由 Haru 陪你完成一场结构化的雅思口语模拟，并在模拟结束后查看非官方练习报告。
 
 ![Mao 正在进行自由对话](frontend/public/media/mao-speaking-v0.6.png)
 
-> 图中 Mao 为 Live2D Sample Data 衍生的 AI 生成发布插图；角色及衍生素材不包含在本项目代码的 MIT 授权中，详见 [NOTICE.md](./NOTICE.md)。
+> 本项目是独立开发的练习工具，不提供官方 IELTS 考试、报名或成绩，与 British Council、IDP Education、Cambridge University Press & Assessment 及任何 IELTS 考点均无隶属或认可关系。AI 评分只能用于练习参考。
 
-应用图标以“正在说话的 Mao”为主题，并已应用到网页、Windows EXE、安装器、桌面快捷方式和卸载项。
+## 下载与使用
 
-## 文档导航
+普通用户请从 GitHub 的 [Releases](https://github.com/Making-acid/爱音/releases) 下载最新安装包。安装版面向 Windows 10/11 x64，并保留原安装器 AppId，可覆盖升级旧版；正常覆盖安装不会主动删除本地配置、聊天记录和历史模拟报告。
 
-- **普通用户**：[中文用户指南](docs/user/README.md)；安装版也可在首页 Q&A 或“设置 → 帮助”中打开离线指南。
-- **开发者与贡献者**：[中文开发者指南](docs/developer/README.md)。
-- **文档总目录**：[用户文档与开发者文档分类](docs/README.md)。
-- **法律与隐私**：[免责声明](DISCLAIMER.md)、[隐私说明](PRIVACY.md)与[第三方声明](NOTICE.md)。
+首次使用：
 
-## Beta 1.2.1 重点
+1. 打开“选项”，选择 AI 服务商并填写自己的 API Key。
+2. 根据电脑配置选择预装的 Whisper Small English 或 Medium English。
+3. 先在“自由聊天”中测试麦克风和角色声音。
+4. 进入“雅思模拟”完成 Part 1、Part 2 和 Part 3，结束后生成练习报告。
 
-- 考试流程与评分彻底分离：Part 3 由考官现场追问，考试结束后才生成评估。
-- 自由对话支持本地历史记录；考试模式保存本地 memory，便于查看长期表现。
-- 桌面安装包预装 Whisper Small English、Medium English 与 WhisperX 英文对齐模型，正式考试无需临时下载。
-- 可选 WhisperX 只参与考后时间对齐和流利度证据，绝不介入 Part 3 出题或状态机。
-- Azure、随安装包提供的离线 Kokoro 神经语音、Windows 系统语音与浏览器 TTS 分层回退；Azure viseme 可驱动 Live2D 口型。
-- Haru 与 Mao 使用独立角色定义、布局和行为配置，均采用更接近视频通话的半身构图。
+详细步骤、常见问题与故障排查请阅读[中文用户指南](docs/user/README.md)。安装版也可以从首页 Q&A 或“选项 → 帮助”打开离线指南。
 
-## 快速开始
+## 主要能力
 
-**Windows 用户**：双击运行根目录下的 `start.bat`，脚本会自动安装依赖、启动后端和前端、打开浏览器。
+- **雅思模拟**：按 Part 1、Part 2、Part 3 推进；考试流程与评分流程分离，Part 3 不读取现场分数。
+- **自由聊天**：与 Mao 进行无评分的口语对话，并在本机保存历史记录。
+- **历史报告**：本地保存已生成的模拟报告，展示历次成绩、平均表现与长期薄弱项。
+- **本地语音识别**：安装包预装 Whisper Small English、Medium English 与 WhisperX 英文对齐模型；正式模拟无需临时下载。
+- **多层语音输出**：支持 Azure Speech、内置 Kokoro、Windows 系统语音与浏览器语音，并统一提供音量控制和兼容性回退。
+- **Live2D 角色**：Haru 与 Mao 使用相互独立的角色配置、布局和行为模块，采用视频通话式半身构图。
+- **本地优先**：配置、自由聊天和历史模拟报告保存在当前 Windows 用户目录；第三方 AI 与 Azure 的数据边界详见隐私说明。
 
-启动后访问 `http://localhost:5173`。
+## 使用须知
 
-**macOS / Linux** 或 **Docker**：
+- AI 对话和评分通常需要用户自行准备 DeepSeek、OpenAI、Groq、OpenRouter 或兼容服务的 API Key；本软件不附送 Key，也不代收相关费用。
+- Azure Speech 是可选云服务，使用用户自己的 Azure 账户并可能产生费用；不了解时可以使用内置 Kokoro。
+- 预装模型可以离线使用。只有主动下载其他模型时才需要访问外部模型托管方，部分网络环境可能受限。
+- 不要输入身份证件、准考证号、支付信息、机密信息或无权披露的内容。
 
-```bash
-docker compose up --build
-```
+请同时阅读[免责声明与使用条款](DISCLAIMER.md)、[隐私说明](PRIVACY.md)、[第三方声明](NOTICE.md)和[许可证](LICENSE)。
 
-**手动启动**（需要 Python 3.9+ / Node.js 18+）：
+## 致谢
 
-```bash
+感谢 OpenCode 和 Codex，没有你们，我不可能完成这项任务。
+
+感谢微软、OpenAI、Live2D 以及其他一切开源项目的帮助，并衷心赞美此前开源社区的开发者们。你们是开源世界的榜样，是我愿意一生追随的优秀先行者。
+
+## 开发者文档
+
+- [开发者指南](docs/developer/README.md)：架构边界、开发环境、测试与发行流程。
+- [WebView2 桌面宿主说明](desktop/README.md)：桌面生命周期、权限与构建参数。
+- [前端说明](frontend/README.md)：React 前端目录、命令和约束。
+- [文档中心](docs/README.md)：用户文档与开发者文档的分类入口。
+
+### 源码开发
+
+环境要求：Node.js 18+、Python 3.9+；桌面宿主还需要 .NET 10 SDK，安装包需要 Inno Setup。
+
+```powershell
 # 后端
 cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+python -m pip install -r requirements.txt
+python -m uvicorn app.main:app --reload --port 8000
 
-# 前端（新终端）
+# 前端（另开终端）
 cd frontend
 npm install
 npm run dev
 ```
 
-### WhisperX 考后增强分析
+前端默认地址为 `http://127.0.0.1:5173`，开发服务器会把 API 请求代理到本地后端。也可以在项目根目录运行 `start.bat`，或使用 `docker compose up --build` 启动网页版本。
 
-桌面发布版已内置 `small.en`、`medium.en` 两个英文 Whisper 模型，以及 WhisperX 英文对齐模型和 CPU 运行库，无需用户访问外部模型源。WhisperX 只在考试结束后用于词级时间对齐和流利度时间证据，不参与 Part 3 出题或考试状态机。
-
-仅从源码运行时，如需启用 WhisperX，请使用 Python 3.10–3.13，并额外安装：
-
-```powershell
-pip install -r backend/requirements-whisperx.txt
-python -m nltk.downloader punkt_tab
-```
-
-未安装、版本不兼容或处理失败时，评分会自动回退到 faster-whisper。设置中其余模型需要连接外部模型托管方，在部分网络环境中可能需要 VPN。
-
-首次使用需在页面 **Settings** 中配置 LLM API Key（支持 DeepSeek / OpenAI / Groq / OpenRouter / Ollama）。
-
----
-
-## 项目结构（Beta 1.2.1）
-
-```
-IELTS/
-├── frontend/                          # React 19 + Vite 8 + TypeScript
-│   └── src/
-│       ├── api/                       # API 客户端（按域拆分）
-│       │   ├── client.ts              # Axios 实例
-│       │   ├── config.ts              # LLM 配置 API
-│       │   ├── exam.ts                # 考试 API
-│       │   ├── chat.ts                # 聊天 API
-│       │   └── tts.ts                 # Azure Speech 配置与令牌 API
-│       ├── asr/                       # ASR 独立模块
-│       │   ├── AsrProvider.tsx         # 统一 ASR 上下文（browser/whisper 切换）
-│       │   ├── browserAsr.ts          # 浏览器 Web Speech API
-│       │   ├── whisperAsr.ts          # Whisper 录音 + 转录
-│       │   ├── whisperConfig.ts       # Whisper 配置管理
-│       │   ├── AsrIndicator.tsx       # 状态指示器
-│       │   └── AsrSettings.tsx        # 设置面板
-│       ├── i18n/                      # 国际化独立模块
-│       │   ├── index.tsx              # AppProvider + useLanguage + useLive2DBehavior
-│       │   ├── en.ts / zh.ts          # 语言包
-│       │   ├── trainingLang.tsx       # 训练语言上下文
-│       │   └── _template.ts           # 新语言模板
-│       ├── components/                # UI 组件
-│       │   ├── VoiceInput.tsx         # 语音输入（依赖 useAsr()）
-│       │   ├── ChatBubble.tsx
-│       │   └── Timer.tsx
-│       ├── live2d/                    # Live2D 通用渲染 + 独立角色模块
-│       │   ├── Live2DCharacter.tsx    # 角色无关的 PixiJS 渲染引擎
-│       │   ├── types.ts               # 角色定义与布局接口
-│       │   ├── stateMachine.ts        # 通用状态机
-│       │   ├── stateRunner.ts         # 状态驱动（表情/动作/嘴型）
-│       │   └── characters/
-│       │       ├── haru/              # Haru 模型、布局和行为配置
-│       │       └── mao/               # Mao 模型、布局和行为配置
-│       ├── hooks/
-│       │   ├── useSpeechSynthesis.ts  # 浏览器 TTS
-│       │   ├── useCharacterSpeech.ts  # 浏览器/Azure TTS 与 Live2D 口型
-│       │   └── useDualRecording.ts    # 录音 + 浏览器 ASR 双重采集
-│       └── pages/                     # 页面
-│           ├── Home.tsx / Exam.tsx / FreeChat.tsx
-│           ├── Report.tsx / Settings.tsx / Memory.tsx
-│           └── AzureSpeechHelp.tsx     # Azure 配置、收费与隐私帮助
-│
-├── backend/                           # Python FastAPI
-│   ├── app/
-│   │   ├── main.py                    # 入口
-│   │   ├── api/                       # 路由层
-│   │   │   ├── exam.py                # 考试端点
-│   │   │   ├── chat.py                # 聊天端点
-│   │   │   ├── config.py              # 配置端点
-│   │   │   ├── whisper.py             # Whisper ASR 端点（可选）
-│   │   │   └── tts.py                 # Azure Speech 端点（可选）
-│   │   ├── models/
-│   │   │   └── schemas.py             # Pydantic 请求/响应模型
-│   │   ├── services/                  # 业务逻辑
-│   │   │   ├── llm_service.py         # LLM 客户端
-│   │   │   ├── exam_service.py        # 会话管理 + 考试状态机
-│   │   │   ├── scoring_service.py     # 评分报告生成
-│   │   │   ├── memory_store.py        # 本地聊天历史与考试记忆
-│   │   │   ├── exam_audio_service.py  # 考后音频分析
-│   │   │   ├── tts_service.py         # Azure Speech 本地配置
-│   │   │   ├── data_loader.py         # 题库加载
-│   │   │   ├── config_service.py      # LLM 配置 CRUD
-│   │   │   ├── whisper_service.py     # Whisper 模型 + 转录
-│   │   │   ├── session_manager.py     # 会话存储（TTL + 清理）
-│   │   │   └── providers/             # LLM Provider 抽象
-│   │   │       └── openai_compatible.py
-│   │   └── core/
-│   │       └── config.py              # 环境变量设置
-│   ├── data/                          # 数据文件
-│   │   ├── exams.json                 # 考试注册表
-│   │   ├── providers.json             # 模型供应商预设
-│   │   └── exams/
-│   │       ├── ielts/                 # IELTS
-│   │       │   ├── source/            # 题库原始 PDF（2026年5-8月新东方）
-│   │       │   ├── meta.json          # 考试配置
-│   │       │   ├── dialogs.json       # 考官过渡台词
-│   │       │   ├── prompts/           # AI 提示词
-│   │       │   ├── questions/         # 题库（43 P1 + 73 P2 + 10 P3 类）
-│   │       │   └── rubrics/           # 评分标准
-│   │       └── _template/             # 新考试模板
-│   └── models/whisper/                # Whisper 模型文件
-│       ├── small/                     # 内置 small 模型
-│       ├── tiny/ base/ ... large-v3/  # 可选下载
-│       └── MODELS_README.txt
-│
-├── docker-compose.yml
-├── start.bat                          # Windows 一键启动
-└── setup.iss                          # Inno Setup 打包脚本
-```
-
----
-
-## 添加新考试
-
-1. 复制 `backend/data/exams/_template/` → `exams/{exam_id}/`
-2. 填写 `meta.json`、`prompts/`、`questions/`、`rubrics/`、`dialogs.json`
-3. 在 `exams.json` 注册新考试
-4. 重启服务，系统自动加载
-
-## 添加新语言
-
-1. 复制 `frontend/src/i18n/_template.ts` → `{lang_code}.ts`
-2. 翻译所有值
-3. 在 `i18n/index.tsx` 注册新语言
-
----
-
-## WebView2 桌面版与打包
-
-Windows 桌面版使用原生 WinForms + Microsoft WebView2 承载现有 React 页面，业务仍由
-FastAPI 后端负责。宿主为后端分配随机回环端口，只向本地应用来源授予麦克风权限，外部
-链接交给系统浏览器；关闭窗口时会同步回收后端进程。
-
-开发运行：
+### 质量检查
 
 ```powershell
 cd frontend
-npm.cmd run build
+npm run build
+npm run lint
+
+cd ..\backend
+python -m pytest tests -q
+
 cd ..
-dotnet run --project desktop/IELTSSpeaking.Desktop
+dotnet build desktop\IELTSSpeaking.Desktop\IELTSSpeaking.Desktop.csproj --configuration Release
 ```
 
-生成完整发布目录与覆盖安装包：
+### 架构摘要
+
+```text
+frontend/                 React、TypeScript、Live2D、ASR/TTS 交互
+backend/app/api/          FastAPI 路由层
+backend/app/services/     考试、评分、记忆、LLM、ASR 与 TTS 服务层
+backend/data/             结构化题库、提示词与评分标准
+desktop/                  WinForms + WebView2 桌面宿主和发布脚本
+docs/                     用户与开发者文档
+```
+
+WebView2 只负责桌面生命周期、权限、导航和本地后端进程管理；React 负责界面交互，FastAPI 服务层负责考试、对话、语音与持久化。考试状态机和评分服务必须保持分离，WhisperX 只可用于考后增强分析。
+
+生成 Windows 发行版：
 
 ```powershell
-./desktop/build-webview-release.ps1
+.\desktop\build-webview-release.ps1
 ```
 
-脚本会构建前端、冻结独立 Python 后端、发布自包含的 x64 .NET 桌面宿主、下载微软官方
-Evergreen WebView2 引导程序，并调用 Inno Setup。全部产物写入仓库同级目录
-`IELTS-Speaking-WebView2-Beta-1.2.1-Release`，不会进入源码目录。详见
-[`desktop/README.md`](desktop/README.md)。
+产物会写入仓库外的 `AiYin-WebView2-Beta-1.3-Release`，不会污染源码目录。`AppStage` 是完整便携版目录，不能只分发其中单个 EXE；`Installer` 中为覆盖安装包。
 
----
+## 许可证与第三方内容
 
-## API 端点
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| `GET` | `/health` | 健康检查 |
-| `GET` | `/config` | 获取 LLM 配置 |
-| `POST` | `/config` | 保存 LLM 配置 |
-| `GET` | `/config/providers` | 可用模型供应商 |
-| `GET` | `/exam/exams` | 考试列表 |
-| `POST` | `/exam/start` | 开始考试 |
-| `POST` | `/exam/answer` | 提交答案 |
-| `POST` | `/exam/advance` | 推进无需作答的考试过渡阶段 |
-| `GET` | `/exam/report/{id}` | 获取评分报告 |
-| `POST` | `/chat/start` | 开始自由聊天 |
-| `POST` | `/chat/send` | 发送聊天消息 |
-| `GET` | `/chat/sessions` | 本地自由对话历史 |
-| `GET` | `/chat/sessions/{id}` | 恢复自由对话 |
-| `DELETE` | `/chat/sessions/{id}` | 删除自由对话 |
-| `GET` | `/exam/memory` | 考试记忆与长期表现汇总 |
-| `GET` | `/exam/memory/{id}` | 单次考试记忆 |
-| `DELETE` | `/exam/memory/{id}` | 删除单次考试记忆 |
-| `DELETE` | `/config/local-memory` | 清空全部本地记忆 |
-| `GET` | `/whisper/config` | Whisper 配置 |
-| `POST` | `/whisper/config` | 更新 Whisper 配置 |
-| `GET` | `/whisper/models` | 模型列表 |
-| `POST` | `/whisper/models/download` | 下载模型 |
-| `POST` | `/whisper/transcribe` | 音频转录 |
-| `GET` | `/tts/config` | 获取语音提供方与 Azure 配置状态 |
-| `POST` | `/tts/config` | 保存 Azure/Kokoro/Windows/浏览器语音配置 |
-| `POST` | `/tts/azure-token` | 获取短期 Azure Speech 授权令牌 |
-| `GET` | `/tts/local/status` | 检查内置 Kokoro 模型与运行时 |
-| `POST` | `/tts/local/synthesize` | 经本地服务层生成 Kokoro WAV 音频 |
-
----
-
-## 技术栈
-
-| 层 | 技术 |
-|------|------|
-| 前端 | React 19 / Vite 8 / TypeScript / React Router 7 / PixiJS 6 |
-| 后端 | FastAPI / Uvicorn / OpenAI SDK |
-| LLM | DeepSeek V4 / OpenAI / Groq / OpenRouter / Ollama |
-| ASR | Web Speech API / faster-whisper（9 模型）/ 可选 WhisperX 考后增强 |
-| TTS | Azure Speech / 内置 Kokoro+sherpa-onnx / Windows SAPI / Web Speech API |
-| 打包 | PyInstaller / Inno Setup |
-| 运维 | Docker + Docker Compose |
-
----
-
-## 许可证
-
-项目代码采用 [MIT License](./LICENSE)。题目、角色模型、商标及其他第三方材料不当然包含在 MIT 授权范围内。
-
-本软件使用了 Live2D Cubism SDK、faster-whisper、OpenAI SDK 等第三方组件，各组件版权及许可证详见 [NOTICE.md](./NOTICE.md)。
-
-AI 生成的评分和反馈仅供练习参考，不构成官方 IELTS 成绩。本项目与 British Council、IDP Education、Cambridge University Press & Assessment 或任何 IELTS 考点无官方关联。使用前请阅读 [免责声明与使用条款](./DISCLAIMER.md) 及 [隐私说明](./PRIVACY.md)。
+项目代码采用 [MIT License](LICENSE)。Live2D Cubism SDK、Haru、Niziiro Mao、题库内容、模型权重、商标和其他第三方材料分别受其自身条款约束，不当然包含在 MIT 授权范围内。发布或再分发前请完整阅读 [NOTICE.md](NOTICE.md)。

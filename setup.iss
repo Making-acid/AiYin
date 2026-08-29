@@ -1,15 +1,15 @@
 ; -*- mode: pascal -*-
-; IELTS Speaking Beta 1.2.1 -- Windows Installer
+; 爱音 Beta 1.3 -- Windows Installer
 ; Build: ISCC.exe setup.iss
-; Requires: ..\IELTS-Speaking-WebView2-Beta-1.2.1-Release\AppStage\
+; Requires: ..\AiYin-WebView2-Beta-1.3-Release\AppStage\
 
-#define MyAppName "IELTS Speaking"
-#define MyAppVersion "1.2.1-beta.1"
-#define MyAppDisplayVersion "Beta 1.2.1"
-#define MyAppPublisher "IELTS AI"
-#define MyAppURL "https://github.com/Making-acid/ielts-speaking-ai"
-#define MyAppExeName "IELTS Speaking.exe"
-#define MyReleaseRoot "..\IELTS-Speaking-WebView2-Beta-1.2.1-Release"
+#define MyAppName "爱音"
+#define MyAppVersion "1.3.0-beta.1"
+#define MyAppDisplayVersion "Beta 1.3"
+#define MyAppPublisher "爱音"
+#define MyAppURL "https://github.com/Making-acid/爱音"
+#define MyAppExeName "爱音.exe"
+#define MyReleaseRoot "..\AiYin-WebView2-Beta-1.3-Release"
 #define MySourceDir MyReleaseRoot + "\AppStage"
 #define MyOutputDir MyReleaseRoot + "\Installer"
 #define WebView2Bootstrapper MyReleaseRoot + "\Prerequisites\MicrosoftEdgeWebview2Setup.exe"
@@ -27,7 +27,7 @@ DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 UsePreviousAppDir=yes
 OutputDir={#MyOutputDir}
-OutputBaseFilename=IELTS-Speaking-WebView2-Beta-1.2.1-Setup
+OutputBaseFilename=AiYin-Beta-1.3-Setup
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
@@ -47,6 +47,7 @@ Type: files; Name: "{app}\IELTS Speaking v0.3.0.exe"
 Type: files; Name: "{app}\IELTS Speaking v0.4.0.exe"
 Type: files; Name: "{app}\IELTS Speaking v0.5.0.exe"
 Type: files; Name: "{app}\IELTS Speaking v0.6.0.exe"
+Type: files; Name: "{app}\IELTS Speaking.exe"
 Type: filesandordirs; Name: "{app}\_internal"
 
 [Languages]

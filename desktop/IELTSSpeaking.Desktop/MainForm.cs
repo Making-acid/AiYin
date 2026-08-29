@@ -12,7 +12,7 @@ internal sealed class MainForm : Form
     private readonly Label _status = new()
     {
         Dock = DockStyle.Fill,
-        Text = "正在启动 IELTS Speaking…",
+        Text = "正在启动爱音…",
         TextAlign = ContentAlignment.MiddleCenter,
         Font = new Font("Segoe UI", 13F),
         ForeColor = Color.FromArgb(60, 69, 83),
@@ -26,7 +26,7 @@ internal sealed class MainForm : Form
 
     public MainForm()
     {
-        Text = "IELTS Speaking";
+        Text = "爱音";
         StartPosition = FormStartPosition.CenterScreen;
         Width = 1440;
         Height = 900;
@@ -88,7 +88,7 @@ internal sealed class MainForm : Form
     {
         var userDataFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "IELTS Speaking",
+            "爱音",
             "WebView2");
         Directory.CreateDirectory(userDataFolder);
         var environment = await CoreWebView2Environment.CreateAsync(
@@ -243,7 +243,7 @@ internal sealed class MainForm : Form
         MessageBox.Show(
             this,
             exception.Message,
-            "IELTS Speaking 启动失败",
+            "爱音启动失败",
             MessageBoxButtons.OK,
             MessageBoxIcon.Error);
     }

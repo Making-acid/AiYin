@@ -5,10 +5,10 @@ param(
 
 $ErrorActionPreference = "Stop"
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$releaseVersion = "1.2.1-beta.1"
-$releaseLabel = "Beta-1.2.1"
+$releaseVersion = "1.3.0-beta.1"
+$releaseLabel = "Beta-1.3"
 if ([string]::IsNullOrWhiteSpace($ReleaseRoot)) {
-    $ReleaseRoot = Join-Path (Split-Path $projectRoot -Parent) "IELTS-Speaking-WebView2-$releaseLabel-Release"
+    $ReleaseRoot = Join-Path (Split-Path $projectRoot -Parent) "AiYin-WebView2-$releaseLabel-Release"
 }
 $ReleaseRoot = [IO.Path]::GetFullPath($ReleaseRoot)
 if ($ReleaseRoot.StartsWith($projectRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
@@ -101,7 +101,7 @@ Copy-Item -LiteralPath $whisperXModelSource -Destination (Join-Path $appStage "m
 & $python -m PyInstaller --noconfirm --clean `
     --distpath $backendStage `
     --workpath (Join-Path $buildRoot "PyInstaller") `
-    (Join-Path $backendRoot "IELTS Speaking Backend.spec")
+    (Join-Path $backendRoot "AiYin Backend.spec")
 if ($LASTEXITCODE -ne 0) { throw "Backend packaging failed with exit code $LASTEXITCODE" }
 
 & dotnet publish (Join-Path $projectRoot "desktop\IELTSSpeaking.Desktop\IELTSSpeaking.Desktop.csproj") `
@@ -111,8 +111,8 @@ if ($LASTEXITCODE -ne 0) { throw "Backend packaging failed with exit code $LASTE
     --output $appStage
 if ($LASTEXITCODE -ne 0) { throw "Desktop publish failed with exit code $LASTEXITCODE" }
 
-$backendOutput = Join-Path $backendStage "IELTS Speaking Backend"
-if (-not (Test-Path -LiteralPath (Join-Path $backendOutput "IELTS Speaking Backend.exe"))) {
+$backendOutput = Join-Path $backendStage "AiYin Backend"
+if (-not (Test-Path -LiteralPath (Join-Path $backendOutput "AiYin Backend.exe"))) {
     throw "Packaged backend executable was not produced."
 }
 Copy-Item -LiteralPath $backendOutput -Destination (Join-Path $appStage "backend") -Recurse

@@ -1,8 +1,8 @@
 @echo off
-title IELTS Speaking - Launcher
+title 爱音 - Launcher
 
 echo ============================================
-echo   IELTS Speaking Practice - Launcher
+echo   爱音 - AI and Live2D Speaking Practice
 echo ============================================
 echo.
 

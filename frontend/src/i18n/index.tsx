@@ -47,7 +47,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     document.documentElement.lang = lang === "zh" ? "zh-CN" : lang;
-    document.title = STRINGS[lang]?.["title"] || "IELTS Speaking Practice";
+    document.title = STRINGS[lang]?.["title"] || "爱音";
   }, [lang]);
 
   const handleBehavior = (m: Live2DBehavior) => {

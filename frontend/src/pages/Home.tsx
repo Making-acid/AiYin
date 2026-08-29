@@ -10,6 +10,7 @@ export function Home() {
   const { lang, preferencesReady, tutorialSeenVersion, t } = useLanguage();
   const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [faqExpanded, setFaqExpanded] = useState(false);
 
   useEffect(() => {
     checkConfig();
@@ -36,6 +37,15 @@ export function Home() {
         <h1>{t("title")}</h1>
         <p className="home-subtitle">{t("subtitle")}</p>
         <p className="home-desc">{t("desc")}</p>
+      </div>
+
+      <div className="home-toolbar">
+        <button className="btn-primary home-options-button" onClick={() => navigate("/settings")}>
+          <span aria-hidden="true">⚙</span> {t("settings")}
+        </button>
+        <button className="btn-secondary home-memory-button" onClick={() => navigate("/memory")}>
+          <span aria-hidden="true">◷</span> {t("examMemory")}
+        </button>
       </div>
 
       {isConfigured === false && (
@@ -75,33 +85,43 @@ export function Home() {
         </div>
       </div>
 
-      <section className="home-faq" aria-labelledby="home-faq-title">
-        <div className="home-faq-heading">
+      <section className={`home-faq ${faqExpanded ? "expanded" : ""}`} aria-labelledby="home-faq-title">
+        <button
+          type="button"
+          className="home-faq-toggle"
+          aria-expanded={faqExpanded}
+          aria-controls="home-faq-content"
+          onClick={() => setFaqExpanded((expanded) => !expanded)}
+        >
           <div>
             <span className="home-faq-kicker">Q&amp;A</span>
             <h2 id="home-faq-title">{t("homeFaqTitle")}</h2>
             <p>{t("homeFaqIntro")}</p>
           </div>
-          <a className="btn-secondary home-guide-link" href="/help/user-guide.html" target="_blank" rel="noopener noreferrer">
-            {t("userGuide")}
-          </a>
-        </div>
-        <div className="home-faq-list">
-          {homeFaq[lang].map((item, index) => (
-            <details key={item.question} open={index === 0}>
-              <summary>{item.question}</summary>
-              <p>{item.answer}</p>
-            </details>
-          ))}
-        </div>
+          <span className="home-faq-toggle-action">
+            {t(faqExpanded ? "homeFaqCollapse" : "homeFaqExpand")}
+            <span aria-hidden="true">{faqExpanded ? "−" : "+"}</span>
+          </span>
+        </button>
+        {faqExpanded && (
+          <div id="home-faq-content" className="home-faq-content">
+            <div className="home-faq-guide-row">
+              <a className="btn-secondary home-guide-link" href="/help/user-guide.html" target="_blank" rel="noopener noreferrer">
+                {t("userGuide")}
+              </a>
+            </div>
+            <div className="home-faq-list">
+              {homeFaq[lang].map((item) => (
+                <details key={item.question}>
+                  <summary>{item.question}</summary>
+                  <p>{item.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
-      <button className="settings-link" onClick={() => navigate("/settings")}>
-        ⚙ {t("settings")}
-      </button>
-      <button className="settings-link" onClick={() => navigate("/memory")}>
-        ◷ {t("examMemory")}
-      </button>
       <button className="legal-link" onClick={() => navigate("/legal")}>
         {t("legalLink")}
       </button>

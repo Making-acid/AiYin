@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-This project, IELTS Speaking Practice (the "Software"), incorporates the following
+This project, AiYin / 爱音 (the "Software"), incorporates the following
 third-party software and content under their respective licenses.
 
 ---
@@ -108,10 +108,11 @@ own `LICENSE` and `README.md` files are retained beside the installed model.
 
 The IELTS speaking question bank data in `backend/data/exams/ielts/questions/`
 includes material adapted from the **New Oriental (新东方) IELTS Speaking
-Question Bank 2026 May–August (Version 2)**.
+Question Bank 2026 May–August (Version 2)**. The original source PDF is not
+included in this repository or in release packages.
 
 Copyright of the original question collection belongs to New Oriental
-Education & Technology Group Inc. These question materials and the archived
+Education & Technology Group Inc. These question materials and the original
 source document are not covered by the project's MIT License. Attribution does
 not itself grant permission to redistribute them. Anyone publishing or
 redistributing a build must obtain any permission required for that use, or
@@ -159,6 +160,6 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 ---
 
-*This file was updated on 2026-08-14. If you believe any attribution is
+*This file was updated on 2026-08-30. If you believe any attribution is
 missing or incorrect, please open an issue at
-https://github.com/Making-acid/ielts-speaking-ai.*
+https://github.com/Making-acid/爱音.*

@@ -1,6 +1,6 @@
 # 前端开发说明
 
-本目录是 IELTS Speaking 的 React + TypeScript + Vite 前端。普通用户无需在此执行任何命令，请阅读[中文用户指南](../docs/user/README.md)。
+本目录是爱音的 React + TypeScript + Vite 前端。普通用户无需在此执行任何命令，请阅读[中文用户指南](../docs/user/README.md)。
 
 ## 开发命令
 

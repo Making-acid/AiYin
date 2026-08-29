@@ -33,7 +33,7 @@ def test_release_version_is_consistent_across_runtimes():
 
 def test_release_excludes_local_user_config_files():
     project_root = Path(__file__).parents[2]
-    spec_source = (project_root / "backend" / "IELTS Speaking Backend.spec").read_text(
+    spec_source = (project_root / "backend" / "AiYin Backend.spec").read_text(
         encoding="utf-8"
     )
 

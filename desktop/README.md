@@ -22,14 +22,14 @@ dotnet run --project desktop/IELTSSpeaking.Desktop
 .\desktop\build-webview-release.ps1
 ```
 
-脚本会把正式发布目录、中间文件、微软 WebView2 Evergreen 引导程序和 Inno Setup 安装包写入仓库外的 `IELTS-Speaking-WebView2-Beta-1.2.1-Release`。使用 `-SkipInstaller` 可只生成应用目录。
+脚本会把正式发布目录、中间文件、微软 WebView2 Evergreen 引导程序和 Inno Setup 安装包写入仓库外的 `AiYin-WebView2-Beta-1.3-Release`。使用 `-SkipInstaller` 可只生成应用目录。
 
 ## 运行边界
 
 - WebView2 只允许当前 `http://127.0.0.1:<动态端口>` 应用来源。
 - 外部 HTTP(S) 链接交给系统浏览器。
 - 麦克风只授权给本地应用来源，摄像头默认拒绝。
-- WebView2 配置保存在 `%LOCALAPPDATA%\IELTS Speaking\WebView2`。
+- 为保证从旧版覆盖升级后保留配置和登录态，WebView2 数据继续使用兼容目录 `%LOCALAPPDATA%\IELTS Speaking\WebView2`；该路径属于内部兼容细节，不代表当前产品名称。
 - 关闭或重启窗口时回收整个后端进程树；Windows Job Object 负责异常退出兜底。
 
 完整架构、测试和版本要求见[中文开发者指南](../docs/developer/README.md)。

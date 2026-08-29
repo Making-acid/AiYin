@@ -25,7 +25,7 @@ const GUIDE: Record<"zh" | "en", { title: string; intro: string; sections: Guide
           "登录 Azure Portal，创建 Speech service 或包含 Speech 功能的 Azure AI services 资源。",
           "个人试用建议优先选择 Free F0 定价层；同一订阅通常只能创建有限数量的 F0 资源。",
           "资源部署完成后，进入 Keys and Endpoint，复制 KEY 1 或 KEY 2，并记录 Region，例如 eastus、southeastasia。不要填写完整 Endpoint URL。",
-          "回到本应用的“设置 → 角色语音”，选择 Azure Speech，填写 Key、Region、Haru 音色和 Mao 音色，然后保存。",
+          "回到本应用的“选项 → 角色语音”，选择 Azure Speech，填写 Key、Region、Haru 音色和 Mao 音色，然后保存。",
           "先分别试听 Haru 与 Mao；确认语言和音色正确后再开始考试或自由对话。试听也会消耗 Azure 字符额度。",
         ],
       },
@@ -68,11 +68,11 @@ const GUIDE: Record<"zh" | "en", { title: string; intro: string; sections: Guide
     intro: "Azure Speech is an optional third-party character voice service. Browser speech always remains available and is used automatically when Azure is not configured or temporarily unavailable.",
     sections: [
       { title: "Before you begin", paragraphs: ["You need your own Microsoft Azure account and Speech resource. This project does not provide or resell Azure access, keys, allowances, or billing.", "Azure is called only to read character replies. Enabling Azure TTS does not send the user's microphone recording to Azure Speech."] },
-      { title: "Create and configure", steps: ["Sign in to Azure Portal and create a Speech service or an Azure AI services resource with Speech enabled.", "For personal evaluation, prefer the Free F0 tier when it is available.", "Open Keys and Endpoint, copy KEY 1 or KEY 2, and note the Region such as eastus or southeastasia. Enter the region name, not the full endpoint URL.", "In this app, open Settings → Character voices, select Azure Speech, and enter the key, region, and character voice names.", "Preview Haru and Mao before beginning. Preview synthesis also consumes the character allowance."] },
+      { title: "Create and configure", steps: ["Sign in to Azure Portal and create a Speech service or an Azure AI services resource with Speech enabled.", "For personal evaluation, prefer the Free F0 tier when it is available.", "Open Keys and Endpoint, copy KEY 1 or KEY 2, and note the Region such as eastus or southeastasia. Enter the region name, not the full endpoint URL.", "In this app, open Options → Character voices, select Azure Speech, and enter the key, region, and character voice names.", "Preview Haru and Mao before beginning. Preview synthesis also consumes the character allowance."] },
       { title: "Recommended voices", paragraphs: ["Haru defaults to en-GB-SoniaNeural. Mao defaults to en-US-AnaNeural; en-US-AvaNeural and en-US-AriaNeural are useful alternatives.", "For the most reliable Live2D viseme lip sync, prefer an en-US neural voice. Other locales can play normally but may use playback-timed fallback mouth movement."] },
       { title: "Costs and limits", paragraphs: ["At the time of this guide, Free F0 includes 500,000 neural TTS characters per month and permits 20 real-time text-to-speech transactions per 60 seconds.", "Standard S0 is metered by synthesized characters. Rates depend on region, currency, and account agreement. Punctuation and some SSML content can count, and language-mismatched requests can be billable even when speech is not produced.", "Allowances and prices can change. Verify the official pricing page and Azure Portal, and configure an Azure Cost Management budget and alert before enabling the service."] },
       { title: "Keys, privacy, and data flow", paragraphs: ["The Azure key is stored in the app's local backend configuration and is not returned directly to the page. The page receives only a short-lived authorization token. Regenerate the key in Azure Portal if it is exposed.", "The reply text spoken by Haru or Mao is sent to Microsoft for synthesis. Microsoft's terms, privacy, retention, and billing rules apply."] },
-      { title: "Troubleshooting", steps: ["401/403: the key and region may not belong to the same resource, the key may be invalid, or the resource may lack access.", "429: requests are too frequent or the selected voice has limited capacity in that region. Wait and retry.", "No audio: verify the exact voice name, output device, and browser autoplay permission. The app will then try browser speech.", "Loose lip sync: standard visemes primarily support en-US neural voices. Try AnaNeural, AvaNeural, or AriaNeural.", "To stop using Azure, select Browser speech in Settings. This does not delete the Azure resource; disable or delete it separately in Azure Portal if required."] },
+      { title: "Troubleshooting", steps: ["401/403: the key and region may not belong to the same resource, the key may be invalid, or the resource may lack access.", "429: requests are too frequent or the selected voice has limited capacity in that region. Wait and retry.", "No audio: verify the exact voice name, output device, and browser autoplay permission. The app will then try browser speech.", "Loose lip sync: standard visemes primarily support en-US neural voices. Try AnaNeural, AvaNeural, or AriaNeural.", "To stop using Azure, select Browser speech in Options. This does not delete the Azure resource; disable or delete it separately in Azure Portal if required."] },
     ],
   },
 };
@@ -86,7 +86,7 @@ export function AzureSpeechHelp() {
       <DocumentNavigation fallback="/settings" />
       <main className="legal-container">
         <header className="legal-header">
-          <p className="legal-kicker">IELTS Speaking Practice · Azure Speech</p>
+          <p className="legal-kicker">爱音 · Azure Speech</p>
           <h1>{guide.title}</h1>
           <p>{guide.intro}</p>
         </header>

@@ -7,7 +7,7 @@ Effective date: 11 August 2026
 
 ### 1. Educational practice tool
 
-IELTS Speaking Practice (the "Software") is an independent, AI-assisted
+AiYin / 爱音 (the "Software") is an independent, AI-assisted
 practice tool. It is not an examination, registration, booking, tutoring, or
 score-verification service. Using the Software does not register you for an
 IELTS test and does not produce a Test Report Form or any other official
@@ -90,7 +90,7 @@ If you do not agree, do not install or use it.
 
 ### 1. 教育练习工具
 
-IELTS Speaking Practice（下称“本软件”）是独立开发的 AI 辅助练习工具，不提供考试、报名、
+爱音（AiYin，下称“本软件”）是独立开发的 AI 辅助练习工具，不提供考试、报名、
 预约、人工辅导或成绩核验服务。使用本软件不会完成 IELTS 考试报名，也不会生成成绩单、证书
 或任何官方资质。
 

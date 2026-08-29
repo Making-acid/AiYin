@@ -14,7 +14,7 @@ backend/build/
 backend/dist/
 backend/*.spec
 !backend/IELTS Speaking v0.6.0.spec
-!backend/IELTS Speaking Backend.spec
+!backend/AiYin Backend.spec
 installer/
 release/
 
@@ -63,3 +63,4 @@ Thumbs.db
 
 # PyInstaller output (in backend/)
 backend/IELTS Speaking/
+backend/AiYin Backend/
