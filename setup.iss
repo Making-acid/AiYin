@@ -28,6 +28,13 @@ AllowNoIcons=yes
 UsePreviousAppDir=yes
 OutputDir={#MyOutputDir}
 OutputBaseFilename=AiYin-Beta-1.3-Setup
+; The fully offline release is larger than GitHub's per-asset limit. Keep every
+; generated file below 2 GB so all installer volumes can be attached to a
+; single GitHub release. Users place the EXE and BIN files together and run
+; the EXE normally.
+DiskSpanning=yes
+DiskSliceSize=1900000000
+SlicesPerDisk=1
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern

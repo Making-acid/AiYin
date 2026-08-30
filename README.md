@@ -10,7 +10,7 @@
 
 ## 下载与使用
 
-普通用户请从 GitHub 的 [Releases](https://github.com/Making-acid/爱音/releases) 下载最新安装包。安装版面向 Windows 10/11 x64，并保留原安装器 AppId，可覆盖升级旧版；正常覆盖安装不会主动删除本地配置、聊天记录和历史模拟报告。
+普通用户请从 GitHub 的 [Releases](https://github.com/Making-acid/爱音/releases) 下载最新安装包。完整离线版采用分卷安装：请下载同一版本的 `Setup.exe` 和全部 `Setup-*.bin`，放在同一文件夹后双击 `Setup.exe`。安装版面向 Windows 10/11 x64，并保留原安装器 AppId，可覆盖升级旧版；正常覆盖安装不会主动删除本地配置、聊天记录和历史模拟报告。
 
 首次使用：
 
@@ -104,7 +104,7 @@ WebView2 只负责桌面生命周期、权限、导航和本地后端进程管�
 .\desktop\build-webview-release.ps1
 ```
 
-产物会写入仓库外的 `AiYin-WebView2-Beta-1.3-Release`，不会污染源码目录。`AppStage` 是完整便携版目录，不能只分发其中单个 EXE；`Installer` 中为覆盖安装包。
+产物会写入仓库外的 `AiYin-WebView2-Beta-1.3-Release`，不会污染源码目录。`AppStage` 是完整便携版目录，不能只分发其中单个 EXE；`Installer` 中为覆盖安装包。由于离线模型体积较大，安装器由 `Setup.exe` 与若干 `Setup-*.bin` 组成，发布或安装时缺一不可。
 
 ## 许可证与第三方内容
 

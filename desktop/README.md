@@ -22,7 +22,7 @@ dotnet run --project desktop/IELTSSpeaking.Desktop
 .\desktop\build-webview-release.ps1
 ```
 
-脚本会把正式发布目录、中间文件、微软 WebView2 Evergreen 引导程序和 Inno Setup 安装包写入仓库外的 `AiYin-WebView2-Beta-1.3-Release`。使用 `-SkipInstaller` 可只生成应用目录。
+脚本会把正式发布目录、中间文件、微软 WebView2 Evergreen 引导程序和 Inno Setup 分卷安装包写入仓库外的 `AiYin-WebView2-Beta-1.3-Release`。安装介质包含一个 `Setup.exe` 和若干 `Setup-*.bin`，它们必须放在同一目录。使用 `-SkipInstaller` 可只生成应用目录。
 
 ## 运行边界
 

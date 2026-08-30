@@ -68,7 +68,7 @@ Beta 1.3 的内部语义版本为 `1.3.0-beta.1`。版本由测试约束在后�
 发布脚本会在仓库外创建 `AiYin-WebView2-Beta-1.3-Release`，其中：
 
 - `AppStage/`：便携桌面发布目录，不能只复制其中一个 EXE。
-- `Installer/`：Inno Setup 覆盖安装包。
+- `Installer/`：Inno Setup 覆盖安装包。完整离线版使用小于 2 GB 的分卷文件，发布时必须同时提供 `Setup.exe` 和全部 `Setup-*.bin`。
 - `Prerequisites/`：微软 WebView2 Evergreen 引导程序。
 - `Build/` 与 `BackendStage/`：中间构建产物。
 
