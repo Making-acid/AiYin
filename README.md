@@ -10,7 +10,7 @@
 
 ## 下载与使用
 
-普通用户请从 GitHub 的 [Releases](https://github.com/Making-acid/爱音/releases) 下载最新安装包。完整离线版采用分卷安装：请下载同一版本的 `Setup.exe` 和全部 `Setup-*.bin`，放在同一文件夹后双击 `Setup.exe`。安装版面向 Windows 10/11 x64，并保留原安装器 AppId，可覆盖升级旧版；正常覆盖安装不会主动删除本地配置、聊天记录和历史模拟报告。
+普通用户请从 GitHub 的 [Releases](https://github.com/Making-acid/AiYin/releases) 下载最新安装包。完整离线版采用分卷安装：请下载同一版本的 `Setup.exe` 和全部 `Setup-*.bin`，放在同一文件夹后双击 `Setup.exe`。安装版面向 Windows 10/11 x64，并保留原安装器 AppId，可覆盖升级旧版；正常覆盖安装不会主动删除本地配置、聊天记录和历史模拟报告。
 
 首次使用：
 

@@ -7,7 +7,7 @@
 #define MyAppVersion "1.3.0-beta.1"
 #define MyAppDisplayVersion "Beta 1.3"
 #define MyAppPublisher "爱音"
-#define MyAppURL "https://github.com/Making-acid/爱音"
+#define MyAppURL "https://github.com/Making-acid/AiYin"
 #define MyAppExeName "爱音.exe"
 #define MyReleaseRoot "..\AiYin-WebView2-Beta-1.3-Release"
 #define MySourceDir MyReleaseRoot + "\AppStage"

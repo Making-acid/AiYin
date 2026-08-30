@@ -162,4 +162,4 @@ https://www.gnu.org/licenses/gpl-3.0.html
 
 *This file was updated on 2026-08-30. If you believe any attribution is
 missing or incorrect, please open an issue at
-https://github.com/Making-acid/爱音.*
+https://github.com/Making-acid/AiYin.*
